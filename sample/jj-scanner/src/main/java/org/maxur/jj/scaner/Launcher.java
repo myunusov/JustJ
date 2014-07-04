@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 
-import static org.maxur.jj.reflect.Reflection.getAllClassesFrom;
+import static org.maxur.jj.utils.Reflection.getAllClassesFrom;
 
 /**
  * @author Maxim Yunusov

@@ -31,7 +31,7 @@ public class Pair<T, S> {
     }
 
     public static <T, S> Pair<T, S> of(final T key, final S value) {
-        return new Pair<T, S>(key, value);
+        return new Pair<>(key, value);
     }
 
     public T key() {

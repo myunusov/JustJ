@@ -13,21 +13,31 @@
  *    limitations under the License.
  */
 
-package org.maxur.jj.reflect;
+package org.maxur.jj.utils;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.maxur.jj.utils.Pair;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.Map;
 
+import static java.lang.ClassLoader.getSystemClassLoader;
+import static java.nio.file.Files.createDirectory;
+import static java.nio.file.Files.deleteIfExists;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.maxur.jj.reflect.Reflection.getClassPathEntries;
 import static org.maxur.jj.utils.Arrays.toMap;
+import static org.maxur.jj.utils.Reflection.getClassPathEntries;
+import static org.maxur.jj.utils.Reflection.loadJarBy;
 
 /**
  * @author Maxim Yunusov
@@ -36,22 +46,48 @@ import static org.maxur.jj.utils.Arrays.toMap;
  */
 public class ReflectionTest {
 
-/*    @Test
+    private final static String DIR_NAME = "tmp";
+    private final static String FILE_NAME = "fake.jar";
+    private final static String PATH_NAME = DIR_NAME + "/" + FILE_NAME;
+
+    private static File jarFile;
+
+    @BeforeClass
+    public static void setUp() throws Exception {
+        final File directory = new File(DIR_NAME);
+        if (!directory.exists()) {
+            createDirectory(directory.toPath());
+        }
+        jarFile = new File(PATH_NAME);
+        deleteIfExists(jarFile.toPath());
+        try (InputStream jarFileStream = ReflectionTest.class.getResourceAsStream("/" + FILE_NAME)) {
+            Files.copy(jarFileStream, jarFile.toPath());
+        }
+    }
+
+    @AfterClass
+    public static void tearDown() throws Exception {
+        try {
+            deleteIfExists(jarFile.toPath());
+        } catch (IOException e) {
+            // Ignore;
+        }
+    }
+
+    @Test
     public void testLoadJarBy() throws Exception {
-        final String pathname = "test-resources/fake-1.jar";
-        loadJarBy(pathname);
+        loadJarBy(PATH_NAME);
         final Class clazz = getSystemClassLoader().loadClass("org.maxur.jj.utils.fake.Fake");
         assertNotNull(clazz.newInstance());
     }
 
     @Test
-    public void testIdempotenceOfLoadJarBy() throws Exception {
-        final String pathname = "test-resources/fake-1.jar";
-        loadJarBy(pathname);
-        loadJarBy(pathname);
+    public void testIdempotentOfLoadJarBy() throws Exception {
+        loadJarBy(PATH_NAME);
+        loadJarBy(PATH_NAME);
         final Class clazz = getSystemClassLoader().loadClass("org.maxur.jj.utils.fake.Fake");
         assertNotNull(clazz.newInstance());
-    }*/
+    }
 
 
     @Test

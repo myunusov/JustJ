@@ -16,7 +16,7 @@
 package org.maxur.jj.reflect;
 
 import org.junit.Test;
-import org.maxur.jj.reflect.fake.sub.ClassInSubPackage;
+import org.maxur.jj.reflect.fake.ClassInSubPackage;
 
 import java.util.HashMap;
 import java.util.HashSet;

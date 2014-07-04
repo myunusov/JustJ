@@ -13,12 +13,9 @@
  *    limitations under the License.
  */
 
-package org.maxur.jj.reflect;
-
-import org.maxur.jj.utils.ClassScanner;
+package org.maxur.jj.utils;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -27,12 +24,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import static java.lang.ClassLoader.getSystemClassLoader;
-import static java.lang.String.format;
-import static java.net.URLDecoder.decode;
 import static org.maxur.jj.utils.Arrays.contains;
 
 /**
@@ -46,21 +40,6 @@ public final class Reflection {
         //empty - prevent construction
     }
 
-    public static List<Class<?>> getAllClassesFrom(final String path, final String... packages)
-            throws ClassNotFoundException, IOException {
-        final File classPathFile = new File(decode(path, "UTF-8"));
-        final ClassScanner scanner;
-        if (classPathFile.isDirectory()) {
-            scanner = new DirClassScanner(packages);
-        } else if (classPathFile.isFile()) {
-            scanner = new JarClassScanner(path, packages);
-        } else {
-            throw new IllegalArgumentException(format("Can not find classes. The Path %s is invalid", path));
-        }
-        return scanner.getAllClassesFrom();
-    }
-
-
     public static void loadJarBy(final String pathName)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, MalformedURLException {
         final File file = new File(pathName);
@@ -72,10 +51,8 @@ public final class Reflection {
         //noinspection unchecked
         Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
         method.setAccessible(true);
-
         method.invoke(systemClassLoader, url);
     }
-
 
     public static Map<URI, ClassLoader> getClassPathEntries(final ClassLoader classloader) {
         final Map<URI, ClassLoader> result = new LinkedHashMap<>();

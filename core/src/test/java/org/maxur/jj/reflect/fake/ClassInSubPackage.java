@@ -13,7 +13,7 @@
  *    limitations under the License.
  */
 
-package org.maxur.jj.reflect.fake.sub;
+package org.maxur.jj.reflect.fake;
 
 /**
  * @author Maxim Yunusov

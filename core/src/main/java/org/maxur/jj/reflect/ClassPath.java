@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static org.maxur.jj.reflect.Reflection.getClassPathEntries;
+import static org.maxur.jj.utils.Reflection.getClassPathEntries;
 import static org.maxur.jj.utils.Contracts.notNull;
 
 /**
