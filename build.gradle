@@ -1,58 +1,94 @@
 apply plugin: "idea"
 apply plugin: "eclipse"
-apply plugin: 'maven'
+
 
 description = 'JustJ is a Light POJO IoC and ORM Framework'
 version = '1.0.1-SNAPSHOT'
 
-uploadArchives {
-  repositories.mavenDeployer {
-    configuration = configurations.archives
+allprojects {
+  group = 'org.maxur.justj'
+}
 
-    repository(url: "http://127.0.0.1:8081/nexus/content/repositories/snapshots/") {
-      authentication(userName: 'admin', password: 'admin123')
-    }
-
-    pom.project {
-      packaging 'pom'
-      url 'https://github.com/myunusov/JustJ.git'
-      inceptionYear '2014'
-
-      scm {
-        url 'scm:git@github.com:myunusov/JustJ.git'
-        connection 'scm:git@github.com:myunusov/JustJ.git'
+subprojects {
+  repositories {
+    if (mavenProxyUrl) {
+      maven {
+        url = mavenProxyUrl
       }
-
-      licenses {
-        license {
-          name 'The Apache Software License, Version 2.0'
-          url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-          distribution 'repo'
-        }
-      }
-
-      developers {
-        developer {
-          id 'myunusov'
-          name 'Maxim Yunusov'
-          email 'myunusov@maxur.org'
-          url 'http://www.maxur.org'
-          roles {
-            role 'Developer'
-          }
-          timezone '-6'
-        }
-      }
+    } else {
+      mavenLocal()
+      mavenCentral()
     }
   }
 }
 
-allprojects {
-    group = 'org.maxur.justj'
+configure(subprojects.findAll {!it.name.contains('sample')}) {
+  apply plugin: 'maven'
+
+  uploadArchives {
+    repositories.mavenDeployer {
+      configuration = configurations.archives
+
+      repository(url: deployRepositoriesUrl + "/releases/") {
+        authentication(userName: deployRepositoriesUser, password: deployRepositoriesPassword)
+      }
+
+      snapshotRepository(url: deployRepositoriesUrl + "/snapshots/") {
+        authentication(userName: deployRepositoriesUser, password: deployRepositoriesPassword)
+      }
+
+      pom.project {
+        packaging 'pom'
+        url 'https://github.com/myunusov/JustJ.git'
+        inceptionYear '2014'
+
+        scm {
+          url 'scm:git@github.com:myunusov/JustJ.git'
+          connection 'scm:git@github.com:myunusov/JustJ.git'
+        }
+
+        licenses {
+          license {
+            name 'The Apache Software License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution 'repo'
+          }
+        }
+
+        developers {
+          developer {
+            id 'myunusov'
+            name 'Maxim Yunusov'
+            email 'myunusov@maxur.org'
+            url 'http://www.maxur.org'
+            roles {
+              role 'Developer'
+            }
+            timezone '-6'
+          }
+        }
+      }
+    }
+  }
+
 }
 
-subprojects {
+configure(subprojects.findAll {it.name != 'sample'}) {
   apply plugin: "java"
+
+  println('MODULE: ' + name)
+
+  ext.slf4j_version='1.7.5'
+
+  dependencies {
+    compile group: 'com.google.code.findbugs', name: 'jsr305', version: '2.0.3'
+    compile group: 'org.slf4j', name: 'slf4j-api', version: slf4j_version
+    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: slf4j_version
+    compile group: 'org.slf4j', name: 'log4j-over-slf4j', version: slf4j_version
+
+    testCompile 'junit:junit:4.11'
+    testCompile 'org.mockito:mockito-core:1.9.5'
+  }
 
   tasks.withType(JavaCompile) {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -79,11 +115,8 @@ subprojects {
     archives sourcesJar
     archives javadocJar
   }
-
-  repositories {
-    mavenCentral()
-  }
 }
+
 
 task wrapper(type: Wrapper) {
   gradleVersion = '2.0'
