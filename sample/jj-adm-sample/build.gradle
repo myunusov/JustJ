@@ -1,0 +1,22 @@
+apply plugin: "application"
+
+version = '1.0.1-SNAPSHOT'
+
+mainClassName = "org.maxur.jj.sample.adm.Launcher"
+
+def slf4j_version="1.7.5"
+
+dependencies {
+  compile project(':core')
+  compile project(':orm')
+
+  compile group: 'com.google.code.findbugs', name: 'jsr305', version: '2.0.3'
+
+  compile group: 'org.slf4j', name: 'slf4j-api', version: slf4j_version
+  compile group: 'org.slf4j', name: 'slf4j-log4j12', version: slf4j_version
+  compile group: "org.slf4j", name: 'log4j-over-slf4j', version: slf4j_version
+}
+
+jar {
+  manifest.attributes("Main-Class": mainClassName);
+}

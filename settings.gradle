@@ -1,0 +1,4 @@
+rootProject.name = 'JustJ'
+
+include 'core', 'orm', 'sample:jj-adm-sample'
+
