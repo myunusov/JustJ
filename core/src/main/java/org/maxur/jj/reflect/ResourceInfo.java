@@ -15,6 +15,7 @@
 
 package org.maxur.jj.reflect;
 
+import javax.annotation.Nullable;
 import java.net.URL;
 
 import static org.maxur.jj.utils.Contracts.notNull;
@@ -79,11 +80,8 @@ public class ResourceInfo implements Comparable<ResourceInfo> {
         return resourceName;
     }
 
-    public int compareTo(final ResourceInfo o) {   // TODO
-        if (o == null) {
-            return -1;
-        }
-        return getId().compareTo(o.getId());
+    public int compareTo(@Nullable final ResourceInfo o) {
+        return o == null ? -1 : getId().compareTo(o.getId());
     }
 
     public boolean isClass() {
