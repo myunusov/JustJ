@@ -1,4 +1,4 @@
 rootProject.name = 'JustJ'
 
-include 'justj-core', 'justj-orm', 'sample:jj-adm-sample'
+include 'justj-core', 'justj-orm', 'justj-commons', 'sample:jj-adm-sample'
 

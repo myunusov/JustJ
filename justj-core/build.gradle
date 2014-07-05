@@ -2,4 +2,7 @@ apply plugin: 'maven'
 
 version = '1.0.1-SNAPSHOT'
 
+dependencies {
+  compile project(':justj-commons')
+}
 
