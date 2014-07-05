@@ -13,7 +13,7 @@
  *     limitations under the License.
  */
 
-package org.maxur.jj.sample.adm;
+package org.maxur.jj.sample.lazy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

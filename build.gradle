@@ -84,7 +84,6 @@ configure(subprojects.findAll {it.name != 'sample'}) {
     compile group: 'com.google.code.findbugs', name: 'jsr305', version: '2.0.3'
     compile group: 'org.slf4j', name: 'slf4j-api', version: slf4j_version
     compile group: 'org.slf4j', name: 'slf4j-log4j12', version: slf4j_version
-    compile group: 'org.slf4j', name: 'log4j-over-slf4j', version: slf4j_version
 
     testCompile 'junit:junit:4.11'
     testCompile 'org.mockito:mockito-core:1.9.5'
