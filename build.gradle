@@ -78,7 +78,7 @@ configure(subprojects.findAll {it.name != 'sample'}) {
 
   println('MODULE: ' + name)
 
-  ext.slf4j_version='1.7.5'
+  ext.slf4j_version='1.7.7'
 
   dependencies {
     compile group: 'com.google.code.findbugs', name: 'jsr305', version: '2.0.3'
