@@ -1,3 +1,5 @@
+apply plugin: 'maven'
+
 version = '1.0.1-SNAPSHOT'
 
 def slf4j_version='1.7.5'
