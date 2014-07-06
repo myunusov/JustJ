@@ -33,6 +33,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.zip.ZipException;
 
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
@@ -109,14 +110,7 @@ final class Scanner {
     }
 
     private void scanJar(final File file, final ClassLoader classloader) throws IOException {
-        final JarFile jarFile;
-        try {
-            jarFile = new JarFile(file);
-        } catch (IOException e) {
-            // Not a jar file
-            return;
-        }
-        try {
+        try (JarFile jarFile = new JarFile(file)) {
             for (URI uri : getClassPathFromManifest(file, jarFile.getManifest())) {
                 scan(uri, classloader);
             }
@@ -128,11 +122,8 @@ final class Scanner {
                 }
                 resources.add(ResourceInfo.of(entry.getName(), classloader));
             }
-        } finally {
-            try {
-                jarFile.close();
-            } catch (IOException ignored) {
-            }
+        } catch (ZipException ignore) {
+
         }
     }
 

@@ -1,7 +1,6 @@
 apply plugin: "idea"
 apply plugin: "eclipse"
 
-
 description = 'JustJ is a Light POJO IoC and ORM Framework'
 version = '1.0.1-SNAPSHOT'
 
@@ -73,12 +72,15 @@ configure(subprojects.findAll {!it.name.contains('sample')}) {
 
 }
 
+def rootDir = projectDir;
+
 configure(subprojects.findAll {it.name != 'sample'}) {
   apply plugin: "java"
   apply plugin: "sonar-runner"
-  //apply plugin: "sonar"
 
   println('MODULE: ' + name)
+
+  //apply from: "file:${rootDir}/clover.gradle"
 
   ext.slf4j_version='1.7.7'
 
@@ -99,20 +101,53 @@ configure(subprojects.findAll {it.name != 'sample'}) {
       property "sonar.jdbc.driverClassName", sonarJdbcDriverClassName
       property "sonar.jdbc.username", sonarJdbcUsername
       property "sonar.jdbc.password", sonarJdbcPassword
+      property "sonar.sourceEncoding", "UTF-8"
+      property "sonar.language", "java"
     }
   }
 
-/*  sonar {
-    server {
-      url = sonarUrl
+  if (project.hasProperty("withJacoco")) {
+
+    println("With Jacoco")
+
+    apply plugin: 'jacoco'
+
+    sonarRunner {
+      sonarProperties {
+        property "sonar.jacoco.reportPath", "$buildDir/jacoco/jacocoTest.exec"
+        property "sonar.jacoco.itReportPath", "$buildDir/jacoco/jacocoIntegTest.exec"
+      }
     }
-    database {
-      url = sonarJdbcUrl
-      driverClassName = sonarJdbcDriverClassName
-      username = sonarJdbcUsername
-      password = sonarJdbcPassword
+
+    sourceSets {
+      integtest {
+        java {
+          compileClasspath += main.output
+          runtimeClasspath += main.output
+          srcDir 'src/integtest/java'
+        }
+      }
     }
-  }*/
+
+    configurations {
+      integtestCompile.extendsFrom testCompile
+    }
+
+    task "integtest"(type: Test, dependsOn: integtestClasses) {
+      testClassesDir = sourceSets.integtest.output.classesDir
+      classpath = sourceSets.integtest.runtimeClasspath
+
+      jacoco {
+        destinationFile = file("$buildDir/jacoco/jacocoIntegTest.exec")
+      }
+    }
+
+    test {
+      jacoco {
+        destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
+      }
+    }
+  }
 
   tasks.withType(JavaCompile) {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -139,6 +174,7 @@ configure(subprojects.findAll {it.name != 'sample'}) {
     archives sourcesJar
     archives javadocJar
   }
+
 }
 
 

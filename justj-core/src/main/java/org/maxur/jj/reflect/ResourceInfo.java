@@ -88,4 +88,7 @@ public class ResourceInfo implements Comparable<ResourceInfo> {
         return false;
     }
 
+    public ClassInfo asClassInfo() {
+        return this.isClass() ? (ClassInfo) this : null;
+    }
 }

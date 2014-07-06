@@ -46,13 +46,6 @@ public class ArraysTest {
     }
 
     @Test(expected = java.lang.IllegalArgumentException.class)
-    public void testToSetNull() throws Exception {
-        //noinspection NullArgumentToVariableArgMethod
-        final Set<String> result = toSet(null);
-        assertEquals(0, result.size());
-    }
-
-    @Test(expected = java.lang.IllegalArgumentException.class)
     public void testToSetArrayWithNull() throws Exception {
         toSet("1", null);
     }

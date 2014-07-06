@@ -23,10 +23,10 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
-import static org.maxur.jj.utils.Reflection.getClassPathEntries;
+import static java.util.stream.Collectors.toSet;
 import static org.maxur.jj.utils.Contracts.notNull;
+import static org.maxur.jj.utils.Reflection.getClassPathEntries;
 
 /**
  * @author Maxim Yunusov
@@ -72,8 +72,8 @@ public final class ClassPath {
     public Set<ClassInfo> getAllClasses() {
         return resources.stream()
                 .filter(ResourceInfo::isClass)
-                .map(resourceInfo -> (ClassInfo) resourceInfo)
-                .collect(Collectors.toSet());
+                .map(ri -> {return ri.asClassInfo();})     // XXX Clover Error ! Must be .map(ResourceInfo::asClassInfo)
+                .collect(toSet());
     }
 
     /**
@@ -82,9 +82,9 @@ public final class ClassPath {
     public Set<ClassInfo> getTopLevelClasses() {
         return resources.stream()
                 .filter(ResourceInfo::isClass)
-                .map(resourceInfo -> (ClassInfo) resourceInfo)
+                .map(ri -> {return ri.asClassInfo();})     // XXX Clover Error ! Must be .map(ResourceInfo::asClassInfo)
                 .filter(ClassInfo::isTopLevel)
-                .collect(Collectors.toSet());
+                .collect(toSet());
     }
 
     /**
@@ -96,10 +96,10 @@ public final class ClassPath {
         notNull(packageName);
         return resources.stream()
                 .filter(ResourceInfo::isClass)
-                .map(resourceInfo -> (ClassInfo) resourceInfo)
+                .map(ri -> {return ri.asClassInfo();})     // XXX Clover Error ! Must be .map(ResourceInfo::asClassInfo)
                 .filter(ClassInfo::isTopLevel)
                 .filter(makePredicate(packageName))
-                .collect(Collectors.toSet());
+                .collect(toSet());
     }
 
     private Predicate<? super ClassInfo> makePredicate(String packageName) {

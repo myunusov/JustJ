@@ -16,7 +16,6 @@
 package org.maxur.jj.orm;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -34,42 +33,48 @@ import static java.util.Collections.emptyList;
  */
 public final class ROMapper {
 
-    private static final Map<Class, EntityMetaData> metaDataCache = new HashMap<>();
+    private static final Map<Class, EntityMetaData> META_DATA_HASH_MAP = new HashMap<>();
 
     private ROMapper() {
         // Util class
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> List<T> map(final ResultSet resultSet, final Class<? extends T> outputClass)
-            throws SQLException, IllegalAccessException, InstantiationException, InvocationTargetException {
+    public static <T> List<T> map(
+            final ResultSet resultSet,
+            final Class<? extends T> outputClass
+    ) throws ORMException {
         if (resultSet == null) {
             return emptyList();
         }
         final EntityMetaData<T> entityMetaData = getEntityMetaData(outputClass);
-        final ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
         final List<T> outputList = new ArrayList<>();
-        while (resultSet.next()) {
-            final T bean = outputClass.newInstance();
-            for (int i = 0; i < resultSetMetaData.getColumnCount(); i++) {
-                final String columnName = resultSetMetaData.getColumnName(i + 1);
-                final Field field = entityMetaData.fieldBy(columnName, i);
-                if (field != null) {
-                    field.setAccessible(true);
-                    field.set(bean, resultSet.getObject(i + 1));
+        try {
+            final ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+            while (resultSet.next()) {
+                final T bean = outputClass.newInstance();
+                for (int i = 0; i < resultSetMetaData.getColumnCount(); i++) {
+                    final String columnName = resultSetMetaData.getColumnName(i + 1);
+                    final Field field = entityMetaData.fieldBy(columnName, i);
+                    if (field != null) {
+                        field.setAccessible(true);
+                        field.set(bean, resultSet.getObject(i + 1));
+                    }
                 }
+                outputList.add(bean);
             }
-            outputList.add(bean);
+        } catch (SQLException | InstantiationException | IllegalAccessException e) {
+           throw new ORMException(e);
         }
         return outputList;
     }
 
     private static <T> EntityMetaData getEntityMetaData(Class<? extends T> entityClass) {
         //noinspection unchecked
-        EntityMetaData<T> result = metaDataCache.get(entityClass);
+        EntityMetaData<T> result = META_DATA_HASH_MAP.get(entityClass);
         if (result == null) {
             result = new EntityMetaData<>(entityClass);
-            metaDataCache.put(entityClass, result);
+            META_DATA_HASH_MAP.put(entityClass, result);
         }
         return result;
     }
@@ -83,17 +88,22 @@ public final class ROMapper {
         EntityMetaData(final Class<? extends T> entityClass) {
             if (entityClass.isAnnotationPresent(Entity.class)) {
                 for (Field field : entityClass.getDeclaredFields()) {
-                    if (field.isAnnotationPresent(Column.class)) {
-                        final Column column = field.getAnnotation(Column.class);
-                        if (!column.name().isEmpty()) {
-                            name2Field.put(column.name(), field);
-                        } else if (column.index() != -1) {
-                            number2Field.put(column.index(), field);
-                        }
-                    }
+                    process(field);
                 }
             }
         }
+
+        private void process(final Field field) {
+            if (field.isAnnotationPresent(Column.class)) {
+                final Column column = field.getAnnotation(Column.class);
+                if (!column.name().isEmpty()) {
+                    name2Field.put(column.name(), field);
+                } else if (column.index() != -1) {
+                    number2Field.put(column.index(), field);
+                }
+            }
+        }
+
         public Field fieldBy(final String name, final int index) {
             final Field field = name2Field.get(name);
             return field == null ? number2Field.get(index) : field;

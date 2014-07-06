@@ -15,6 +15,8 @@
 
 package org.maxur.jj.utils;
 
+import checkers.nullness.quals.NonNull;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,21 +37,21 @@ public final class Arrays {
     }
 
     @SafeVarargs
-    public static <T> Set<T> toSet(final T... array) {
+    public static <T> Set<T> toSet(@NonNull final T... array) {
         notNull(array);
         notContainsNull(array);
         return stream(array).collect(Collectors.toSet());
     }
 
     @SafeVarargs
-    public static <T, S> Map<T, S> toMap(final Pair<T, S>... array) {
+    public static <T, S> Map<T, S> toMap(@NonNull final Pair<T, S>... array) {
         notNull(array);
         notContainsNull(array);
         return stream(array).collect(Collectors.toMap(Pair::key, Pair::value));
     }
 
 
-    public static boolean contains(final Object[] arrays, final Object object) {
+    public static boolean contains(@NonNull final Object[] arrays, final Object object) {
         if (object == null) {
             return false;
         }
