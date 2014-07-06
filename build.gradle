@@ -75,19 +75,44 @@ configure(subprojects.findAll {!it.name.contains('sample')}) {
 
 configure(subprojects.findAll {it.name != 'sample'}) {
   apply plugin: "java"
+  apply plugin: "sonar-runner"
+  //apply plugin: "sonar"
 
   println('MODULE: ' + name)
 
   ext.slf4j_version='1.7.7'
 
   dependencies {
-    compile group: 'com.google.code.findbugs', name: 'jsr305', version: '2.0.3'
     compile group: 'org.slf4j', name: 'slf4j-api', version: slf4j_version
     compile group: 'org.slf4j', name: 'slf4j-log4j12', version: slf4j_version
+
+    compile 'edu.washington.cs.types.checker:checker-framework:1.7.5'
 
     testCompile 'junit:junit:4.11'
     testCompile 'org.mockito:mockito-core:1.9.5'
   }
+
+  sonarRunner {
+    sonarProperties {
+      property "sonar.host.url", sonarUrl
+      property "sonar.jdbc.url", sonarJdbcUrl
+      property "sonar.jdbc.driverClassName", sonarJdbcDriverClassName
+      property "sonar.jdbc.username", sonarJdbcUsername
+      property "sonar.jdbc.password", sonarJdbcPassword
+    }
+  }
+
+/*  sonar {
+    server {
+      url = sonarUrl
+    }
+    database {
+      url = sonarJdbcUrl
+      driverClassName = sonarJdbcDriverClassName
+      username = sonarJdbcUsername
+      password = sonarJdbcPassword
+    }
+  }*/
 
   tasks.withType(JavaCompile) {
     sourceCompatibility = JavaVersion.VERSION_1_8
