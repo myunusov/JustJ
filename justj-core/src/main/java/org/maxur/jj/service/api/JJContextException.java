@@ -13,18 +13,19 @@
  *     limitations under the License.
  */
 
-package org.maxur.jj.sample.adm;
+package org.maxur.jj.service.api;
 
-import static org.maxur.jj.sample.adm.MazeContext.context;
+import static java.lang.String.format;
 
 /**
  * @author Maxim Yunusov
- * @version 1.0 05.07.2014
+ * @version 1.0 08.07.2014
  */
-public final class Launcher {
+public class JJContextException  extends RuntimeException {
+    private static final long serialVersionUID = 8958226205336494331L;
 
-    public static void main(final String[] args) {
-        context().init();
-        context().system().run();
+
+    public JJContextException(final String message, final Object... args) {
+        super(format(message, args));
     }
 }

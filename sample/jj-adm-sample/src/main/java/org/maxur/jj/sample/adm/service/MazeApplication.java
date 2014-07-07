@@ -13,18 +13,30 @@
  *     limitations under the License.
  */
 
-package org.maxur.jj.sample.adm;
+package org.maxur.jj.sample.adm.service;
 
-import static org.maxur.jj.sample.adm.MazeContext.context;
+import org.maxur.jj.service.api.JJContext;
+import org.maxur.jj.service.api.JJSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Maxim Yunusov
- * @version 1.0 05.07.2014
+ * @version 1.0 07.07.2014
  */
-public final class Launcher {
+public class MazeApplication extends JJSystem {
 
-    public static void main(final String[] args) {
-        context().init();
-        context().system().run();
+    private final static Logger LOGGER = LoggerFactory.getLogger(MazeApplication.class);
+
+    public MazeApplication(final JJContext context) {
+        super(context);
     }
+
+    @Override
+    public void run() {
+        LOGGER.info("Start Maze Application");
+        context().mainView().show();
+        LOGGER.info("Stop Maze Application");
+    }
+
 }

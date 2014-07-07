@@ -13,18 +13,14 @@
  *     limitations under the License.
  */
 
-package org.maxur.jj.sample.adm;
-
-import static org.maxur.jj.sample.adm.MazeContext.context;
+package org.maxur.jj.view.api;
 
 /**
  * @author Maxim Yunusov
- * @version 1.0 05.07.2014
+ * @version 1.0 07.07.2014
  */
-public final class Launcher {
+public interface JJView {
 
-    public static void main(final String[] args) {
-        context().init();
-        context().system().run();
-    }
+    void show();
+
 }

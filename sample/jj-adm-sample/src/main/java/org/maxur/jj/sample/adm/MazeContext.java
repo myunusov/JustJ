@@ -15,16 +15,28 @@
 
 package org.maxur.jj.sample.adm;
 
-import static org.maxur.jj.sample.adm.MazeContext.context;
+import org.maxur.jj.sample.adm.service.MazeApplication;
+import org.maxur.jj.sample.adm.view.MainView;
+import org.maxur.jj.service.api.JJContext;
 
 /**
  * @author Maxim Yunusov
- * @version 1.0 05.07.2014
+ * @version 1.0 07.07.2014
  */
-public final class Launcher {
+public class MazeContext extends JJContext {
 
-    public static void main(final String[] args) {
-        context().init();
-        context().system().run();
+    private static final JJContext INSTANCE = new MazeContext();
+
+    public static JJContext context() {
+        return INSTANCE;
     }
+
+    @Override
+    public void init() {
+        system(new MazeApplication(this));
+        mainView(new MainView(this));
+       // mainView(() -> {});
+    }
+
+
 }
