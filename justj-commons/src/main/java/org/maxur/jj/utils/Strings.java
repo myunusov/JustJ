@@ -66,4 +66,15 @@ public final class Strings {
     }
 
 
+    public static String extract(final String value, final char symbol) {
+        if (value == null) {
+            return null;
+        }
+        final int i = value.indexOf(symbol);
+        if (i == -1) {
+            return value;
+        } else {
+            return left(value, '&') + right(value, '&');
+        }
+    }
 }

@@ -16,23 +16,35 @@
 package org.maxur.jj.sample.adm.view;
 
 import org.maxur.jj.service.api.JJContext;
+import org.maxur.jj.view.api.JJActionCommand;
+import org.maxur.jj.view.api.JJLabel;
 import org.maxur.jj.view.api.JJView;
 
 /**
  * @author Maxim Yunusov
  * @version 1.0 07.07.2014
  */
-public class MainView implements JJView {
+public class MainView extends JJView {
 
     private final JJContext context;
 
+    private boolean isNew = true;
+
     public MainView(final JJContext context) {
+        super("Main View");
         this.context = context;
+        add(new JJLabel("mainMenu", "------------ MAIN MENU -----------------"));
+        add(new JJActionCommand<>("E&xit", v -> null));
+        add(new JJActionCommand<>("&Refresh", v -> new MainView(this.context)));
     }
 
     @Override
     public void show() {
-        System.out.println("Hello World");
+        if (isNew) {
+            super.show();
+        }
+        isNew = false;
+
     }
 
 }

@@ -40,7 +40,7 @@ public abstract class JJContext {
     public void load() {
     }
 
-    protected void mainView(final JJView bean) {
+    protected void mainView(final JJEntity bean) {
         name(MAIN_VIEW).map(bean);
     }
 
@@ -60,7 +60,7 @@ public abstract class JJContext {
         return bean(SYSTEM);
     }
 
-    public JJView view(final String name) throws JJContextException {
+    public JJEntity view(final String name) throws JJContextException {
         return bean(name);
     }
 

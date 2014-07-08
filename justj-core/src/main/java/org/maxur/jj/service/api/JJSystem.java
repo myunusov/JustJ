@@ -15,6 +15,10 @@
 
 package org.maxur.jj.service.api;
 
+import org.maxur.jj.view.api.JJView;
+
+import java.util.Scanner;
+
 /**
  * @author Maxim Yunusov
  * @version 1.0 07.07.2014
@@ -27,9 +31,41 @@ public abstract class JJSystem {
         this.context = context;
     }
 
-    public abstract void run();
+    public final void run() {
+        onStart();
+        process();
+        onStop();
+    }
+
+    protected void process() {
+        JJView currentView = context().mainView();
+                                               // TODO CLI Application Special Case
+        final Scanner scanner = new Scanner(System.in);
+        while (currentView != null) {
+            currentView.show();
+            if (scanner.hasNext()) {
+                final String token = scanner.next();
+                currentView.command(token);
+                final JJCommand command = currentView.command(token);
+                if (command == null) {
+                    onInvalidCommand(token);
+                } else {
+                    //noinspection unchecked
+                    currentView = (JJView) command.execute(currentView);
+                }
+            }
+        }
+    }
+
+
 
     public JJContext context() {
         return context;
     }
+
+    protected abstract void onStop();
+
+    protected abstract void onStart();
+
+    protected abstract void onInvalidCommand(final String token);
 }

@@ -33,10 +33,18 @@ public class MazeApplication extends JJSystem {
     }
 
     @Override
-    public void run() {
-        LOGGER.info("Start Maze Application");
-        context().mainView().show();
+    protected void onStop() {
         LOGGER.info("Stop Maze Application");
+    }
+
+    @Override
+    protected void onStart() {
+        LOGGER.info("Start Maze Application");
+    }
+
+    @Override
+    protected void onInvalidCommand(final String token) {
+        LOGGER.error("The Command '{}' is invalid", token);
     }
 
 }
