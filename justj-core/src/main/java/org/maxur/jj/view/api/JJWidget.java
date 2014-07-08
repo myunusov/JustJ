@@ -15,12 +15,44 @@
 
 package org.maxur.jj.view.api;
 
+import org.maxur.jj.service.api.JJEntity;
+
 /**
  * @author Maxim Yunusov
  * @version 1.0
  * @since <pre>7/8/2014</pre>
  */
-public interface JJWidget {
+public abstract class JJWidget extends JJEntity {
 
-    void show();
+    private final String text;
+
+    public JJWidget(final String name, final String text) {
+        super(name);
+        this.text = text;
+    }
+
+    public final void show() {
+        beforeShow();
+        if (isVisible()) {
+            doShow();
+        }
+        afterShow();
+    }
+
+    protected void afterShow() {
+    }
+
+    protected void beforeShow() {
+    }
+
+    protected abstract void doShow();
+
+    public String getText() {
+        return text;
+    }
+
+    public boolean isVisible() {
+        return true;
+    }
+
 }

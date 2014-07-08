@@ -15,7 +15,7 @@
 
 package org.maxur.jj.service.api;
 
-import org.maxur.jj.view.api.JJActionCommand;
+import org.maxur.jj.view.api.JJButton;
 import org.maxur.jj.view.api.JJView;
 
 import java.util.HashMap;
@@ -46,11 +46,11 @@ public class CommandHolder {
         return jjCommand;
     }
 
-    public <T extends JJEntity, O extends JJEntity> JJCommand<T, O> add(JJActionCommand<T, O> command) {
-        if (command.getHotKey() != null) {
-            commands.put((command.getHotKey()).toUpperCase(), command);
+    public JJButton add(final JJButton button) {
+        if (button.getHotKey() != null) {
+            commands.put((button.getHotKey()).toUpperCase(), button.getCommand());
         }
-        //noinspection unchecked
-        return (JJCommand<T, O>) commands.put(command.getName().toUpperCase(), command);
+        commands.put(button.getText().toUpperCase(), button.getCommand());
+        return button;
     }
 }

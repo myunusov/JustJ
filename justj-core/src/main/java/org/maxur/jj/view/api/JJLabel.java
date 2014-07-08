@@ -15,24 +15,19 @@
 
 package org.maxur.jj.view.api;
 
-import org.maxur.jj.service.api.JJEntity;
-
 /**
  * @author Maxim Yunusov
  * @version 1.0
  * @since <pre>7/8/2014</pre>
  */
-public class JJLabel extends JJEntity implements JJWidget {
-
-    private final String text;
+public class JJLabel extends JJWidget {
 
     public JJLabel(final String name, final String text) {
-        super(name);
-        this.text = text;
+        super(name, text);
     }
 
     @Override
-    public void show() {
-        System.out.println(text); // TODO move to CLI
+    public void doShow() {
+        System.out.println(getText()); // TODO move to CLI
     }
 }

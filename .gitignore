@@ -1,6 +1,6 @@
 tmp/
 target/
-log/
+logs/
 site/
 
 pom.xml.tag

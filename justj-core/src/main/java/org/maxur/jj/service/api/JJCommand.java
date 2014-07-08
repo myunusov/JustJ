@@ -15,8 +15,6 @@
 
 package org.maxur.jj.service.api;
 
-import org.maxur.jj.utils.Strings;
-
 /**
  * @author Maxim Yunusov
  * @version 1.0
@@ -24,12 +22,8 @@ import org.maxur.jj.utils.Strings;
  */
 public abstract class JJCommand<T extends JJEntity, O extends JJEntity> extends JJEntity implements Cloneable {
 
-    private final String hotKey;
-
     public JJCommand(final String name) {
-        super(Strings.extract(name, '&'));
-        final int i = name.indexOf('&');
-        hotKey = i == -1 ? null : ("" + name.charAt(i + 1)).toUpperCase();
+        super(name);
     }
 
     public void params(final String params) {
@@ -46,9 +40,5 @@ public abstract class JJCommand<T extends JJEntity, O extends JJEntity> extends 
         } catch (CloneNotSupportedException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    public String getHotKey() {
-        return hotKey;
     }
 }

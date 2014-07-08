@@ -17,7 +17,6 @@ package org.maxur.jj.view.api;
 
 import org.maxur.jj.service.api.CommandHolder;
 import org.maxur.jj.service.api.JJCommand;
-import org.maxur.jj.service.api.JJEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,33 +25,42 @@ import java.util.List;
  * @author Maxim Yunusov
  * @version 1.0 07.07.2014
  */
-public abstract class JJView extends JJEntity implements JJWidget {
+public abstract class JJView extends JJWidget {
 
     private final CommandHolder holder = new CommandHolder();
 
     private final List<JJWidget> widgets = new ArrayList<>();
 
-    public JJView(final String name) {
-        super(name);
+    public JJView(final String name, final String text)    {
+        super(name, text);
     }
 
-    public JJView(final String id, final String name) {
-        super(id, name);
-    }
-
-    public <T extends JJView, O extends JJView> JJCommand<T, O> add(final JJActionCommand<T, O> command) {
-        widgets.add(command);
-        return holder.add(command);
+    public JJButton add(final JJButton button) {
+        widgets.add(button);
+        return holder.add(button);
     }
 
     public JJLabel add(final JJLabel label) {
         return widgets.add(label) ? label : null;
     }
 
-    public void show() {
-        for (JJWidget widget : widgets) {
+    public final void doShow() {
+        showHeader();
+        showBody(widgets);
+        showFooter();
+    }
+
+    protected void showHeader() {
+        System.out.println(getText()); // TODO Must be move to CLI
+    }
+
+    protected void showBody(final List<JJWidget> children) {
+        for (JJWidget widget : children) {
             widget.show();
         }
+    }
+
+    protected void showFooter() {
     }
 
     public JJCommand command(String token) {

@@ -13,10 +13,7 @@
  *    limitations under the License.
  */
 
-package org.maxur.jj.view.api;
-
-import org.maxur.jj.service.api.JJCommand;
-import org.maxur.jj.service.api.JJEntity;
+package org.maxur.jj.service.api;
 
 import java.util.function.Function;
 
@@ -25,7 +22,7 @@ import java.util.function.Function;
  * @version 1.0
  * @since <pre>7/8/2014</pre>
  */
-public class JJActionCommand<T extends JJEntity, O extends JJEntity> extends JJCommand<T, O> implements JJWidget {
+public class JJActionCommand<T extends JJEntity, O extends JJEntity> extends JJCommand<T, O>  {
 
     private final Function<T, O> action;
 
@@ -39,11 +36,5 @@ public class JJActionCommand<T extends JJEntity, O extends JJEntity> extends JJC
         return action.apply(sender);
     }
 
-    @Override
-    public void show() {
-        if (getHotKey() != null) {
-            System.out.printf("(%s)\t", getHotKey());
-        }
-        System.out.println(getName()); // TODO to CLI
-    }
+
 }
