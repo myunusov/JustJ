@@ -16,6 +16,7 @@
 package org.maxur.jj.sample.adm;
 
 import static org.maxur.jj.sample.adm.MazeContext.context;
+import static org.maxur.jj.service.api.JJCommand.goTo;
 
 /**
  * @author Maxim Yunusov
@@ -25,6 +26,12 @@ public final class Launcher {
 
     public static void main(final String[] args) {
         context().init();
-        context().system().run();
+        if (args.length == 0) {
+            context().system().run(
+                    goTo(context().mainView())
+            );
+        } else {
+            // TODO args to Command
+        }
     }
 }

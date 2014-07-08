@@ -22,18 +22,18 @@ import java.util.function.Function;
  * @version 1.0
  * @since <pre>7/8/2014</pre>
  */
-public class JJActionCommand<T extends JJEntity, O extends JJEntity> extends JJCommand<T, O>  {
+public class JJActionCommand<T extends JJContext> extends JJCommand<T>  {
 
-    private final Function<T, O> action;
+    private final Function<T, Void> action;
 
-    public JJActionCommand(final String name, final Function<T, O> action) {
+    public JJActionCommand(final String name, final Function<T, Void> action) {
         super(name);
         this.action = action;
     }
 
     @Override
-    public O execute(final T sender) {
-        return action.apply(sender);
+    public void execute(final T context) {
+        action.apply(context);
     }
 
 

@@ -17,6 +17,7 @@ package org.maxur.jj.view.api;
 
 import org.maxur.jj.service.api.CommandHolder;
 import org.maxur.jj.service.api.JJCommand;
+import org.maxur.jj.service.api.JJContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,4 +68,14 @@ public abstract class JJView extends JJWidget {
         return holder.command(token);
     }
 
+    protected JJLabel label(final String name, final String text) {
+        return add(new JJLabel(name, text));
+    }
+
+    protected JJButton button(
+            final String text,
+            final JJCommand<? extends JJContext> command
+    ) {
+        return add(new JJButton(command.getName(), text, command));
+    }
 }

@@ -34,7 +34,7 @@ public class MazeContext extends JJContext {
     @Override
     public void init() {
         system(new MazeApplication(this));
-        mainView(new MainView(this));
+        mainView(new MainView());
        // mainView(() -> {});
     }
 

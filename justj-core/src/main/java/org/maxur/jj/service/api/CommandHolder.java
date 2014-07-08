@@ -33,11 +33,11 @@ public class CommandHolder {
 
     public static final char SEPARATOR = ' ';
 
-    public Map<String, JJCommand<? extends JJEntity, ? extends JJEntity>> commands = new HashMap<>();
+    public Map<String, JJCommand<? extends JJContext>> commands = new HashMap<>();
 
     public <O extends JJView> JJCommand command(final String token) {
         final String name = left(token, SEPARATOR);
-        final JJCommand<? extends JJEntity, ? extends JJEntity> command = commands.get(name.toUpperCase());
+        final JJCommand<? extends JJContext> command = commands.get(name.toUpperCase());
         if (command == null) {
             return null;
         }

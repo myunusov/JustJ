@@ -33,12 +33,12 @@ public class MazeApplication extends JJSystem {
     }
 
     @Override
-    protected void onStop() {
+    protected void onStopSystem() {
         LOGGER.info("Stop Maze Application");
     }
 
     @Override
-    protected void onStart() {
+    protected void onStartSystem() {
         LOGGER.info("Start Maze Application");
     }
 

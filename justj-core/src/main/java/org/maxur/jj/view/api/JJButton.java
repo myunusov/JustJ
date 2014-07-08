@@ -16,6 +16,7 @@
 package org.maxur.jj.view.api;
 
 import org.maxur.jj.service.api.JJCommand;
+import org.maxur.jj.service.api.JJContext;
 import org.maxur.jj.utils.Strings;
 
 /**
@@ -26,12 +27,12 @@ public class JJButton extends JJWidget {
 
     private final String hotKey;
 
-    private final JJCommand<? extends JJWidget, ? extends JJWidget> command;
+    private final JJCommand<? extends JJContext> command;
 
     public JJButton(
             final String name,
             final String text,
-            final JJCommand<? extends JJWidget, ? extends JJWidget> command
+            final JJCommand<? extends JJContext> command
     ) {
         super(name, Strings.extract(text, '&'));
         this.command = command;
@@ -51,7 +52,7 @@ public class JJButton extends JJWidget {
         return hotKey;
     }
 
-    public JJCommand<? extends JJWidget, ? extends JJWidget> getCommand() {
+    public JJCommand<? extends JJContext> getCommand() {
         return command;
     }
 

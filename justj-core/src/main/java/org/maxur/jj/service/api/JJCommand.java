@@ -20,7 +20,19 @@ package org.maxur.jj.service.api;
  * @version 1.0
  * @since <pre>7/8/2014</pre>
  */
-public abstract class JJCommand<T extends JJEntity, O extends JJEntity> extends JJEntity implements Cloneable {
+public abstract class JJCommand<T extends JJContext> extends JJEntity implements Cloneable {
+
+    public static final JJCommand<JJContext> NULL_COMMAND = new JJCommand<JJContext>("@") {
+        @Override
+        public void execute(final JJContext context) {
+        }
+    };
+    private static final JJCommand<JJContext> EXIT_COMMAND = new JJCommand<JJContext>("@shutdown") {
+        @Override
+        public void execute(final JJContext context) {
+            context.terminate();
+        }
+    };
 
     public JJCommand(final String name) {
         super(name);
@@ -30,7 +42,7 @@ public abstract class JJCommand<T extends JJEntity, O extends JJEntity> extends 
         // TODO
     }
 
-    public abstract O execute(T sender);
+    public abstract void execute(final T sender);
 
     @Override
     @SuppressWarnings("CloneDoesntDeclareCloneNotSupportedException")
@@ -41,4 +53,23 @@ public abstract class JJCommand<T extends JJEntity, O extends JJEntity> extends 
             throw new IllegalStateException(e);
         }
     }
+
+    public static JJCommand nullCmd() {
+        return NULL_COMMAND;
+    }
+
+    public static JJCommand<JJContext> exit() {
+        return EXIT_COMMAND;
+    }
+
+
+    public static JJCommand<JJContext> goTo(final JJEntity entity) {
+        return new JJCommand<JJContext>("@goTo" + entity.getName()) {
+            @Override
+            public void execute(final JJContext context) {
+                context.goTo(entity);
+            }
+        };
+    }
+
 }

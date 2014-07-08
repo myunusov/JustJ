@@ -15,8 +15,6 @@
 
 package org.maxur.jj.service.api;
 
-import org.maxur.jj.view.api.JJView;
-
 import java.util.Scanner;
 
 /**
@@ -25,47 +23,64 @@ import java.util.Scanner;
  */
 public abstract class JJSystem {
 
+    // TODO CLI Application Special Case
+    final Scanner scanner = new Scanner(System.in);
+
     private final JJContext context;
 
     public JJSystem(final JJContext context) {
         this.context = context;
     }
 
-    public final void run() {
-        onStart();
-        process();
-        onStop();
+    public final void run(final JJCommand<JJContext> command) {
+        onStartSystem();
+        process(command);
+        onStopSystem();
     }
 
-    protected void process() {
-        JJView currentView = context().mainView();
-                                               // TODO CLI Application Special Case
-        final Scanner scanner = new Scanner(System.in);
-        while (currentView != null) {
-            currentView.show();
-            if (scanner.hasNext()) {
-                final String token = scanner.next();
-                currentView.command(token);
-                final JJCommand command = currentView.command(token);
-                if (command == null) {
-                    onInvalidCommand(token);
-                } else {
-                    //noinspection unchecked
-                    currentView = (JJView) command.execute(currentView);
-                }
+    protected final void process(final JJCommand<JJContext> command) {
+        JJCommand<JJContext> nextCommand = command;                // XXX Async event
+        while (!context.isTerminated()) {
+            context.startRequest();
+            onStartRequest();
+            if (nextCommand != null) {
+                nextCommand.execute(context);
             }
+            context.stopRequest();
+            onStopRequest();
+            nextCommand = getCommand(context);
         }
     }
 
+    protected JJCommand<JJContext> getCommand(final JJContext context) {
+        final JJCommand<JJContext> command;                    // TODO Must be moved to CLI
+        if (scanner.hasNext()) {
+            final String token = scanner.next();
+            command = context.command(token);
+            if (command == null) {
+                onInvalidCommand(token);
+            }
+        } else {
+            command = null;
+        }
+        return command;
+    }
 
+    private void onStartRequest() {
+    }
+
+    private void onStopRequest() {
+    }
+
+    protected void onStopSystem() {
+    }
+
+    protected void onStartSystem() {
+    }
+
+    protected abstract void onInvalidCommand(final String token);
 
     public JJContext context() {
         return context;
     }
-
-    protected abstract void onStop();
-
-    protected abstract void onStart();
-
-    protected abstract void onInvalidCommand(final String token);
 }

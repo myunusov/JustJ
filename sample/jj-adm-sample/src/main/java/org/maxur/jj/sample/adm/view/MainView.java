@@ -16,12 +16,10 @@
 package org.maxur.jj.sample.adm.view;
 
 import org.maxur.jj.service.api.JJActionCommand;
-import org.maxur.jj.service.api.JJCommand;
 import org.maxur.jj.service.api.JJContext;
-import org.maxur.jj.view.api.JJButton;
-import org.maxur.jj.view.api.JJLabel;
 import org.maxur.jj.view.api.JJView;
-import org.maxur.jj.view.api.JJWidget;
+
+import static org.maxur.jj.service.api.JJCommand.exit;
 
 /**
  * @author Maxim Yunusov
@@ -29,29 +27,19 @@ import org.maxur.jj.view.api.JJWidget;
  */
 public class MainView extends JJView {
 
-    private final JJContext context;
-
     private boolean isNew = true;
 
-    public MainView(final JJContext context) {
+    public MainView() {
         super("mainView", "Maze Application");
-        this.context = context;
         label("mainMenu", "Main Menu");
-        button("E&xit", new JJActionCommand<>("exit", v -> null));
-        button("&Refresh", new JJActionCommand<>("refresh", v -> new MainView(this.context)));
+        button("E&xit", exit());
+        button("&Refresh", new JJActionCommand<>(
+                "refresh",
+                (JJContext c) -> {
+                    c.goTo(new MainView());
+                    return null;
+                }));
     }
-
-    protected JJLabel label(final String name, final String text) {
-        return add(new JJLabel(name, text));
-    }
-
-    protected JJButton button(
-            final String text,
-            final JJCommand<? extends JJWidget, ? extends JJWidget> command
-    ) {
-        return add(new JJButton(command.getName(), text, command));
-    }
-
 
     @Override
     public boolean isVisible() {

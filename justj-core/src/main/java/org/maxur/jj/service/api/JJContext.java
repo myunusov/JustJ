@@ -15,7 +15,7 @@
 
 package org.maxur.jj.service.api;
 
-import org.maxur.jj.view.api.JJView;
+import org.maxur.jj.view.api.JJView;        // TODO Cycle
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,9 +30,12 @@ import java.util.stream.Collectors;
 public abstract class JJContext {
 
     public static final String MAIN_VIEW = "mainView";
+    public static final String CURRENT_VIEW = "currentView";
     public static final String SYSTEM = "system";
 
     private final Set<ContextMapper> set = new HashSet<>();
+
+    private boolean isTerminated = false;
 
     public void init() {
     }
@@ -42,6 +45,10 @@ public abstract class JJContext {
 
     protected void mainView(final JJEntity bean) {
         name(MAIN_VIEW).map(bean);
+    }
+
+    public void goTo(final JJEntity bean) {
+        name(CURRENT_VIEW).map(bean);
     }
 
     protected void system(final JJSystem system) {
@@ -54,6 +61,9 @@ public abstract class JJContext {
 
     public JJView mainView() throws JJContextException {
         return bean(MAIN_VIEW);
+    }
+    public JJView currentView() throws JJContextException {
+        return bean(CURRENT_VIEW);
     }
 
     public JJSystem system() throws JJContextException {
@@ -85,6 +95,30 @@ public abstract class JJContext {
     private void persist(final ContextMapper mapper) {
         set.add(mapper);
     }
+
+    public boolean isTerminated() {
+        return isTerminated;
+    }
+
+    public void startRequest() {
+        // TODO Request context
+    }
+
+    public void stopRequest() {
+        currentView().show();
+        // TODO
+    }
+
+    public JJCommand<JJContext> command(String token) {
+        return currentView().command(token);  // TODO
+    }
+
+    public void terminate() {
+        isTerminated = true;
+    }
+
+
+
 
     public static class ContextMapper {
 
