@@ -37,8 +37,8 @@ public abstract class JJView extends JJWidget {
     }
 
     public JJButton add(final JJButton button) {
-        widgets.add(button);
-        return holder.add(button);
+        holder.add(button.getCommand());
+        return widgets.add(button) ? button : null;
     }
 
     public JJLabel add(final JJLabel label) {
@@ -72,10 +72,7 @@ public abstract class JJView extends JJWidget {
         return add(new JJLabel(name, text));
     }
 
-    protected JJButton button(
-            final String text,
-            final JJCommand<? extends JJContext> command
-    ) {
+    protected JJButton button(final String text, final JJCommand<? extends JJContext> command) {
         return add(new JJButton(command.getName(), text, command));
     }
 }

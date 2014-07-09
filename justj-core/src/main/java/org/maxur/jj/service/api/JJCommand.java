@@ -27,7 +27,7 @@ public abstract class JJCommand<T extends JJContext> extends JJEntity implements
         public void execute(final JJContext context) {
         }
     };
-    private static final JJCommand<JJContext> EXIT_COMMAND = new JJCommand<JJContext>("@shutdown") {
+    private static final JJCommand<JJContext> EXIT_COMMAND = new JJCommand<JJContext>("exit") {
         @Override
         public void execute(final JJContext context) {
             context.terminate();

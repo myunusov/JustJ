@@ -17,15 +17,12 @@ package org.maxur.jj.view.api;
 
 import org.maxur.jj.service.api.JJCommand;
 import org.maxur.jj.service.api.JJContext;
-import org.maxur.jj.utils.Strings;
 
 /**
  * @author Maxim Yunusov
  * @version 1.0 08.07.2014
  */
 public class JJButton extends JJWidget {
-
-    private final String hotKey;
 
     private final JJCommand<? extends JJContext> command;
 
@@ -34,22 +31,14 @@ public class JJButton extends JJWidget {
             final String text,
             final JJCommand<? extends JJContext> command
     ) {
-        super(name, Strings.extract(text, '&'));
+        super(name, text);
         this.command = command;
-        final int i = text.indexOf('&');
-        hotKey = i == -1 ? null : ("" + text.charAt(i + 1)).toUpperCase();
     }
 
     @Override
     public void doShow() {
-        if (hotKey != null) {
-            System.out.printf("(%s)\t", hotKey);
-        }
-        System.out.println(getName()); // TODO to CLI
-    }
-
-    public String getHotKey() {
-        return hotKey;
+        System.out.print(getText() + "\t"); // TODO to CLI
+        System.out.printf("(%s)\n", getName());
     }
 
     public JJCommand<? extends JJContext> getCommand() {

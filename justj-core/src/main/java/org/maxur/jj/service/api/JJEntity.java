@@ -26,9 +26,9 @@ import java.util.UUID;
  */
 public class JJEntity {
 
-    protected final String id;
+    private final String id;
 
-    protected final String name;
+    private final String name;
 
     public JJEntity(final String name) {
         this(UUID.randomUUID().toString(), name);
@@ -56,7 +56,7 @@ public class JJEntity {
             return false;
         }
         final JJView jjView = (JJView) o;
-        return name.equals(jjView.name) && id.equals(jjView.id);
+        return name.equals(jjView.getName()) && id.equals(jjView.getId());
     }
 
     @Override

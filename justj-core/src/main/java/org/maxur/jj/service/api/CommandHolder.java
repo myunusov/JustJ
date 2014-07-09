@@ -15,7 +15,6 @@
 
 package org.maxur.jj.service.api;
 
-import org.maxur.jj.view.api.JJButton;
 import org.maxur.jj.view.api.JJView;
 
 import java.util.HashMap;
@@ -46,11 +45,7 @@ public class CommandHolder {
         return jjCommand;
     }
 
-    public JJButton add(final JJButton button) {
-        if (button.getHotKey() != null) {
-            commands.put((button.getHotKey()).toUpperCase(), button.getCommand());
-        }
-        commands.put(button.getText().toUpperCase(), button.getCommand());
-        return button;
+    public void add(final JJCommand<? extends JJContext> command) {
+        commands.put(command.getName().toUpperCase(), command);
     }
 }

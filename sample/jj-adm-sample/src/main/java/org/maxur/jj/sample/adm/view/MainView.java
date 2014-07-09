@@ -32,8 +32,8 @@ public class MainView extends JJView {
     public MainView() {
         super("mainView", "Maze Application");
         label("mainMenu", "Main Menu");
-        button("E&xit", exit());
-        button("&Refresh", new JJActionCommand<>(
+        button("Exit", exit());
+        button("Refresh", new JJActionCommand<>(
                 "refresh",
                 (JJContext c) -> {
                     c.goTo(new MainView());

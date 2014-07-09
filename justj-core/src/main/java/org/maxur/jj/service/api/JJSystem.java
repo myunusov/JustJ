@@ -41,14 +41,15 @@ public abstract class JJSystem {
     protected final void process(final JJCommand<JJContext> command) {
         JJCommand<JJContext> nextCommand = command;                // XXX Async event
         while (!context.isTerminated()) {
+            nextCommand = nextCommand != null ? nextCommand : getCommand(context);
             context.startRequest();
             onStartRequest();
             if (nextCommand != null) {
                 nextCommand.execute(context);
+                nextCommand = null;
             }
             context.stopRequest();
             onStopRequest();
-            nextCommand = getCommand(context);
         }
     }
 
