@@ -1,1 +1,13 @@
+apply plugin: "application"
+
 version = '1.0.1-SNAPSHOT'
+
+mainClassName = "org.maxur.jj.sample.scanner.Launcher"
+
+dependencies {
+  compile project(':justj-core')
+}
+
+jar {
+  manifest.attributes("Main-Class": mainClassName);
+}
