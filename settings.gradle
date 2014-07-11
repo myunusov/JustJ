@@ -1,0 +1,4 @@
+rootProject.name = 'JustJ'
+
+include 'justj-core',
+        'sample:jj-scanner'
