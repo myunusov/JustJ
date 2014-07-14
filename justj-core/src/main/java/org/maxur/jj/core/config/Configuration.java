@@ -15,6 +15,8 @@
 
 package org.maxur.jj.core.config;
 
+import org.maxur.jj.core.entity.Role;
+
 /**
  * The Configuration Description Interface.
  *
@@ -22,6 +24,39 @@ package org.maxur.jj.core.config;
  * @version 1.0
  * @since <pre>7/11/2014</pre>
  */
-public interface Configuration {
+public abstract class Configuration {
+
+    private Context context;
+
+    final void config(final Context context) {
+        this.context = context;
+        config();
+    }
+
+    public abstract void config();
+
+    public Binder bind(final Role role) {
+        return new Binder(context, role);
+    }
+
+    public static class Binder {
+
+        private final Context context;
+
+        private final Role role;
+
+        public Binder(final Context context, final Role role) {
+            this.context = context;
+            this.role = role;
+        }
+
+        public void to(final Class<?> beanClass) {
+            context.put(role, beanClass);
+        }
+
+        public void to(final Object bean) {
+            context.put(role, bean);
+        }
+    }
 
 }
