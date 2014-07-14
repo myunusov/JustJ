@@ -17,6 +17,8 @@ package org.maxur.jj.core.system;
 
 import org.maxur.jj.core.config.Configuration;
 import org.maxur.jj.core.config.Context;
+import org.maxur.jj.core.entity.JJCommand;
+import org.maxur.jj.core.entity.Role;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +42,7 @@ public class JJSystem extends JJScope<SystemContext> {
         context.configBy(configuration);
         final JJSystem result = context.system() == null ? new JJSystem() : context.system();
         result.setContext(context);
-        result.add(context.<JJView>view()); // TODO it's different for different system
+//        result.add(context.<JJView>view()); // TODO it's different for different system
         return result;
     }
 
@@ -58,11 +60,34 @@ public class JJSystem extends JJScope<SystemContext> {
         }
     }
 
+    public void runWith(final String[] args) {
+        interpret(args).execute(this);
+        run();
+    }
+
+    public void run() {
+        while (isActive()) {
+            final JJCommand command = getCommand();
+            if (command != null) {
+                command.execute(this);               // TODO start Request context
+            }
+        }
+    }
+
+    private JJCommand interpret(final String[] args) {
+        return context().interpreter().interpret(args);
+    }
+
+
+    protected static JJCommand getCommand() {
+        return JJScope.exitCmd();   // TODO
+    }
 
 }
 
 
 class SystemContext extends Context {
+
     public final <T extends JJView> T view() {
         return bean(HOME_VIEW);
     }
@@ -70,4 +95,9 @@ class SystemContext extends Context {
     public JJSystem system() {
         return bean(SYSTEM);
     }
+
+    public CommandInterpreter interpreter() {
+        return bean(Role.INTERPRETER, CommandInterpreter.DEFAULT);
+    }
+
 }

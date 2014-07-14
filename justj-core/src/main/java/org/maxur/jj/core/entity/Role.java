@@ -2,7 +2,8 @@ package org.maxur.jj.core.entity;
 
 public enum Role {
 
-    HOME_VIEW ,
+    INTERPRETER,
+    HOME_VIEW,
     SYSTEM
 
 }

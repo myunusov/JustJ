@@ -34,6 +34,12 @@ public class Context {
         return wrapper != null ? (T) wrapper.bean() : null; //TODO
     }
 
+    public <T> T bean(final Role role, T defaultBean) {
+        final T bean = bean(role);
+        return bean == null ? defaultBean : bean;
+    }
+
+
     void put(final Role role, final Class<?> beanClass) {
         put(role, BeanWrapper.wrap(beanClass));
     }

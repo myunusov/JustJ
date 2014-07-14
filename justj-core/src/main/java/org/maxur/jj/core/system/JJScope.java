@@ -79,4 +79,15 @@ public class JJScope<T extends Context> extends TreeNode<JJScope> {
     public void tell(final JJCommand command) {
         command.execute(this);
     }
+
+    public static JJCommand exitCmd() {
+        return new ExitCommand();
+    }
+
+    private static class ExitCommand extends JJCommand<JJScope> {
+        @Override
+        protected void process(final JJScope scope ) {
+            scope.passive();
+        }
+    }
 }
