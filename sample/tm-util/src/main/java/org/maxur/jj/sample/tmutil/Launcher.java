@@ -15,10 +15,10 @@
 
 package org.maxur.jj.sample.tmutil;
 
-import org.maxur.jj.core.system.JJSystem;
+import org.maxur.jj.core.scope.JJSystem;
 
-import static org.maxur.jj.core.system.JJSystem.configBy;
-import static org.maxur.jj.core.system.JJSystem.system;
+import static org.maxur.jj.core.scope.JJSystem.configBy;
+import static org.maxur.jj.core.scope.JJSystem.system;
 
 /**
  * @author Maxim Yunusov

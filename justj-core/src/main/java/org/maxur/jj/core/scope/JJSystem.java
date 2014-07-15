@@ -13,18 +13,18 @@
  *    limitations under the License.
  */
 
-package org.maxur.jj.core.system;
+package org.maxur.jj.core.scope;
 
 import org.maxur.jj.core.config.Configuration;
 import org.maxur.jj.core.config.Context;
-import org.maxur.jj.core.entity.JJCommand;
-import org.maxur.jj.core.entity.Role;
+import org.maxur.jj.core.config.Role;
+import org.maxur.jj.core.entity.AbstractCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.lang.String.format;
-import static org.maxur.jj.core.entity.Role.HOME_VIEW;
-import static org.maxur.jj.core.entity.Role.SYSTEM;
+import static org.maxur.jj.core.config.Role.HOME_VIEW;
+import static org.maxur.jj.core.config.Role.SYSTEM;
 
 /**
  * The Configurator class is only static launcher of Configuration service.
@@ -61,30 +61,27 @@ public class JJSystem extends JJScope<SystemContext> {
     }
 
     public void runWith(final String[] args) {
-        interpret(args).execute(this);
+        visit(interpret(args));
         run();
     }
 
     public void run() {
         while (isActive()) {
-            final JJCommand command = getCommand();
+            final AbstractCommand<JJScope> command = getCommand();
             if (command != null) {
-                command.execute(this);               // TODO start Request context
+                visit(command);              // TODO start Request context
             }
         }
     }
 
-    private JJCommand interpret(final String[] args) {
+    private AbstractCommand<JJScope> interpret(final String[] args) {
         return context().interpreter().interpret(args);
     }
 
-
-    protected static JJCommand getCommand() {
+    protected static AbstractCommand<JJScope> getCommand() {
         return JJScope.exitCmd();   // TODO
     }
-
 }
-
 
 class SystemContext extends Context {
 

@@ -13,19 +13,19 @@
  *    limitations under the License.
  */
 
-package org.maxur.jj.core.system;
+package org.maxur.jj.core.scope;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.maxur.jj.core.config.Configuration;
-import org.maxur.jj.core.entity.JJCommand;
+import org.maxur.jj.core.entity.AbstractCommand;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertNotNull;
-import static org.maxur.jj.core.entity.Role.HOME_VIEW;
-import static org.maxur.jj.core.system.JJSystem.configBy;
-import static org.maxur.jj.core.system.JJSystem.system;
+import static org.maxur.jj.core.config.Role.HOME_VIEW;
+import static org.maxur.jj.core.scope.JJSystem.configBy;
+import static org.maxur.jj.core.scope.JJSystem.system;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,7 +36,7 @@ public class JJSystemTest {
     @Mock
     private static JJView view;
     @Mock
-    private JJCommand command;
+    private AbstractCommand command;
 
     @Test
     public void testSystemConfigIsCreated() throws Exception {
@@ -49,7 +49,7 @@ public class JJSystemTest {
         final JJSystem system = system(configBy(DummyConfiguration.class));
         when(command.isApplicableTo(any())).thenReturn(true);
         system.tell(command);
-        verify(command).execute(system);
+        verify(command).accept(system);
     }
 
     private static class DummyConfiguration extends Configuration {

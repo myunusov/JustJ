@@ -1,6 +1,6 @@
-package org.maxur.jj.core.system;
+package org.maxur.jj.core.scope;
 
-import org.maxur.jj.core.entity.JJEvent;
+import org.maxur.jj.core.entity.Event;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,15 +11,15 @@ import java.util.List;
  */
 public class UnitOfWork {
 
-    private final List<JJEvent> events = new ArrayList<>();
+    private final List<Event> events = new ArrayList<>();
 
-    public final void add(final JJEvent event) {
+    public final void add(final Event event) {
         if (isApplicable(event)) {
             events.add(event);
         }
     }
 
-    private boolean isApplicable(final JJEvent event) {
+    private boolean isApplicable(final Event event) {
         return false;
     }
 

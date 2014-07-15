@@ -1,8 +1,8 @@
-package org.maxur.jj.core.system;
+package org.maxur.jj.core.scope;
 
 import org.maxur.jj.core.config.Context;
-import org.maxur.jj.core.entity.JJCommand;
-import org.maxur.jj.core.entity.JJEvent;
+import org.maxur.jj.core.entity.AbstractCommand;
+import org.maxur.jj.core.entity.Event;
 import org.maxur.jj.core.entity.TreeNode;
 
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ public class JJScope<T extends Context> extends TreeNode<JJScope> {
         this.context = context;
     }
 
-    public final void add(final JJEvent event) {
+    public final void add(final Event event) {
         for (UnitOfWork work : works) {
             work.add(event);
         }
@@ -76,15 +76,15 @@ public class JJScope<T extends Context> extends TreeNode<JJScope> {
         return isActive;
     }
 
-    public void tell(final JJCommand command) {
-        command.execute(this);
+    public void tell(final AbstractCommand command) {
+        visit(command);
     }
 
-    public static JJCommand exitCmd() {
+    public static AbstractCommand<JJScope> exitCmd() {
         return new ExitCommand();
     }
 
-    private static class ExitCommand extends JJCommand<JJScope> {
+    private static class ExitCommand extends AbstractCommand<JJScope> {
         @Override
         protected void process(final JJScope scope ) {
             scope.passive();

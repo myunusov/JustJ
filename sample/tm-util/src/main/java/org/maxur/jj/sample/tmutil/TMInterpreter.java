@@ -15,10 +15,11 @@
 
 package org.maxur.jj.sample.tmutil;
 
-import org.maxur.jj.core.entity.JJCommand;
-import org.maxur.jj.core.system.CommandInterpreter;
+import org.maxur.jj.core.entity.AbstractCommand;
+import org.maxur.jj.core.scope.CommandInterpreter;
 
-import static org.maxur.jj.core.entity.JJCommand.command;
+import static org.maxur.jj.core.entity.AbstractCommand.batch;
+import static org.maxur.jj.core.scope.JJScope.exitCmd;
 
 /**
  * @author Maxim Yunusov
@@ -28,8 +29,10 @@ import static org.maxur.jj.core.entity.JJCommand.command;
 public class TMInterpreter extends CommandInterpreter {
 
     @Override
-    public JJCommand interpret(final String[] args) {
-        return command(c -> System.out.println("Hello"));      // TODO Must be Compound (Batch) command
+    public AbstractCommand<org.maxur.jj.core.scope.JJScope> interpret(final String[] args) {
+        return batch()
+                .add(c -> System.out.println("Hello"))       // TODO
+                .add(exitCmd());
     }
 
 }

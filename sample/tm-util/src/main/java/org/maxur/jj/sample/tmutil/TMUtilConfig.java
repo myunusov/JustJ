@@ -17,8 +17,8 @@ package org.maxur.jj.sample.tmutil;
 
 import org.maxur.jj.core.config.Configuration;
 
-import static org.maxur.jj.core.entity.Role.INTERPRETER;
-import static org.maxur.jj.core.entity.Role.SYSTEM;
+import static org.maxur.jj.core.config.Role.INTERPRETER;
+import static org.maxur.jj.core.config.Role.SYSTEM;
 
 /**
  * @author Maxim Yunusov

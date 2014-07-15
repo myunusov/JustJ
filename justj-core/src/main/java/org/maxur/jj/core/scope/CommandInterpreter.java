@@ -13,33 +13,24 @@
  *    limitations under the License.
  */
 
-package org.maxur.jj.sample.tmutil;
+package org.maxur.jj.core.scope;
 
-import org.maxur.jj.core.scope.JJSystem;
-import org.slf4j.Logger;
-
-import static org.slf4j.LoggerFactory.getLogger;
+import org.maxur.jj.core.entity.AbstractCommand;
 
 /**
  * @author Maxim Yunusov
  * @version 1.0
  * @since <pre>7/14/2014</pre>
  */
-public class TMApplication extends JJSystem {
+public abstract class CommandInterpreter {
 
-    private static final Logger LOGGER = getLogger(TMApplication.class);
+    public static CommandInterpreter DEFAULT = new CommandInterpreter() {
+        @Override
+        public AbstractCommand<JJScope> interpret(String[] args) {
+            return JJScope.exitCmd();
+        }
+    };
 
-    @Override
-    protected void afterStart() {
-        LOGGER.info("Start Application");
-        System.out.println("Welcome to Task Manager");
-    }
-
-    @Override
-    protected void beforeStop() {
-        LOGGER.info("Stop Application");
-    }
-
-
+    public abstract AbstractCommand<JJScope> interpret(final String[] args);
 
 }

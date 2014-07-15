@@ -1,6 +1,5 @@
 package org.maxur.jj.core.config;
 
-import org.maxur.jj.core.entity.Role;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

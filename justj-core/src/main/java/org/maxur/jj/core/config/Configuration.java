@@ -15,8 +15,6 @@
 
 package org.maxur.jj.core.config;
 
-import org.maxur.jj.core.entity.Role;
-
 /**
  * The Configuration Description Interface.
  *

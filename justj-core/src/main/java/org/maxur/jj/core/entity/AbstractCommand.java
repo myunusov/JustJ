@@ -2,7 +2,8 @@ package org.maxur.jj.core.entity;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.String.format;
 
@@ -10,16 +11,13 @@ import static java.lang.String.format;
  * @author Maxim Yunusov
  * @version 1.0 12.07.2014
  */
-public abstract class JJCommand<T> {
+public abstract class AbstractCommand<T> extends Visitor<TreeNode> {
 
-    private final String id;
-
-    private State state = State.CONTINUE_TRAVERSAL;
 
     private final Class genericType;
 
-    public static <T> JJCommand<T> command(final Command<T> command) {
-        return new JJCommand<T>() {
+    public static <T> AbstractCommand<T> command(final Command<T> command) {
+        return new AbstractCommand<T>() {
             @Override
             protected void process(T subject) {
                 command.execute(subject);
@@ -27,8 +25,12 @@ public abstract class JJCommand<T> {
         };
     }
 
-    protected JJCommand() {
-        id = UUID.randomUUID().toString();
+    public static BatchCommand batch() {
+        return new BatchCommand();
+    }
+
+    protected AbstractCommand() {
+        super();
         final Type superclass = getClass().getGenericSuperclass();
         genericType = superclass instanceof ParameterizedType &&
                 (((ParameterizedType) superclass).getActualTypeArguments()[0]) instanceof Class ?
@@ -36,15 +38,17 @@ public abstract class JJCommand<T> {
                 : Object.class;
     }
 
+    @Override
+    public void accept(final TreeNode subject) {
+        execute(subject);
+    }
+
     @SuppressWarnings("unchecked")
     public final void execute(final Object subject) {
-        if (!State.STOP_TRAVERSAL.equals(state) && applicableType(subject)) {
+        if (applicableType(subject)) {
             if (isApplicableTo((T) subject)) {
                 process((T) subject);
             }
-        }
-        if (State.CONTINUE_TRAVERSAL.equals(state)) {
-            processChildren(subject);
         }
     }
 
@@ -52,28 +56,9 @@ public abstract class JJCommand<T> {
         return true;
     }
 
-    protected void processChildren(Object subject) {
-        if (subject instanceof TreeNode) {
-            final TreeNode node = (TreeNode) subject;
-            for (Object child : node) {
-                this.execute(child);
-            }
-        }
-    }
-
     private boolean applicableType(final Object subject) {
         //noinspection unchecked
-        return genericType.isAssignableFrom(subject.getClass());
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    protected void stop() {
-        state = State.STOP_TRAVERSAL;
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    protected void dontGoDeeper() {
-        state = State.CONTINUE_TRAVERSAL_BUT_DONT_GO_DEEPER;
+        return genericType == null || genericType.isAssignableFrom(subject.getClass());
     }
 
     protected abstract void process(final T subject);
@@ -85,23 +70,44 @@ public abstract class JJCommand<T> {
 
     @Override
     public boolean equals(Object o) {
-        return this == o || o instanceof JJCommand && id.equals(((JJCommand) o).id);
+        return this == o || o instanceof AbstractCommand && id.equals(((AbstractCommand) o).id);
     }
 
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
-
-    private static enum State {
-        CONTINUE_TRAVERSAL,
-        CONTINUE_TRAVERSAL_BUT_DONT_GO_DEEPER,
-        STOP_TRAVERSAL
-    }
 
     @FunctionalInterface
     public interface Command<T> {
         void execute(T value);
+    }
+
+    public static class BatchCommand extends AbstractCommand {
+
+        private final List<AbstractCommand> commands = new ArrayList<>();
+
+        private BatchCommand() {
+
+        }
+
+        public BatchCommand add(final AbstractCommand command) {
+            this.commands.add(command);
+            return this;
+        }
+
+        public BatchCommand add(final Command command) {
+            this.commands.add(command(command));
+            return this;
+        }
+
+        @Override
+        protected void process(Object subject) {
+            for (AbstractCommand command : commands) {
+                command.execute(subject);
+            }
+        }
+
+        @Override
+        public boolean isApplicableTo(@SuppressWarnings("UnusedParameters") Object subject) {
+            return true;
+        }
     }
 }
 

@@ -13,24 +13,36 @@
  *    limitations under the License.
  */
 
-package org.maxur.jj.core.system;
-
-import org.maxur.jj.core.entity.JJCommand;
+package org.maxur.jj.core.entity;
 
 /**
  * @author Maxim Yunusov
  * @version 1.0
- * @since <pre>7/14/2014</pre>
+ * @since <pre>7/15/2014</pre>
  */
-public abstract class CommandInterpreter {
+public abstract class Visitor<T> extends Entity {
 
-    public static CommandInterpreter DEFAULT = new CommandInterpreter() {
-        @Override
-        public JJCommand interpret(String[] args) {
-            return JJScope.exitCmd();
-        }
-    };
+    private State state = State.CONTINUE_TRAVERSAL;
 
-    public abstract JJCommand interpret(final String[] args);
+    public State state() {
+        return this.state;
+    }
+
+    protected void stop() {
+        state = State.STOP_TRAVERSAL;
+    }
+
+    protected void dontGoDeeper() {
+        state = State.CONTINUE_TRAVERSAL_BUT_DONT_GO_DEEPER;
+    }
+
+    public abstract void accept(T subject);
+
+    public static enum State {
+        CONTINUE_TRAVERSAL,
+        CONTINUE_TRAVERSAL_BUT_DONT_GO_DEEPER,
+        STOP_TRAVERSAL
+    }
+
 
 }
