@@ -18,7 +18,7 @@ package org.maxur.jj.core.scope;
 import org.maxur.jj.core.config.Configuration;
 import org.maxur.jj.core.config.Context;
 import org.maxur.jj.core.config.Role;
-import org.maxur.jj.core.entity.AbstractCommand;
+import org.maxur.jj.core.entity.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,24 +61,24 @@ public class JJSystem extends JJScope<SystemContext> {
     }
 
     public void runWith(final String[] args) {
-        visit(interpret(args));
+        accept(interpret(args));
         run();
     }
 
     public void run() {
         while (isActive()) {
-            final AbstractCommand<JJScope> command = getCommand();
+            final Command<JJScope> command = getCommand();
             if (command != null) {
-                visit(command);              // TODO start Request context
+                accept(command);              // TODO start Request context
             }
         }
     }
 
-    private AbstractCommand<JJScope> interpret(final String[] args) {
+    private Command<JJScope> interpret(final String[] args) {
         return context().interpreter().interpret(args);
     }
 
-    protected static AbstractCommand<JJScope> getCommand() {
+    protected static Command<JJScope> getCommand() {
         return JJScope.exitCmd();   // TODO
     }
 }

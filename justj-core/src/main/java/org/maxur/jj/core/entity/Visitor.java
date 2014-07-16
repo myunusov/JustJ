@@ -28,15 +28,15 @@ public abstract class Visitor<T> extends Entity {
         return this.state;
     }
 
-    protected void stop() {
+    public abstract void visit(T subject);
+
+    protected final void stop() {
         state = State.STOP_TRAVERSAL;
     }
 
-    protected void dontGoDeeper() {
+    protected final void dontGoDeeper() {
         state = State.CONTINUE_TRAVERSAL_BUT_DONT_GO_DEEPER;
     }
-
-    public abstract void accept(T subject);
 
     public static enum State {
         CONTINUE_TRAVERSAL,

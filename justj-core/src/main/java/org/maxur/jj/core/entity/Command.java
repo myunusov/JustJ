@@ -11,13 +11,12 @@ import static java.lang.String.format;
  * @author Maxim Yunusov
  * @version 1.0 12.07.2014
  */
-public abstract class AbstractCommand<T> extends Visitor<TreeNode> {
-
+public abstract class Command<T> extends Visitor<TreeNode> {
 
     private final Class genericType;
 
-    public static <T> AbstractCommand<T> command(final Command<T> command) {
-        return new AbstractCommand<T>() {
+    public static <T> Command<T> command(final CommandFunction<T> command) {
+        return new Command<T>() {
             @Override
             protected void process(T subject) {
                 command.execute(subject);
@@ -25,11 +24,11 @@ public abstract class AbstractCommand<T> extends Visitor<TreeNode> {
         };
     }
 
-    public static BatchCommand batch() {
-        return new BatchCommand();
+    public static <T> BatchCommand<T> batch() {
+        return new BatchCommand<>();
     }
 
-    protected AbstractCommand() {
+    protected Command() {
         super();
         final Type superclass = getClass().getGenericSuperclass();
         genericType = superclass instanceof ParameterizedType &&
@@ -39,16 +38,14 @@ public abstract class AbstractCommand<T> extends Visitor<TreeNode> {
     }
 
     @Override
-    public void accept(final TreeNode subject) {
+    public void visit(final TreeNode subject) {
         execute(subject);
     }
 
     @SuppressWarnings("unchecked")
     public final void execute(final Object subject) {
-        if (applicableType(subject)) {
-            if (isApplicableTo((T) subject)) {
-                process((T) subject);
-            }
+        if (applicableType(subject) && isApplicableTo((T) subject)) {
+            process((T) subject);
         }
     }
 
@@ -65,41 +62,34 @@ public abstract class AbstractCommand<T> extends Visitor<TreeNode> {
 
     @Override
     public String toString() {
-        return format("command '%s' {%s}", getClass().getName(), id);
+        return format("Command '%s' {%s}", getClass().getName(), getId());
     }
-
-    @Override
-    public boolean equals(Object o) {
-        return this == o || o instanceof AbstractCommand && id.equals(((AbstractCommand) o).id);
-    }
-
 
     @FunctionalInterface
-    public interface Command<T> {
+    public interface CommandFunction<T> {
         void execute(T value);
     }
 
-    public static class BatchCommand extends AbstractCommand {
+    public static class BatchCommand<T> extends Command<T> {
 
-        private final List<AbstractCommand> commands = new ArrayList<>();
+        private final List<Command<? extends T>> commands = new ArrayList<>();
 
         private BatchCommand() {
-
         }
 
-        public BatchCommand add(final AbstractCommand command) {
+        public BatchCommand<T> add(final Command<? extends T> command) {
             this.commands.add(command);
             return this;
         }
 
-        public BatchCommand add(final Command command) {
+        public BatchCommand<T> add(final CommandFunction<? extends T> command) {
             this.commands.add(command(command));
             return this;
         }
 
         @Override
-        protected void process(Object subject) {
-            for (AbstractCommand command : commands) {
+        protected void process(T subject) {
+            for (Command command : commands) {
                 command.execute(subject);
             }
         }

@@ -35,7 +35,7 @@ public class TreeNodeTest {
     @Spy
     private Visitor<TreeNode> dummyVisitor = new Visitor<TreeNode>() {
         @Override
-        public void accept(TreeNode subject) {
+        public void visit(TreeNode subject) {
             if (subject instanceof TreeNode1) {
                 dontGoDeeper();
             }
@@ -91,13 +91,13 @@ public class TreeNodeTest {
         final TreeNode<TreeNode> child2 = new TreeNode<>();
         childB.add(child2);
 
-        root.visit(dummyVisitor);
+        root.accept(dummyVisitor);
 
-        verify(dummyVisitor, times(1)).accept(root);
-        verify(dummyVisitor, times(1)).accept(childA);
-        verify(dummyVisitor, times(1)).accept(childB);
-        verify(dummyVisitor, times(1)).accept(child1);
-        verify(dummyVisitor, times(1)).accept(child2);
+        verify(dummyVisitor, times(1)).visit(root);
+        verify(dummyVisitor, times(1)).visit(childA);
+        verify(dummyVisitor, times(1)).visit(childB);
+        verify(dummyVisitor, times(1)).visit(child1);
+        verify(dummyVisitor, times(1)).visit(child2);
 
     }
 
@@ -113,13 +113,13 @@ public class TreeNodeTest {
         final TreeNode<TreeNode> child2 = new TreeNode<>();
         childB.add(child2);
 
-        root.visit(dummyVisitor);
+        root.accept(dummyVisitor);
 
-        verify(dummyVisitor, times(1)).accept(root);
-        verify(dummyVisitor, times(1)).accept(childA);
-        verify(dummyVisitor, times(1)).accept(childB);
-        verify(dummyVisitor, times(0)).accept(child1);
-        verify(dummyVisitor, times(0)).accept(child2);
+        verify(dummyVisitor, times(1)).visit(root);
+        verify(dummyVisitor, times(1)).visit(childA);
+        verify(dummyVisitor, times(1)).visit(childB);
+        verify(dummyVisitor, times(0)).visit(child1);
+        verify(dummyVisitor, times(0)).visit(child2);
 
     }
 
@@ -135,13 +135,13 @@ public class TreeNodeTest {
         final TreeNode<TreeNode> child2 = new TreeNode<>();
         childB.add(child2);
 
-        root.visit(dummyVisitor);
+        root.accept(dummyVisitor);
 
-        verify(dummyVisitor, times(1)).accept(root);
-        verify(dummyVisitor, times(1)).accept(childA);
-        verify(dummyVisitor, times(0)).accept(childB);
-        verify(dummyVisitor, times(0)).accept(child1);
-        verify(dummyVisitor, times(0)).accept(child2);
+        verify(dummyVisitor, times(1)).visit(root);
+        verify(dummyVisitor, times(1)).visit(childA);
+        verify(dummyVisitor, times(0)).visit(childB);
+        verify(dummyVisitor, times(0)).visit(child1);
+        verify(dummyVisitor, times(0)).visit(child2);
 
     }
 

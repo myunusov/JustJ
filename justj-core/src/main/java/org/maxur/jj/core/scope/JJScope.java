@@ -1,7 +1,7 @@
 package org.maxur.jj.core.scope;
 
 import org.maxur.jj.core.config.Context;
-import org.maxur.jj.core.entity.AbstractCommand;
+import org.maxur.jj.core.entity.Command;
 import org.maxur.jj.core.entity.Event;
 import org.maxur.jj.core.entity.TreeNode;
 
@@ -76,15 +76,15 @@ public class JJScope<T extends Context> extends TreeNode<JJScope> {
         return isActive;
     }
 
-    public void tell(final AbstractCommand command) {
-        visit(command);
+    public void tell(final Command command) {
+        accept(command);
     }
 
-    public static AbstractCommand<JJScope> exitCmd() {
+    public static Command<JJScope> exitCmd() {
         return new ExitCommand();
     }
 
-    private static class ExitCommand extends AbstractCommand<JJScope> {
+    private static class ExitCommand extends Command<JJScope> {
         @Override
         protected void process(final JJScope scope ) {
             scope.passive();

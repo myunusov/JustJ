@@ -15,7 +15,7 @@
 
 package org.maxur.jj.core.scope;
 
-import org.maxur.jj.core.entity.AbstractCommand;
+import org.maxur.jj.core.entity.Command;
 
 /**
  * @author Maxim Yunusov
@@ -26,11 +26,11 @@ public abstract class CommandInterpreter {
 
     public static CommandInterpreter DEFAULT = new CommandInterpreter() {
         @Override
-        public AbstractCommand<JJScope> interpret(String[] args) {
+        public Command<JJScope> interpret(String[] args) {
             return JJScope.exitCmd();
         }
     };
 
-    public abstract AbstractCommand<JJScope> interpret(final String[] args);
+    public abstract Command<JJScope> interpret(final String[] args);
 
 }

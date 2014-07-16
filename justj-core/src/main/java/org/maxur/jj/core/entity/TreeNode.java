@@ -33,9 +33,14 @@ public class TreeNode<T extends TreeNode> implements Iterable<T> {
         return Collections.unmodifiableList(children).iterator();
     }
 
-    public void visit(final Visitor<TreeNode> visitor) {
+    /**
+     *  /The accept method to allow the visitor to run some action over that element
+     *
+     * @param visitor The visitor.
+     */
+    public void accept(final Visitor<TreeNode> visitor) {
         if (!Visitor.State.STOP_TRAVERSAL.equals(visitor.state())) {
-            visitor.accept(this);
+            visitor.visit(this);
         }
         if (Visitor.State.CONTINUE_TRAVERSAL.equals(visitor.state())) {
             processChildren(visitor);
@@ -44,7 +49,7 @@ public class TreeNode<T extends TreeNode> implements Iterable<T> {
 
     protected void processChildren(final Visitor<TreeNode> visitor) {
         for (TreeNode child : children) {
-            child.visit(visitor);
+            child.accept(visitor);
         }
     }
 

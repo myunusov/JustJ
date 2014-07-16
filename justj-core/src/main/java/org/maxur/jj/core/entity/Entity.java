@@ -27,7 +27,7 @@ import static java.lang.String.format;
  */
 public abstract class Entity {
 
-    protected final String id;
+    private final String id;
 
     public Entity() {
         id = UUID.randomUUID().toString();
@@ -43,12 +43,19 @@ public abstract class Entity {
     }
 
     @Override
-    public boolean equals(Object o) {
-        return this == o || o instanceof Entity && id.equals(((Entity) o).id);
+    public final boolean equals(Object o) {
+        return o != null && (
+                        this == o ||
+                        (this.getClass().isAssignableFrom(o.getClass()) && id.equals(((Entity) o).id))
+                );
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return id.hashCode();
+    }
+
+    public String getId() {
+        return id;
     }
 }

@@ -18,7 +18,7 @@ package org.maxur.jj.core.scope;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.maxur.jj.core.config.Configuration;
-import org.maxur.jj.core.entity.AbstractCommand;
+import org.maxur.jj.core.entity.Command;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -36,7 +36,7 @@ public class JJSystemTest {
     @Mock
     private static JJView view;
     @Mock
-    private AbstractCommand command;
+    private Command command;
 
     @Test
     public void testSystemConfigIsCreated() throws Exception {
@@ -49,7 +49,7 @@ public class JJSystemTest {
         final JJSystem system = system(configBy(DummyConfiguration.class));
         when(command.isApplicableTo(any())).thenReturn(true);
         system.tell(command);
-        verify(command).accept(system);
+        verify(command).visit(system);
     }
 
     private static class DummyConfiguration extends Configuration {
