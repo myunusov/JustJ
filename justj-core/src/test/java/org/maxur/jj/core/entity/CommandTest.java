@@ -8,21 +8,20 @@ import org.mockito.InOrder;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.maxur.jj.core.entity.Command.command;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CommandTest {
 
+/*
     @Spy
     Command<DummyObject> command1 = new DummyObjectCommand();
 
     @Spy
     Command command2 = new ObjectCommand();
+*/
 
     @Spy
     Command<TreeNode> command3 = new TreeNodeCommand();
@@ -35,7 +34,7 @@ public class CommandTest {
     private DummyObject subject = new DummyObject();
 
 
-    @Test
+ /*   @Test
     public void testRunWithTypeLikeToGenericType() throws Exception {
         final DummyObject subject = new DummyObject();
         command1.execute(subject);
@@ -87,7 +86,7 @@ public class CommandTest {
                 .add(command);
         batch.execute(subject);
         verify(subject, times(2)).method();
-    }
+    }*/
 
 
     @Test
@@ -142,7 +141,7 @@ public class CommandTest {
         }
     }
 
-    private static class ObjectCommand extends Command {
+/*    private static class ObjectCommand extends Command {
         @Override
         protected void process(Object subject) {
         }
@@ -153,4 +152,5 @@ public class CommandTest {
         protected void process(DummyObject subject) {
         }
     }
+*/
 }

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * Defines the requirements for an object that can be used as a tree node in a Tree Structure.
@@ -40,4 +42,19 @@ public class TreeNode<T extends TreeNode> implements Iterable<T>, Visitable {
             child.accept(visitor);
         }
     }
+
+    public Stream<? extends TreeNode> stream() {
+        return Stream.concat(Stream.<TreeNode>of(this), children.stream().flatMap(TreeNode::stream));
+    }
+
+    public Stream<? extends TreeNode> streamBy(final Predicate<TreeNode> predicate) {
+        if (predicate.test(this)) {
+            return Stream.concat(Stream.<TreeNode>of(this), children.stream().flatMap(n -> n.streamBy(predicate)));
+        } else {
+            return Stream.empty();
+        }
+    }
+
+
+
 }

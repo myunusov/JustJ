@@ -19,8 +19,6 @@ import org.maxur.jj.core.entity.Command;
 import org.maxur.jj.core.scope.ArgToCmdMapper;
 import org.maxur.jj.core.scope.JJScope;
 
-import static org.maxur.jj.core.scope.JJScope.exitCmd;
-
 /**
  * @author Maxim Yunusov
  * @version 1.0
@@ -29,10 +27,17 @@ import static org.maxur.jj.core.scope.JJScope.exitCmd;
 public class TMArgToCmdMapper extends ArgToCmdMapper {
 
     @Override
+    public Command<JJScope> interpret(String[] args) {
+        return null;
+    }
+
+/*
+    @Override
     public Command<JJScope> interpret(final String[] args) {
         return Command.<JJScope>batch()
                 .add(c -> System.out.println("Hello"))       // TODO
                 .add(exitCmd());
     }
+*/
 
 }

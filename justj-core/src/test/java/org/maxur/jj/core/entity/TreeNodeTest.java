@@ -17,6 +17,7 @@ package org.maxur.jj.core.entity;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -26,6 +27,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -142,6 +144,55 @@ public class TreeNodeTest {
         verify(dummyVisitor, times(0)).visit(childB);
         verify(dummyVisitor, times(0)).visit(child1);
         verify(dummyVisitor, times(0)).visit(child2);
+
+    }
+
+
+    @Test
+    public void testStream() throws Exception {
+        final TreeNode<TreeNode> root = new TreeNode<>();
+        final TreeNode<TreeNode> childA = new TreeNode2();
+        root.add(childA);
+        final TreeNode<TreeNode> childB = new TreeNode<>();
+        root.add(childB);
+        final TreeNode<TreeNode> child1 = new TreeNode<>();
+        childB.add(child1);
+        final TreeNode<TreeNode> child2 = new TreeNode<>();
+        childB.add(child2);
+
+        root.stream().forEach(dummyVisitor::visit);
+
+        InOrder order = inOrder(dummyVisitor);
+
+        order.verify(dummyVisitor, times(1)).visit(root);
+        order.verify(dummyVisitor, times(1)).visit(childA);
+        order.verify(dummyVisitor, times(1)).visit(childB);
+        order.verify(dummyVisitor, times(1)).visit(child1);
+        order.verify(dummyVisitor, times(1)).visit(child2);
+
+    }
+
+    @Test
+    public void testStreamBy() throws Exception {
+        final TreeNode<TreeNode> root = new TreeNode<>();
+        final TreeNode<TreeNode> childA = new TreeNode<>();
+        root.add(childA);
+        final TreeNode<TreeNode> childB = new TreeNode2();
+        root.add(childB);
+        final TreeNode<TreeNode> child1 = new TreeNode<>();
+        childB.add(child1);
+        final TreeNode<TreeNode> child2 = new TreeNode<>();
+        childB.add(child2);
+
+        root.streamBy(n -> !(n instanceof TreeNode2)).forEach(dummyVisitor::visit);
+
+        InOrder order = inOrder(dummyVisitor);
+
+        order.verify(dummyVisitor, times(1)).visit(root);
+        order.verify(dummyVisitor, times(1)).visit(childA);
+        order.verify(dummyVisitor, times(0)).visit(childB);
+        order.verify(dummyVisitor, times(0)).visit(child1);
+        order.verify(dummyVisitor, times(0)).visit(child2);
 
     }
 
