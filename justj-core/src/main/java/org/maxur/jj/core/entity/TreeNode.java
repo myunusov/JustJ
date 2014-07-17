@@ -11,7 +11,7 @@ import java.util.List;
  * @author Maxim Yunusov
  * @version 1.0 13.07.2014
  */
-public class TreeNode<T extends TreeNode> implements Iterable<T> {
+public class TreeNode<T extends TreeNode> implements Iterable<T>, Visitable {
 
     private final List<T> children = new ArrayList<>();
 
@@ -29,28 +29,15 @@ public class TreeNode<T extends TreeNode> implements Iterable<T> {
      *
      * @return iterator of children nodes
      */
+    @Override
     public Iterator<T> iterator() {
         return Collections.unmodifiableList(children).iterator();
     }
 
-    /**
-     *  /The accept method to allow the visitor to run some action over that element
-     *
-     * @param visitor The visitor.
-     */
-    public void accept(final Visitor<TreeNode> visitor) {
-        if (!Visitor.State.STOP_TRAVERSAL.equals(visitor.state())) {
-            visitor.visit(this);
-        }
-        if (Visitor.State.CONTINUE_TRAVERSAL.equals(visitor.state())) {
-            processChildren(visitor);
-        }
-    }
-
-    protected void processChildren(final Visitor<TreeNode> visitor) {
-        for (TreeNode child : children) {
+    @Override
+    public void visitToChildren(final Visitor<Visitable> visitor) {
+        for (T child : children) {
             child.accept(visitor);
         }
     }
-
 }

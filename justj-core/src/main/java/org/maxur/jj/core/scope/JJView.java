@@ -1,6 +1,6 @@
 package org.maxur.jj.core.scope;
 
-import org.maxur.jj.core.config.Context;
+import org.maxur.jj.core.context.Context;
 
 /**
  * Interface of system's presenter. This object support presentation and command handler.

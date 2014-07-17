@@ -1,6 +1,6 @@
 package org.maxur.jj.core.scope;
 
-import org.maxur.jj.core.config.Context;
+import org.maxur.jj.core.context.Context;
 import org.maxur.jj.core.entity.Command;
 import org.maxur.jj.core.entity.Event;
 import org.maxur.jj.core.entity.TreeNode;

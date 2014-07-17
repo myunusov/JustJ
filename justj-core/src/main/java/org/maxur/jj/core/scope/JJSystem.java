@@ -15,16 +15,16 @@
 
 package org.maxur.jj.core.scope;
 
-import org.maxur.jj.core.config.Configuration;
-import org.maxur.jj.core.config.Context;
-import org.maxur.jj.core.config.Role;
+import org.maxur.jj.core.context.Configuration;
+import org.maxur.jj.core.context.Context;
+import org.maxur.jj.core.context.Role;
 import org.maxur.jj.core.entity.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.lang.String.format;
-import static org.maxur.jj.core.config.Role.HOME_VIEW;
-import static org.maxur.jj.core.config.Role.SYSTEM;
+import static org.maxur.jj.core.context.Role.HOME_VIEW;
+import static org.maxur.jj.core.context.Role.SYSTEM;
 
 /**
  * The Configurator class is only static launcher of Configuration service.
@@ -93,8 +93,8 @@ class SystemContext extends Context {
         return bean(SYSTEM);
     }
 
-    public CommandInterpreter interpreter() {
-        return bean(Role.INTERPRETER, CommandInterpreter.DEFAULT);
+    public ArgToCmdMapper interpreter() {
+        return bean(Role.INTERPRETER, ArgToCmdMapper.DEFAULT);
     }
 
 }

@@ -17,13 +17,13 @@ package org.maxur.jj.core.scope;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.maxur.jj.core.config.Configuration;
+import org.maxur.jj.core.context.Configuration;
 import org.maxur.jj.core.entity.Command;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertNotNull;
-import static org.maxur.jj.core.config.Role.HOME_VIEW;
+import static org.maxur.jj.core.context.Role.HOME_VIEW;
 import static org.maxur.jj.core.scope.JJSystem.configBy;
 import static org.maxur.jj.core.scope.JJSystem.system;
 import static org.mockito.Matchers.any;

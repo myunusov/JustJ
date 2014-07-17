@@ -1,4 +1,4 @@
-package org.maxur.jj.core.config;
+package org.maxur.jj.core.context;
 
 public enum Role {
 

@@ -1,6 +1,6 @@
 package org.maxur.jj.core.scope;
 
-import org.maxur.jj.core.config.Context;
+import org.maxur.jj.core.context.Context;
 
 /**
  * @author Maxim Yunusov

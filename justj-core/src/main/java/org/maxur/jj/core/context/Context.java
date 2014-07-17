@@ -1,4 +1,4 @@
-package org.maxur.jj.core.config;
+package org.maxur.jj.core.context;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

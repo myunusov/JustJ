@@ -20,7 +20,7 @@ package org.maxur.jj.core.entity;
  * @version 1.0
  * @since <pre>7/15/2014</pre>
  */
-public abstract class Visitor<T> extends Entity {
+public abstract class Visitor<T extends Visitable> extends Entity {
 
     private State state = State.CONTINUE_TRAVERSAL;
 

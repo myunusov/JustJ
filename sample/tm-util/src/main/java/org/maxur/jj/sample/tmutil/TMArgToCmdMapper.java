@@ -16,7 +16,7 @@
 package org.maxur.jj.sample.tmutil;
 
 import org.maxur.jj.core.entity.Command;
-import org.maxur.jj.core.scope.CommandInterpreter;
+import org.maxur.jj.core.scope.ArgToCmdMapper;
 import org.maxur.jj.core.scope.JJScope;
 
 import static org.maxur.jj.core.scope.JJScope.exitCmd;
@@ -26,7 +26,7 @@ import static org.maxur.jj.core.scope.JJScope.exitCmd;
  * @version 1.0
  * @since <pre>7/14/2014</pre>
  */
-public class TMInterpreter extends CommandInterpreter {
+public class TMArgToCmdMapper extends ArgToCmdMapper {
 
     @Override
     public Command<JJScope> interpret(final String[] args) {

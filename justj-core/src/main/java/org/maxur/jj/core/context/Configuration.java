@@ -13,7 +13,7 @@
  *    limitations under the License.
  */
 
-package org.maxur.jj.core.config;
+package org.maxur.jj.core.context;
 
 /**
  * The Configuration Description Interface.

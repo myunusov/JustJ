@@ -22,9 +22,9 @@ import org.maxur.jj.core.entity.Command;
  * @version 1.0
  * @since <pre>7/14/2014</pre>
  */
-public abstract class CommandInterpreter {
+public abstract class ArgToCmdMapper {
 
-    public static CommandInterpreter DEFAULT = new CommandInterpreter() {
+    public static ArgToCmdMapper DEFAULT = new ArgToCmdMapper() {
         @Override
         public Command<JJScope> interpret(String[] args) {
             return JJScope.exitCmd();

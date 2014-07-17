@@ -15,10 +15,10 @@
 
 package org.maxur.jj.sample.tmutil;
 
-import org.maxur.jj.core.config.Configuration;
+import org.maxur.jj.core.context.Configuration;
 
-import static org.maxur.jj.core.config.Role.INTERPRETER;
-import static org.maxur.jj.core.config.Role.SYSTEM;
+import static org.maxur.jj.core.context.Role.INTERPRETER;
+import static org.maxur.jj.core.context.Role.SYSTEM;
 
 /**
  * @author Maxim Yunusov
@@ -29,7 +29,7 @@ public final class TMUtilConfig extends Configuration {
     @Override
     public void config() {
       bind(SYSTEM).to(TMApplication.class);
-      bind(INTERPRETER).to(TMInterpreter.class);
+      bind(INTERPRETER).to(TMArgToCmdMapper.class);
     }
 
 }
