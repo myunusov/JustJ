@@ -1,4 +1,6 @@
 rootProject.name = 'JustJ'
 
 include 'justj-core',
-        'sample:jj-scanner'
+        'sample:tm-cmd-util'
+
+

@@ -12,7 +12,7 @@
     </appender>
 
     <appender name="file" class="org.apache.log4j.RollingFileAppender">
-        <param name="file" value="logs/jj-scanner.log"/>
+        <param name="file" value="logs/tm-cmd.log"/>
         <param name="MaxFileSize" value="100KB"/>
         <!-- Keep one backup file -->
         <param name="MaxBackupIndex" value="1"/>
@@ -23,7 +23,6 @@
 
     <root>
         <priority value ="debug" />
-        <appender-ref ref="console" />
         <appender-ref ref="file" />
     </root>
 
