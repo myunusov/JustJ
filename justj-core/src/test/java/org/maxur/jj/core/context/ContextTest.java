@@ -13,12 +13,16 @@
  *     limitations under the License.
  */
 
-package org.maxur.jj.core.domain;
+package org.maxur.jj.core.context;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.maxur.jj.core.domain.JustJSystemException;
+import org.maxur.jj.core.domain.Role;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
@@ -48,9 +52,8 @@ public class ContextTest {
     @Test
     public void testBindTypeToBean() throws Exception {
         final Context context = new Context();
-        final Object bean = "";
-        context.put(String.class, bean);
-        assertEquals(bean, context.bean(String.class));
+        context.put(String.class, "");
+        assertEquals("", context.bean(String.class));
     }
 
     @Test
@@ -65,9 +68,8 @@ public class ContextTest {
     @Test
     public void testBindTypeToSupplier() throws Exception {
         final Context context = new Context();
-        final Object bean = "";
-        context.put(String.class, () -> bean);
-        assertEquals(bean, context.bean(String.class));
+        context.put(String.class, () -> "");
+        assertEquals("", context.bean(String.class));
     }
 
     @Test
@@ -123,13 +125,28 @@ public class ContextTest {
 
 
     @Test
+    @Ignore
     public void testEqualsContract() {
         EqualsVerifier
                 .forClass(Context.class)
                 .suppress(Warning.NULL_FIELDS)
                 .withRedefinedSuperclass()
                 .withPrefabValues(Context.class, new Context(), new Context())
+                .withPrefabValues(BeansHolder.class, new DummyBeansHolder(), new DummyBeansHolder())
                 .verify();
     }
 
+    private static class DummyBeansHolder implements BeansHolder {
+        @Override
+        public BeanWrapper wrapper(BeanIdentifier id) {
+            return null;
+        }
+        @Override
+        public void put(Supplier<BeanWrapper> supplier, BeanIdentifier id) {
+        }
+        @Override
+        public List<BeanWrapper> wrappers() {
+            return null;
+        }
+    }
 }

@@ -13,12 +13,16 @@
  *     limitations under the License.
  */
 
-package org.maxur.jj.core.domain;
+package org.maxur.jj.core.context;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.maxur.jj.core.context.Config;
+import org.maxur.jj.core.context.Context;
+import org.maxur.jj.core.domain.JustJSystemException;
+import org.maxur.jj.core.domain.Role;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;

@@ -18,7 +18,7 @@ package org.maxur.jj.core.config.base;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.maxur.jj.core.domain.CommandMapper;
-import org.maxur.jj.core.domain.Context;
+import org.maxur.jj.core.context.Context;
 import org.maxur.jj.test.ImmutableVerifier;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;

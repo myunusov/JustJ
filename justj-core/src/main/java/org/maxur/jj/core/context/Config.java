@@ -13,7 +13,11 @@
  *    limitations under the License.
  */
 
-package org.maxur.jj.core.domain;
+package org.maxur.jj.core.context;
+
+import org.maxur.jj.core.domain.Entity;
+import org.maxur.jj.core.domain.JustJSystemException;
+import org.maxur.jj.core.domain.Role;
 
 import java.util.function.Supplier;
 
@@ -24,7 +28,7 @@ import static java.lang.String.format;
  * @version 1.0
  * @since <pre>7/18/2014</pre>
  */
-public abstract class Config<Z extends Context> extends Entity{
+public abstract class Config<Z extends Context> extends Entity {
 
     private Z context;
 

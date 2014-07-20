@@ -42,5 +42,7 @@ public abstract class Role extends Entity {
         return suitableType.isAssignableFrom(type);
     }
 
-
+    public Class<?> getSuitableType() {
+        return suitableType;
+    }
 }

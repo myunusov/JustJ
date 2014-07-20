@@ -13,25 +13,20 @@
  *     limitations under the License.
  */
 
-package org.maxur.jj.core.config.base;
+package org.maxur.jj.core.context;
 
-import org.maxur.jj.core.context.Context;
-import org.maxur.jj.core.domain.Role;
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
-* @author Maxim Yunusov
-* @version 1.0 19.07.2014
-*/
-public class BaseContext extends Context {
+ * @author Maxim Yunusov
+ * @version 1.0 20.07.2014
+ */
+public interface BeansHolder {
 
-    public static final Role APPLICATION = new Role(Application.class) {
-        @Override
-        public String toString() {
-            return "Application";
-        }
-    };
+    BeanWrapper wrapper(BeanIdentifier id);
 
-    public Application system() {
-        return bean(APPLICATION);
-    }
+    void put(Supplier<BeanWrapper> supplier, BeanIdentifier id);
+
+    List<BeanWrapper> wrappers();
 }

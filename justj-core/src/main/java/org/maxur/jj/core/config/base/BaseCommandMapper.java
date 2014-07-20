@@ -17,7 +17,7 @@ package org.maxur.jj.core.config.base;
 
 import org.maxur.jj.core.domain.Command;
 import org.maxur.jj.core.domain.CommandMapper;
-import org.maxur.jj.core.domain.Context;
+import org.maxur.jj.core.context.Context;
 
 /**
  * @author Maxim Yunusov

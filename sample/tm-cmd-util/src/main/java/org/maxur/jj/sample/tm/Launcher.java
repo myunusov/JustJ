@@ -17,7 +17,7 @@ package org.maxur.jj.sample.tm;
 
 import org.maxur.jj.core.config.base.BaseConfig;
 
-import static org.maxur.jj.core.domain.Config.configBy;
+import static org.maxur.jj.core.context.Config.configBy;
 
 /**
  * @author Maxim Yunusov
