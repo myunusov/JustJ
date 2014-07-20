@@ -24,18 +24,84 @@ import static java.lang.String.format;
  * @version 1.0
  * @since <pre>7/18/2014</pre>
  */
-public abstract class Config {
+public abstract class Config<Z extends Context> extends Entity{
 
-    public static Config configBy(final Supplier<? extends Config> supplier) throws JustJSystemException {
+    private Z context;
+
+    protected abstract Z makeContext();
+
+    public static <T extends Context> T configBy(
+            final Supplier<? extends Config<T>> supplier
+    ) throws JustJSystemException {
         try {
-            return supplier.get();
+            final Config<T> config = supplier.get();
+            config.context = config.makeContext();
+            config.config();
+            return config.context;
         } catch (RuntimeException cause) {
             throw new JustJSystemException(
                     format("Cannot create instance of Config with Supplier '%s'", supplier.toString()),
                     cause
             );
         }
-
     }
 
+    public abstract void config();
+
+    public Binder bind(final Role role) {
+        return new RoleBinder(context, role);
+    }
+
+    public Binder bind(Class type) {
+        return new TypeBinder(context, type);
+    }
+
+    public abstract static class Binder {
+
+        protected final Context context;
+
+        protected Binder(final Context context) {
+            this.context = context;
+        }
+
+        public abstract void to(Supplier<?> supplier);
+
+        public abstract void to(Object bean);
+    }
+
+    private static class RoleBinder extends Binder {
+
+        private final Role role;
+
+        public RoleBinder(final Context context, final Role role) {
+            super(context);
+            this.role = role;
+        }
+
+        public void to(final Supplier<?> supplier) {
+            context.put(role, supplier);
+        }
+
+        public void to(final Object bean) {
+            context.put(role, bean);
+        }
+    }
+
+    private static class TypeBinder extends Binder {
+
+        private final Class type;
+
+        public TypeBinder(final Context context, final Class type) {
+            super(context);
+            this.type = type;
+        }
+
+        public void to(final Supplier<?> supplier) {
+            context.put(type, supplier);
+        }
+
+        public void to(final Object bean) {
+            context.put(type, bean);
+        }
+    }
 }

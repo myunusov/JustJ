@@ -15,10 +15,9 @@
 
 package org.maxur.jj.sample.tm;
 
-import org.maxur.jj.core.config.BaseConfig;
+import org.maxur.jj.core.config.base.BaseConfig;
 
 import static org.maxur.jj.core.domain.Config.configBy;
-import static org.maxur.jj.core.domain.Context.system;
 
 /**
  * @author Maxim Yunusov
@@ -28,7 +27,9 @@ import static org.maxur.jj.core.domain.Context.system;
 public class Launcher {
 
     public static void main(final String[] args) {
-        system().runWith(configBy(BaseConfig::new), args);
+        configBy(BaseConfig::new)
+                .system()
+                .runWith(args);
     }
 
 }

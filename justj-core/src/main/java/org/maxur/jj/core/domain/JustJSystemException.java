@@ -15,6 +15,8 @@
 
 package org.maxur.jj.core.domain;
 
+import static java.lang.String.format;
+
 /**
  * @author Maxim Yunusov
  * @version 1.0
@@ -22,7 +24,13 @@ package org.maxur.jj.core.domain;
  */
 public class JustJSystemException extends RuntimeException {
 
+    private static final long serialVersionUID = 5376585918814932276L;
+
     public JustJSystemException(final String message, final Exception cause) {
         super(message, cause);
+    }
+
+    public JustJSystemException(final String message, final Object... args) {
+        super(format(message, args));
     }
 }

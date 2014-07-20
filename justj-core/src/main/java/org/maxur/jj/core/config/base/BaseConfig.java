@@ -13,8 +13,9 @@
  *    limitations under the License.
  */
 
-package org.maxur.jj.core.config;
+package org.maxur.jj.core.config.base;
 
+import org.maxur.jj.core.domain.CommandMapper;
 import org.maxur.jj.core.domain.Config;
 
 /**
@@ -22,6 +23,17 @@ import org.maxur.jj.core.domain.Config;
  * @version 1.0
  * @since <pre>7/18/2014</pre>
  */
-public class BaseConfig extends Config {
+public class BaseConfig extends Config<BaseContext> {
+
+    @Override
+    protected BaseContext makeContext() {
+        return new BaseContext();
+    }
+
+    @Override
+    public void config() {
+        bind(BaseContext.APPLICATION).to(Application::new);
+        bind(CommandMapper.class).to(BaseCommandMapper::new);
+    }
 
 }

@@ -1,6 +1,6 @@
 rootProject.name = 'JustJ'
 
 include 'justj-core',
+        'justj-test',
         'sample:tm-cmd-util'
-
 

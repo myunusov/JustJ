@@ -15,26 +15,13 @@
 
 package org.maxur.jj.core.domain;
 
-import java.util.function.Consumer;
-
 /**
  * @author Maxim Yunusov
  * @version 1.0
  * @since <pre>7/18/2014</pre>
  */
-public abstract class Command {
-
-    public static Command command(final Consumer<Context> consumer) {
-        return new Command() {
-
-            private Context context;        // TODO Must be injected
-
-            @Override
-            public void execute() {
-                consumer.accept(context);
-            }
-        };
-    }
+public abstract class Command extends Entity {
 
     public abstract void execute();
+
 }

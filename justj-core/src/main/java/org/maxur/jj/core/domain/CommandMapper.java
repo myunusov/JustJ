@@ -15,17 +15,12 @@
 
 package org.maxur.jj.core.domain;
 
-import static org.maxur.jj.core.domain.Command.command;
-
 /**
  * @author Maxim Yunusov
  * @version 1.0
  * @since <pre>7/18/2014</pre>
  */
-public class CommandMapper {
+public abstract class CommandMapper<T> {
 
-    public Command getFor(final String[] args) {
-        return command(c -> {System.out.print("Hello Word");}); // TODO  stub
-    }
-
+    public abstract Command commandBy(T input);
 }
