@@ -32,8 +32,8 @@ public class BaseConfig extends Config<BaseContext> {
 
     @Override
     public void config() {
-        bind(BaseContext.APPLICATION).to(Application::new);
-        bind(CommandMapper.class).to(BaseCommandMapper::new);
+        bind(BaseContext.APPLICATION).to(Application.class);
+        bind(CommandMapper.class).to(BaseCommandMapper.class);
     }
 
 }

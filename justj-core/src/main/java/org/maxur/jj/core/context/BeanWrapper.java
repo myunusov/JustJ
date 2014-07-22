@@ -15,12 +15,22 @@
 
 package org.maxur.jj.core.context;
 
+import org.maxur.jj.core.domain.Inject;
+import org.maxur.jj.core.domain.JustJSystemException;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+import java.util.WeakHashMap;
 import java.util.function.Supplier;
 
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
+
 /**
-* @author Maxim Yunusov
-* @version 1.0 20.07.2014
-*/
+ * @author Maxim Yunusov
+ * @version 1.0 20.07.2014
+ */
 abstract class BeanWrapper {
 
     public static BeanWrapper wrap(final Supplier<?> supplier) {
@@ -37,9 +47,16 @@ abstract class BeanWrapper {
         return new ObjectBeanWrapper(bean);
     }
 
+    public static BeanWrapper wrap(final Class clazz) {
+        if (clazz == null) {
+            throw new IllegalArgumentException("Class of been must not be null");
+        }
+        return new ClassBeanWrapper(clazz);
+    }
+
     public abstract Class type();
 
-    public abstract <T> T bean();
+    public abstract <T> T bean(Context context);
 
     protected abstract boolean suitableTo(final Class type);
 
@@ -56,7 +73,7 @@ abstract class BeanWrapper {
         }
 
         @SuppressWarnings("unchecked")
-        public <T> T bean() {
+        public <T> T bean(Context context) {
             return (T) supplier.get();
         }
 
@@ -79,7 +96,7 @@ abstract class BeanWrapper {
         }
 
         @SuppressWarnings("unchecked")
-        public <T> T bean() {
+        public <T> T bean(Context context) {
             return (T) bean;  // TODO must be catch exception
         }
 
@@ -90,4 +107,75 @@ abstract class BeanWrapper {
         }
     }
 
+    private static class ClassBeanWrapper extends BeanWrapper {
+
+        private WeakHashMap<Context, Object> cache = new WeakHashMap<>();
+
+        private final Class clazz;
+
+        private final Constructor constructor;
+
+        public ClassBeanWrapper(Class clazz) {
+            super();
+            this.clazz = clazz;
+            //noinspection unchecked
+            final List<Constructor> constructors = stream(clazz.getDeclaredConstructors())
+                    .filter(c -> (
+                                    stream(c.getDeclaredAnnotations())
+                                            .anyMatch(a -> Inject.class.equals(a.annotationType()))
+                            )
+                    ).collect(toList());
+            if (constructors.size() > 1) {
+                throw new JustJSystemException("More than one constructor with Inject annotation");
+            }
+            constructor = constructors.isEmpty() ? null : constructors.get(0);
+        }
+
+        @Override
+        public Class type() {
+            return clazz;
+        }
+
+        @Override
+        public <T> T bean(final Context context) {
+            //noinspection unchecked
+            final T result = (T) cache.get(context);
+            if (result != null) {
+                return result;
+            } else {
+                final T value = inject(context);
+                cache.put(context, value);
+                return value;
+            }
+        }
+
+        private <T> T inject(final Context context) {
+            if (constructor == null) {
+                try {
+                    //noinspection unchecked
+                    return (T) clazz.newInstance();
+                } catch (InstantiationException | IllegalAccessException e) {
+                    throw new JustJSystemException("New instance error", e);
+                }
+            }
+            constructor.setAccessible(true);
+            final Class[] parameterTypes = constructor.getParameterTypes();
+            final Object[] parameters = new Object[parameterTypes.length];
+            for (int i = 0; i < parameterTypes.length; i++) {
+                parameters[i] = context.bean(parameterTypes[i]);
+            }
+            try {
+                //noinspection unchecked
+                return (T) constructor.newInstance(parameters);
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                throw new JustJSystemException("New instance error", e);
+            }
+        }
+
+        @Override
+        protected boolean suitableTo(final Class type) {
+            //noinspection unchecked
+            return type.isAssignableFrom(type());
+        }
+    }
 }

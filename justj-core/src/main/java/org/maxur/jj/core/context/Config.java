@@ -71,6 +71,8 @@ public abstract class Config<Z extends Context> extends Entity {
         public abstract void to(Supplier<?> supplier);
 
         public abstract void to(Object bean);
+
+        public abstract void to(Class type);
     }
 
     private static class RoleBinder extends Binder {
@@ -89,6 +91,11 @@ public abstract class Config<Z extends Context> extends Entity {
         public void to(final Object bean) {
             context.put(role, bean);
         }
+
+        @Override
+        public void to(final Class type) {
+            context.put(role, type);
+        }
     }
 
     private static class TypeBinder extends Binder {
@@ -106,6 +113,11 @@ public abstract class Config<Z extends Context> extends Entity {
 
         public void to(final Object bean) {
             context.put(type, bean);
+        }
+
+        @Override
+        public void to(final Class type) {
+            context.put(this.type, type);
         }
     }
 }

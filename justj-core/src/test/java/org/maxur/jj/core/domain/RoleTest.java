@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.maxur.jj.core.domain.Role.role;
 
 public class RoleTest {
 
@@ -31,16 +32,14 @@ public class RoleTest {
 
     @Test
     public void testRoleSuitableToChildClass() throws Exception {
-        final Role role = new Role(DummyObject.class) {
-        };
+        final Role role = role("DummyObject", DummyObject.class);
         assertTrue(role.suitableTo((new DummyObject()).getClass()));
         assertTrue(role.suitableTo((new DummyObject(){}).getClass()));
     }
 
     @Test
     public void testRoleUnSuitableToDifferentClass() throws Exception {
-        final Role role = new Role(DummyObject.class) {
-        };
+        final Role role = role("DummyObject", DummyObject.class);
         assertFalse(role.suitableTo((new Object() {}).getClass()));
     }
 

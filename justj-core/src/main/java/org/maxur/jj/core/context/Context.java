@@ -20,7 +20,6 @@ import org.maxur.jj.core.domain.Entity;
 import org.maxur.jj.core.domain.JustJSystemException;
 import org.maxur.jj.core.domain.Role;
 
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static org.maxur.jj.core.context.BeanIdentifier.identifier;
@@ -33,12 +32,19 @@ import static org.maxur.jj.core.context.BeanWrapper.wrap;
  */
 public class Context extends Entity {
 
+    private static final ThreadLocal<Context> context = new ThreadLocal<>();
+
     private final Context parent;
 
     private final BeansHolder beansHolder;
 
-    public Context() {
+    public static Context current() {
+        return context.get();
+    }
+
+    protected Context() {
         this(null);
+        context.set(this);
     }
 
     Context(final Context parent) {
@@ -50,16 +56,29 @@ public class Context extends Entity {
         }
     }
 
-    public Command command(final Consumer<Context> consumer) {
-        final Command command = new Command() {
+    public Command command(final Runnable consumer) {   // TODO
+        return new Command() {
             @Override
-            public void execute() {
-                consumer.accept(new Context(Context.this));
+            protected void run() {
+                consumer.run();
             }
         };
-        inject(command);
-        return command;
     }
+
+    public Context branch() {
+        final Context result = new Context(this);
+        context.set(result);
+        return result;
+    }
+
+    public void close() {
+        context.set(parent);
+    }
+
+    public void inject(final Object bean) {
+        // TODO
+    }
+
 
     public <T> T bean(final Role role) {
         return bean(identifier(role));
@@ -71,13 +90,11 @@ public class Context extends Entity {
 
     private <T> T bean(final BeanIdentifier id) {
         final BeanWrapper wrapper = beansHolder.wrapper(id);
-        final T bean = wrapper.bean(); // TODO
+        final T bean = wrapper.bean(this);
         if (bean == null) {
             throw new JustJSystemException("Bean of %s is not created.\n" +
                     "Check it supplier.", id.getName());
         }
-        // TODO replace this to wrapper.injectWith(context) to cache wrap information in wrapper
-        inject(bean);
         return bean;
     }
 
@@ -90,16 +107,21 @@ public class Context extends Entity {
         beansHolder.put(() -> wrap(bean), identifier(role));
     }
 
-    void put(final Class type, final Object bean) {
-        beansHolder.put(() -> wrap(bean), identifier(type));
+    void put(final Role role, final Class clazz) {
+        beansHolder.put(() -> wrap(clazz), identifier(role));
     }
 
     void put(final Class type, final Supplier<?> supplier) {
         beansHolder.put(() -> wrap(supplier), identifier(type));
     }
 
-    public <T> void inject(T bean) {
-        // TODO
+    void put(final Class type, final Object bean) {
+        beansHolder.put(() -> wrap(bean), identifier(type));
     }
+
+    void put(final Class type, final Class clazz) {
+        beansHolder.put(() -> wrap(clazz), identifier(type));
+    }
+
 
 }

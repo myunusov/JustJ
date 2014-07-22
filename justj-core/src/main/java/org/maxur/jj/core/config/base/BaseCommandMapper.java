@@ -17,7 +17,8 @@ package org.maxur.jj.core.config.base;
 
 import org.maxur.jj.core.domain.Command;
 import org.maxur.jj.core.domain.CommandMapper;
-import org.maxur.jj.core.context.Context;
+
+import static org.maxur.jj.core.context.Context.current;
 
 /**
  * @author Maxim Yunusov
@@ -25,13 +26,9 @@ import org.maxur.jj.core.context.Context;
  */
 public final class BaseCommandMapper extends CommandMapper<String[]> {
 
-    //@Inject
-    //private final Context context;  // TODO Must be injected
-
     @Override
     public Command commandBy(final String[] input) {
-        Context context = new Context(); // TODO Stub
-        return context.command(c -> {
+        return current().command(() -> {
             System.out.print("Hello Word");
         }); // TODO  stub
     }

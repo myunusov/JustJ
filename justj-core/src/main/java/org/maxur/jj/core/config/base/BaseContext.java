@@ -18,18 +18,15 @@ package org.maxur.jj.core.config.base;
 import org.maxur.jj.core.context.Context;
 import org.maxur.jj.core.domain.Role;
 
+import static org.maxur.jj.core.domain.Role.role;
+
 /**
 * @author Maxim Yunusov
 * @version 1.0 19.07.2014
 */
 public class BaseContext extends Context {
 
-    public static final Role APPLICATION = new Role(Application.class) {
-        @Override
-        public String toString() {
-            return "Application";
-        }
-    };
+    public static final Role APPLICATION = role("Application", Application.class);
 
     public Application system() {
         return bean(APPLICATION);

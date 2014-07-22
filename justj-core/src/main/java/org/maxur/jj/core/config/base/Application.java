@@ -15,8 +15,8 @@
 
 package org.maxur.jj.core.config.base;
 
-import org.maxur.jj.core.domain.Command;
 import org.maxur.jj.core.domain.CommandMapper;
+import org.maxur.jj.core.domain.Inject;
 
 /**
  * @author Maxim Yunusov
@@ -24,13 +24,15 @@ import org.maxur.jj.core.domain.CommandMapper;
  */
 public class Application {
 
-    //    @Inject
-    // private final CommandMapper commandMapper;  // TODO Must be injected
+    private final CommandMapper<String[]> commandMapper;
+
+    @Inject
+    public Application(final CommandMapper<String[]> commandMapper) {
+        this.commandMapper = commandMapper;
+    }
 
     public void runWith(final String[] args) {
-        CommandMapper commandMapper = new BaseCommandMapper(); // TODO Stub
-        final Command start = commandMapper.commandBy(args);
-        start.execute();
+        commandMapper.commandBy(args).execute();
     }
 
 }

@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
+import static org.maxur.jj.core.domain.Role.role;
 
 public class ContextTest {
 
@@ -118,9 +119,7 @@ public class ContextTest {
     @Test(expected = IllegalArgumentException.class)
     public void testPutUnsuitableBean() throws Exception {
         final Context context = new Context();
-        final Role role = new Role(Integer.class) {
-        };
-        context.put(role, "");
+        context.put(role("Integer", Integer.class), "");
     }
 
 
