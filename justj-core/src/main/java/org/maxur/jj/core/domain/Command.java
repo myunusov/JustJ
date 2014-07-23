@@ -15,10 +15,6 @@
 
 package org.maxur.jj.core.domain;
 
-import org.maxur.jj.core.context.Context;
-
-import static org.maxur.jj.core.context.Context.current;
-
 /**
  * @author Maxim Yunusov
  * @version 1.0
@@ -26,14 +22,7 @@ import static org.maxur.jj.core.context.Context.current;
  */
 public abstract class Command extends Entity {
 
-    public final void execute() {
-        final Context context = current().branch();
-        context.inject(this);
-        run();
-        context.close();
-    }
-
-    protected abstract void run();
+    public abstract void execute();
 
 
 }

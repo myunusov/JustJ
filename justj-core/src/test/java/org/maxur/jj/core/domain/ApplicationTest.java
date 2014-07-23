@@ -13,25 +13,36 @@
  *     limitations under the License.
  */
 
-package org.maxur.jj.core.config.base;
+package org.maxur.jj.core.domain;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.maxur.jj.core.context.Context;
-import org.maxur.jj.test.ImmutableVerifier;
-import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
-@RunWith(MockitoJUnitRunner.class)
-public class BaseCommanderTest {
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.verify;
 
-    @Mock
-    private Context context;
+@RunWith(MockitoJUnitRunner.class)
+@Ignore
+public class ApplicationTest {
+
+    @Spy
+    private DummyApplication application  = new DummyApplication();
+
+    //@Before
+    public void setUp() throws Exception {
+        application = new DummyApplication();
+    }
 
     @Test
-    public void testImmutable() throws Exception {
-        ImmutableVerifier
-                .forInstance(new BaseCommander())
-                .verify();
+    public void testRunWith() throws Exception {
+        application.run();
+        verify(application).runWith(any());
+    }
+
+    static class DummyApplication implements Application {
+
     }
 }

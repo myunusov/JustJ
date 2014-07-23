@@ -17,9 +17,7 @@ package org.maxur.jj.core.context;
 
 import org.maxur.jj.core.domain.JustJSystemException;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -29,14 +27,18 @@ import static java.lang.String.format;
  * @author Maxim Yunusov
  * @version 1.0 20.07.2014
  */
-public class BeansHolderBaseImpl implements BeansHolder {
+public class BaseContextImpl implements ContextImpl {
 
-    private final BeansHolderBaseImpl parentHolder;
+    private final BaseContextImpl parent;
 
     private final Map<BeanIdentifier, BeanWrapper> beans = new HashMap<>();
 
-    public BeansHolderBaseImpl(final BeansHolderBaseImpl parentHolder) {
-        this.parentHolder = parentHolder;
+    public BaseContextImpl() {
+        this.parent = null;
+    }
+
+    public BaseContextImpl(final BaseContextImpl parent) {
+        this.parent = parent;
     }
 
     @Override
@@ -45,7 +47,6 @@ public class BeansHolderBaseImpl implements BeansHolder {
         if (wrapper == null) {
             throw new JustJSystemException("Bean with %s is not found.\n" +
                     "It must be added to config file.", id.getName());
-
         }
         return wrapper;
     }
@@ -66,21 +67,11 @@ public class BeansHolderBaseImpl implements BeansHolder {
         throw new IllegalArgumentException(message);
     }
 
-    @Override
-    public List<BeanWrapper> wrappers() {
-        final List<BeanWrapper> result = new ArrayList<>();
-        result.addAll(beans.values());
-        if (parentHolder != null) {
-            result.addAll(parentHolder.beans.values());
-        }
-        return result;
-    }
-
     protected BeanWrapper findBeanWrapper(final BeanIdentifier id) {
         final BeanWrapper wrapper = beans.get(id);
         if (wrapper == null)  {
-            if (parentHolder != null) {
-                return parentHolder.findBeanWrapper(id);
+            if (parent != null) {
+                return parent.findBeanWrapper(id);
             }
         }
         return wrapper;

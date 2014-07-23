@@ -30,57 +30,34 @@ import static org.maxur.jj.core.context.BeanIdentifier.identifier;
 import static org.maxur.jj.core.context.BeanWrapper.wrap;
 
 /**
+ *
+ *
+ *
  * @author Maxim Yunusov
  * @version 1.0
  * @since <pre>7/18/2014</pre>
  */
-public final class Context extends Entity {
+public class Context<C extends Context> extends Entity {
 
-    private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
+    private final C parent;
 
-    private final Context parent;
+    /**
+     * Bridge Context -> ContextImpl
+     */
+    private final ContextImpl contextImpl;
 
-    private final BeansHolder beansHolder;
-
-    public static Context current() {
-        return contextHolder.get();
+    protected Context() {
+        this.parent = null;
+        contextImpl = new BaseContextImpl(null);
     }
 
-    public static Context root() {
-        Context result = current();
-        if (result != null)  {
-            while (result.parent != null) {
-                result = result.parent;
-            }
-        } else {
-            result = new Context();
-            contextHolder.set(result);
-        }
-        return result;
-    }
-
-    public Context branch() {
-        final Context result = new Context(this);
-        contextHolder.set(result);
-        return result;
-    }
-
-    Context() {
-        this(null);
-        contextHolder.set(this);
-    }
-
-    Context(final Context parent) {
+    protected Context(final C parent) {
         this.parent = parent;
-        if (parent == null) {
-            beansHolder = new BeansHolderBaseImpl(null);
-        } else {
-            beansHolder = new BeansHolderBaseImpl((BeansHolderBaseImpl) parent.beansHolder);
-        }
+        contextImpl = new BaseContextImpl((BaseContextImpl)((Context) parent).contextImpl);
     }
 
-    public void close() {
-        contextHolder.set(parent);
+    public void stop() {
+        // It's hook
     }
 
     public <T> T inject(final T bean) {
@@ -104,7 +81,6 @@ public final class Context extends Entity {
                 .collect(toList());
     }
 
-
     public <T> T bean(final Role role) {
         return bean(identifier(role));
     }
@@ -114,40 +90,48 @@ public final class Context extends Entity {
     }
 
     private <T> T bean(final BeanIdentifier id) {
-        final BeanWrapper wrapper = beansHolder.wrapper(id);
-        final T bean = wrapper.bean(this);
-        if (bean == null) {
-            throw new JustJSystemException("Bean of %s is not created.\n" +
-                    "Check it supplier.", id.getName());
+        final BeanWrapper wrapper = contextImpl.wrapper(id);
+        try {
+            return wrapper.bean(this);
+        } catch (Exception e) {
+            throw new JustJSystemException(
+                    "Bean '%s' is not created. Cause: %s",
+                    id.getName(),
+                    e.getMessage()
+            );
         }
-        return bean;
     }
 
-
     public void put(final Role role, final Supplier<?> supplier) {
-        beansHolder.put(() -> wrap(supplier), identifier(role));
+        contextImpl.put(() -> wrap(supplier), identifier(role));
     }
 
     public void put(final Role role, final Object bean) {
-        beansHolder.put(() -> wrap(bean), identifier(role));
+        contextImpl.put(() -> wrap(bean), identifier(role));
     }
 
     public void put(final Role role, final Class clazz) {
-        beansHolder.put(() -> wrap(clazz), identifier(role));
+        contextImpl.put(() -> wrap(clazz), identifier(role));
     }
 
     public void put(final Class type, final Supplier<?> supplier) {
-        beansHolder.put(() -> wrap(supplier), identifier(type));
+        contextImpl.put(() -> wrap(supplier), identifier(type));
     }
 
     public void put(final Class type, final Object bean) {
-        beansHolder.put(() -> wrap(bean), identifier(type));
+        contextImpl.put(() -> wrap(bean), identifier(type));
     }
 
     public void put(final Class type, final Class clazz) {
-        beansHolder.put(() -> wrap(clazz), identifier(type));
+        contextImpl.put(() -> wrap(clazz), identifier(type));
     }
 
+    public C parent() {
+        return parent;
+    }
 
-
+    public C root() {
+        //noinspection unchecked
+        return (C) (parent == null ?  this : parent.root());
+    }
 }

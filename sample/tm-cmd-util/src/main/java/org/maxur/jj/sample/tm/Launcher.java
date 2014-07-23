@@ -15,8 +15,9 @@
 
 package org.maxur.jj.sample.tm;
 
-import org.maxur.jj.core.config.base.Application;
 import org.maxur.jj.core.config.base.BaseConfig;
+
+import static org.maxur.jj.core.config.base.BaseContext.configBy;
 
 /**
  * @author Maxim Yunusov
@@ -26,7 +27,9 @@ import org.maxur.jj.core.config.base.BaseConfig;
 public class Launcher {
 
     public static void main(final String[] args) {
-        Application.configBy(BaseConfig::new).runWith(args);
+        configBy(BaseConfig::new)
+                .system()
+                .runWith(args);
     }
 
 }

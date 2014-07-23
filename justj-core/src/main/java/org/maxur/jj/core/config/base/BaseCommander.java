@@ -15,9 +15,12 @@
 
 package org.maxur.jj.core.config.base;
 
+import org.maxur.jj.core.context.Context;
 import org.maxur.jj.core.domain.Command;
 import org.maxur.jj.core.domain.CommandMapper;
 import org.maxur.jj.core.domain.Executor;
+
+import static org.maxur.jj.core.config.base.BaseContext.current;
 
 /**
  * @author Maxim Yunusov
@@ -27,9 +30,16 @@ public final class BaseCommander implements CommandMapper<String[]> {
 
     public Command command(final Executor executor) {
         return new Command() {
-            @Override
+
             protected void run() {
                 executor.run();
+            }
+
+            public final void execute() {
+                final Context context = current().branch();
+                context.inject(this);
+                run();
+                context.stop();
             }
         };
     }

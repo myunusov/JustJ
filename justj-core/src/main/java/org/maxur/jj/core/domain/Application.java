@@ -13,20 +13,23 @@
  *     limitations under the License.
  */
 
-package org.maxur.jj.core.context;
+package org.maxur.jj.core.domain;
 
-import java.util.List;
-import java.util.function.Supplier;
+import static org.maxur.jj.core.domain.Role.role;
 
 /**
  * @author Maxim Yunusov
- * @version 1.0 20.07.2014
+ * @version 1.0 23.07.2014
  */
-public interface BeansHolder {
+public interface Application {
 
-    BeanWrapper wrapper(BeanIdentifier id);
+    Role APPLICATION = role("Application", Application.class);
 
-    void put(Supplier<BeanWrapper> supplier, BeanIdentifier id);
+    default void runWith(final String[] args) {
+        // It's hook
+    }
 
-    List<BeanWrapper> wrappers();
+    default void run() {
+        runWith(new String[]{});
+    }
 }

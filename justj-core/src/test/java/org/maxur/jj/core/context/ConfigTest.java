@@ -70,26 +70,26 @@ public class ConfigTest {
 
     @Test
     public void testCallContextPutOnBindRoleToSupplier() throws Exception {
-        final Supplier<Object> supplier = Object::new;
+        final Supplier supplier = Object::new;
         final Answer answer = invocation -> {
             config.bind(Role.ANY).to(supplier);
             return null;
         };
         doAnswer(answer).when(config).config(context);
         config.config(context);
-        verify(context).put(Role.ANY, supplier);
+        verify(context).put(Role.ANY, (Supplier) supplier);
     }
 
     @Test
     public void testCallContextPutOnBindTypeToSupplier() throws Exception {
-        final Supplier<Object> supplier = () -> "";
+        final Supplier supplier = () -> "";
         final Answer answer = invocation -> {
             config.bind(String.class).to(supplier);
             return null;
         };
         doAnswer(answer).when(config).config(context);
         config.config(context);
-        verify(context).put(String.class, supplier);
+        verify(context).put(String.class, (Supplier) supplier);
     }
 
     @Test
@@ -98,9 +98,19 @@ public class ConfigTest {
                 .forClass(Config.class)
                 .suppress(Warning.NULL_FIELDS)
                 .withRedefinedSuperclass()
-                .withPrefabValues(Context.class, new Context(), new Context())
+                .withPrefabValues(Context.class, new DummyContext(), new DummyContext())
                 .verify();
     }
 
 
+
+    private static class DummyContext extends Context<DummyContext> {
+        private DummyContext() {
+        }
+        public DummyContext(Context root) {
+        }
+        @Override
+        public void stop() {
+        }
+    }
 }

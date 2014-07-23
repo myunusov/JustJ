@@ -25,7 +25,6 @@ public class CommandMapperTest {
     public void testImmutable() throws Exception {
         ImmutableVerifier
                 .forInstance(new DummyCommandMapper())
-                .withSuperclass(CommandMapper.class)
                 .verify();
     }
 

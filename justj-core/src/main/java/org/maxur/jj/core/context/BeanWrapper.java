@@ -59,6 +59,9 @@ abstract class BeanWrapper {
 
     public final <T> T bean(final Context context) {
         final T bean = create(context);
+        if (bean == null) {
+            return null;
+        }
         final Class<?> beanClass = bean.getClass();
         context.inject(bean, getInjectedFields(beanClass));
         return bean;
@@ -94,7 +97,11 @@ abstract class BeanWrapper {
         @Override
         @SuppressWarnings("unchecked")
         protected <T> T create(final Context context) {
-            return (T) supplier.get();
+            final T bean = (T) supplier.get();
+            if (bean == null) {
+                throw new JustJSystemException("Error of supplier.");
+            }
+            return bean;
         }
 
         @Override
@@ -182,7 +189,7 @@ abstract class BeanWrapper {
                     //noinspection unchecked
                     return (T) clazz.newInstance();
                 } catch (InstantiationException | IllegalAccessException e) {
-                    throw new JustJSystemException("New instance error", e);
+                    throw new JustJSystemException("New instance error: " + e.getMessage(), e);
                 }
             }
             constructor.setAccessible(true);

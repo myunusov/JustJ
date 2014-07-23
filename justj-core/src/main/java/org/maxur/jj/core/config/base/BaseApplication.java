@@ -15,51 +15,38 @@
 
 package org.maxur.jj.core.config.base;
 
-import org.maxur.jj.core.context.Config;
-import org.maxur.jj.core.context.Context;
+import org.maxur.jj.core.domain.Application;
 import org.maxur.jj.core.domain.CommandMapper;
 import org.maxur.jj.core.domain.Inject;
-import org.maxur.jj.core.domain.JustJSystemException;
-import org.maxur.jj.core.domain.Role;
-
-import java.util.function.Supplier;
-
-import static java.lang.String.format;
-import static org.maxur.jj.core.domain.Role.role;
 
 /**
+ * Hold lifecycle of application.
+ *
  * @author Maxim Yunusov
  * @version 1.0 18.07.2014
  */
-public class Application {
-
-    public static final Role APPLICATION = role("Application", Application.class);
-
-    public static Application configBy(
-            final Supplier<? extends Config> supplier
-    ) throws JustJSystemException {
-        try {
-            final Config config = supplier.get();
-            config.config(Context.root());
-            return Context.current().bean(APPLICATION);
-        } catch (RuntimeException cause) {
-            throw new JustJSystemException(
-                    format("Cannot create instance of Config with Supplier '%s'", supplier.toString()),
-                    cause
-            );
-        }
-    }
-
+public class BaseApplication implements Application {
 
     private final CommandMapper<String[]> commandMapper;
 
     @Inject
-    public Application(final CommandMapper<String[]> commandMapper) {
+    public BaseApplication(final CommandMapper<String[]> commandMapper) {
         this.commandMapper = commandMapper;
     }
 
+    @Override
     public void runWith(final String[] args) {
+        preStart();
         commandMapper.commandBy(args).execute();
+        postStop();
+    }
+
+    protected void postStop() {
+        // It's hook
+    }
+
+    protected void preStart() {
+        // It's hook
     }
 
 }

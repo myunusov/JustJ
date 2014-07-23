@@ -13,25 +13,18 @@
  *     limitations under the License.
  */
 
-package org.maxur.jj.core.config.base;
+package org.maxur.jj.core.context;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.maxur.jj.core.context.Context;
-import org.maxur.jj.test.ImmutableVerifier;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import java.util.function.Supplier;
 
-@RunWith(MockitoJUnitRunner.class)
-public class BaseCommanderTest {
+/**
+ * @author Maxim Yunusov
+ * @version 1.0 20.07.2014
+ */
+public interface ContextImpl {
 
-    @Mock
-    private Context context;
+    BeanWrapper wrapper(BeanIdentifier id);
 
-    @Test
-    public void testImmutable() throws Exception {
-        ImmutableVerifier
-                .forInstance(new BaseCommander())
-                .verify();
-    }
+    void put(Supplier<BeanWrapper> supplier, BeanIdentifier id);
+
 }
