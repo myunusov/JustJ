@@ -16,41 +16,25 @@
 package org.maxur.jj.core.context;
 
 import org.maxur.jj.core.domain.Entity;
-import org.maxur.jj.core.domain.JustJSystemException;
 import org.maxur.jj.core.domain.Role;
 
 import java.util.function.Supplier;
-
-import static java.lang.String.format;
 
 /**
  * @author Maxim Yunusov
  * @version 1.0
  * @since <pre>7/18/2014</pre>
  */
-public abstract class Config<Z extends Context> extends Entity {
+public abstract class Config extends Entity {
 
-    private Z context;
+    private Context context;
 
-    protected abstract Z makeContext();
+    protected abstract void config();
 
-    public static <T extends Context> T configBy(
-            final Supplier<? extends Config<T>> supplier
-    ) throws JustJSystemException {
-        try {
-            final Config<T> config = supplier.get();
-            config.context = config.makeContext();
-            config.config();
-            return config.context;
-        } catch (RuntimeException cause) {
-            throw new JustJSystemException(
-                    format("Cannot create instance of Config with Supplier '%s'", supplier.toString()),
-                    cause
-            );
-        }
+    public final void config(final Context root) {
+        context = root;
+        config();
     }
-
-    public abstract void config();
 
     public Binder bind(final Role role) {
         return new RoleBinder(context, role);

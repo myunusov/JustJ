@@ -15,14 +15,41 @@
 
 package org.maxur.jj.core.config.base;
 
+import org.maxur.jj.core.context.Config;
+import org.maxur.jj.core.context.Context;
 import org.maxur.jj.core.domain.CommandMapper;
 import org.maxur.jj.core.domain.Inject;
+import org.maxur.jj.core.domain.JustJSystemException;
+import org.maxur.jj.core.domain.Role;
+
+import java.util.function.Supplier;
+
+import static java.lang.String.format;
+import static org.maxur.jj.core.domain.Role.role;
 
 /**
  * @author Maxim Yunusov
  * @version 1.0 18.07.2014
  */
 public class Application {
+
+    public static final Role APPLICATION = role("Application", Application.class);
+
+    public static Application configBy(
+            final Supplier<? extends Config> supplier
+    ) throws JustJSystemException {
+        try {
+            final Config config = supplier.get();
+            config.config(Context.root());
+            return Context.current().bean(APPLICATION);
+        } catch (RuntimeException cause) {
+            throw new JustJSystemException(
+                    format("Cannot create instance of Config with Supplier '%s'", supplier.toString()),
+                    cause
+            );
+        }
+    }
+
 
     private final CommandMapper<String[]> commandMapper;
 

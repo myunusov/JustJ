@@ -15,21 +15,25 @@
 
 package org.maxur.jj.core.config.base;
 
-import org.maxur.jj.core.domain.Command;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.maxur.jj.core.domain.CommandMapper;
+import org.maxur.jj.core.context.Context;
+import org.maxur.jj.test.ImmutableVerifier;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.maxur.jj.core.context.Context.current;
+@RunWith(MockitoJUnitRunner.class)
+public class BaseCommanderTest {
 
-/**
- * @author Maxim Yunusov
- * @version 1.0 18.07.2014
- */
-public final class BaseCommandMapper extends CommandMapper<String[]> {
+    @Mock
+    private Context context;
 
-    @Override
-    public Command commandBy(final String[] input) {
-        return current().command(() -> {
-            System.out.print("Hello Word");
-        }); // TODO  stub
+    @Test
+    public void testImmutable() throws Exception {
+        ImmutableVerifier
+                .forInstance(new BaseCommander())
+                .withSuperclass(CommandMapper.class)
+                .verify();
     }
 }

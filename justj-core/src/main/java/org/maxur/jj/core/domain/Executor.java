@@ -13,20 +13,14 @@
  *    limitations under the License.
  */
 
-package org.maxur.jj.sample.tm;
-
-import org.maxur.jj.core.config.base.Application;
-import org.maxur.jj.core.config.base.BaseConfig;
+package org.maxur.jj.core.domain;
 
 /**
  * @author Maxim Yunusov
  * @version 1.0
- * @since <pre>7/18/2014</pre>
+ * @since <pre>7/23/2014</pre>
  */
-public class Launcher {
-
-    public static void main(final String[] args) {
-        Application.configBy(BaseConfig::new).runWith(args);
-    }
-
+@FunctionalInterface
+public interface Executor {
+    public abstract void run();
 }

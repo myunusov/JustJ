@@ -20,7 +20,7 @@ package org.maxur.jj.core.domain;
  * @version 1.0
  * @since <pre>7/18/2014</pre>
  */
-public abstract class CommandMapper<T> {
+public interface CommandMapper<T> {
 
-    public abstract Command commandBy(T input);
+    Command commandBy(T input);
 }

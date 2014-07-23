@@ -15,25 +15,22 @@
 
 package org.maxur.jj.core.config.base;
 
-import org.maxur.jj.core.domain.CommandMapper;
 import org.maxur.jj.core.context.Config;
+import org.maxur.jj.core.domain.CommandMapper;
+
+import static org.maxur.jj.core.config.base.Application.APPLICATION;
 
 /**
  * @author Maxim Yunusov
  * @version 1.0
  * @since <pre>7/18/2014</pre>
  */
-public class BaseConfig extends Config<BaseContext> {
+public class BaseConfig extends Config {
 
     @Override
-    protected BaseContext makeContext() {
-        return new BaseContext();
-    }
-
-    @Override
-    public void config() {
-        bind(BaseContext.APPLICATION).to(Application.class);
-        bind(CommandMapper.class).to(BaseCommandMapper.class);
+    protected void config() {
+        bind(APPLICATION).to(Application.class);
+        bind(CommandMapper.class).to(BaseCommander.class);
     }
 
 }

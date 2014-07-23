@@ -19,9 +19,6 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.maxur.jj.core.context.Config;
-import org.maxur.jj.core.context.Context;
-import org.maxur.jj.core.domain.JustJSystemException;
 import org.maxur.jj.core.domain.Role;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -30,9 +27,7 @@ import org.mockito.stubbing.Answer;
 
 import java.util.function.Supplier;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -44,80 +39,56 @@ public class ConfigTest {
     @Spy
     private Config config = new Config() {
         @Override
-        protected Context makeContext() {
-            return null;
-        }
-
-        @Override
-        public void config() {
+        protected void config() {
         }
     };
 
-    @Test
-    public void testCreateEmptyConfig() throws Exception {
-        doReturn(context).when(config).makeContext();
-        assertEquals(context, Config.configBy(() -> config));
-        verify(config).config();
-    }
-
-    @Test(expected = JustJSystemException.class)
-    public void testCreateConfigWithWrongSupplier() throws Exception {
-        Config.configBy(this::make);
-    }
-
-    private Config make() {
-        return null;
-    }
 
     @Test
     public void testCallContextPutOnBindRoleToObject() throws Exception {
-        doReturn(context).when(config).makeContext();
         final Object object = new Object();
         final Answer answer = invocation -> {
             config.bind(Role.ANY).to(object);
             return null;
         };
-        doAnswer(answer).when(config).config();
-        assertEquals(context, Config.configBy(() -> config));
+        doAnswer(answer).when(config).config(context);
+        config.config(context);
         verify(context).put(Role.ANY, object);
     }
 
     @Test
     public void testCallContextPutOnBindTypeToObject() throws Exception {
-        doReturn(context).when(config).makeContext();
         final Object object = "";
         final Answer answer = invocation -> {
             config.bind(String.class).to(object);
             return null;
         };
-        doAnswer(answer).when(config).config();
-        assertEquals(context, Config.configBy(() -> config));
+        doAnswer(answer).when(config).config(context);
+        config.config(context);
         verify(context).put(String.class, object);
     }
 
     @Test
     public void testCallContextPutOnBindRoleToSupplier() throws Exception {
-        doReturn(context).when(config).makeContext();
         final Supplier<Object> supplier = Object::new;
         final Answer answer = invocation -> {
             config.bind(Role.ANY).to(supplier);
             return null;
         };
-        doAnswer(answer).when(config).config();
-        assertEquals(context, Config.configBy(() -> config));
+        doAnswer(answer).when(config).config(context);
+        config.config(context);
         verify(context).put(Role.ANY, supplier);
     }
 
     @Test
     public void testCallContextPutOnBindTypeToSupplier() throws Exception {
-        doReturn(context).when(config).makeContext();
         final Supplier<Object> supplier = () -> "";
         final Answer answer = invocation -> {
             config.bind(String.class).to(supplier);
             return null;
         };
-        doAnswer(answer).when(config).config();
-        assertEquals(context, Config.configBy(() -> config));
+        doAnswer(answer).when(config).config(context);
+        config.config(context);
         verify(context).put(String.class, supplier);
     }
 

@@ -15,13 +15,17 @@
 
 package org.maxur.jj.core.context;
 
-import org.maxur.jj.core.domain.Command;
 import org.maxur.jj.core.domain.Entity;
+import org.maxur.jj.core.domain.Inject;
 import org.maxur.jj.core.domain.JustJSystemException;
 import org.maxur.jj.core.domain.Role;
 
+import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.function.Supplier;
 
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
 import static org.maxur.jj.core.context.BeanIdentifier.identifier;
 import static org.maxur.jj.core.context.BeanWrapper.wrap;
 
@@ -30,21 +34,40 @@ import static org.maxur.jj.core.context.BeanWrapper.wrap;
  * @version 1.0
  * @since <pre>7/18/2014</pre>
  */
-public class Context extends Entity {
+public final class Context extends Entity {
 
-    private static final ThreadLocal<Context> context = new ThreadLocal<>();
+    private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
 
     private final Context parent;
 
     private final BeansHolder beansHolder;
 
     public static Context current() {
-        return context.get();
+        return contextHolder.get();
     }
 
-    protected Context() {
+    public static Context root() {
+        Context result = current();
+        if (result != null)  {
+            while (result.parent != null) {
+                result = result.parent;
+            }
+        } else {
+            result = new Context();
+            contextHolder.set(result);
+        }
+        return result;
+    }
+
+    public Context branch() {
+        final Context result = new Context(this);
+        contextHolder.set(result);
+        return result;
+    }
+
+    Context() {
         this(null);
-        context.set(this);
+        contextHolder.set(this);
     }
 
     Context(final Context parent) {
@@ -56,27 +79,29 @@ public class Context extends Entity {
         }
     }
 
-    public Command command(final Runnable consumer) {   // TODO
-        return new Command() {
-            @Override
-            protected void run() {
-                consumer.run();
-            }
-        };
-    }
-
-    public Context branch() {
-        final Context result = new Context(this);
-        context.set(result);
-        return result;
-    }
-
     public void close() {
-        context.set(parent);
+        contextHolder.set(parent);
     }
 
-    public void inject(final Object bean) {
-        // TODO
+    public <T> T inject(final T bean) {
+        return inject(bean, findInjectedFields(bean.getClass()));
+    }
+
+    <T> T inject(final T bean, final Collection<Field> fields) {
+        for (Field field : fields) {
+            field.setAccessible(true);
+            try {
+                field.set(bean, bean(field.getType()));
+            } catch (IllegalAccessException ignore) {
+            }
+        }
+        return bean;
+    }
+
+    private Collection<Field> findInjectedFields(final Class<?> beanClass) {
+        return stream(beanClass.getDeclaredFields())
+                .filter(f -> f.isAnnotationPresent(Inject.class))
+                .collect(toList());
     }
 
 
@@ -99,29 +124,30 @@ public class Context extends Entity {
     }
 
 
-    void put(final Role role, final Supplier<?> supplier) {
+    public void put(final Role role, final Supplier<?> supplier) {
         beansHolder.put(() -> wrap(supplier), identifier(role));
     }
 
-    void put(final Role role, final Object bean) {
+    public void put(final Role role, final Object bean) {
         beansHolder.put(() -> wrap(bean), identifier(role));
     }
 
-    void put(final Role role, final Class clazz) {
+    public void put(final Role role, final Class clazz) {
         beansHolder.put(() -> wrap(clazz), identifier(role));
     }
 
-    void put(final Class type, final Supplier<?> supplier) {
+    public void put(final Class type, final Supplier<?> supplier) {
         beansHolder.put(() -> wrap(supplier), identifier(type));
     }
 
-    void put(final Class type, final Object bean) {
+    public void put(final Class type, final Object bean) {
         beansHolder.put(() -> wrap(bean), identifier(type));
     }
 
-    void put(final Class type, final Class clazz) {
+    public void put(final Class type, final Class clazz) {
         beansHolder.put(() -> wrap(clazz), identifier(type));
     }
+
 
 
 }

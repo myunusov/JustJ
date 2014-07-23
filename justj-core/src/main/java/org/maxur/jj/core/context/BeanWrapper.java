@@ -19,9 +19,10 @@ import org.maxur.jj.core.domain.Inject;
 import org.maxur.jj.core.domain.JustJSystemException;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.List;
-import java.util.WeakHashMap;
 import java.util.function.Supplier;
 
 import static java.util.Arrays.stream;
@@ -56,7 +57,25 @@ abstract class BeanWrapper {
 
     public abstract Class type();
 
-    public abstract <T> T bean(Context context);
+    public final <T> T bean(final Context context) {
+        final T bean = create(context);
+        final Class<?> beanClass = bean.getClass();
+        context.inject(bean, getInjectedFields(beanClass));
+        return bean;
+    }
+
+    protected Collection<Field> getInjectedFields(Class<?> beanClass) {
+        return findInjectedFields(beanClass);
+    }
+
+    protected final Collection<Field> findInjectedFields(final Class<?> beanClass) {
+        return stream(beanClass.getDeclaredFields())
+                .filter(f -> f.isAnnotationPresent(Inject.class))
+                .collect(toList());
+    }
+
+    @SuppressWarnings("unchecked")
+    protected abstract <T> T create(Context context);
 
     protected abstract boolean suitableTo(final Class type);
 
@@ -72,13 +91,14 @@ abstract class BeanWrapper {
             return Object.class;  // TODO
         }
 
+        @Override
         @SuppressWarnings("unchecked")
-        public <T> T bean(Context context) {
+        protected <T> T create(final Context context) {
             return (T) supplier.get();
         }
 
         @Override
-        protected boolean suitableTo(Class type) {
+        protected boolean suitableTo(final Class type) {
             return true;    // TODO
         }
     }
@@ -87,16 +107,25 @@ abstract class BeanWrapper {
 
         private final Object bean;
 
+        private final Collection<Field> fields;
+
         public ObjectBeanWrapper(Object bean) {
             this.bean = bean;
+            fields = findInjectedFields(bean.getClass());
+        }
+
+        @Override
+        protected Collection<Field> getInjectedFields(Class<?> beanClass) {
+            return fields;
         }
 
         public Class type() {
             return bean.getClass();
         }
 
+        @Override
         @SuppressWarnings("unchecked")
-        public <T> T bean(Context context) {
+        protected <T> T create(Context context) {
             return (T) bean;  // TODO must be catch exception
         }
 
@@ -109,15 +138,20 @@ abstract class BeanWrapper {
 
     private static class ClassBeanWrapper extends BeanWrapper {
 
-        private WeakHashMap<Context, Object> cache = new WeakHashMap<>();
-
         private final Class clazz;
 
         private final Constructor constructor;
 
-        public ClassBeanWrapper(Class clazz) {
+        private final Collection<Field> fields;
+
+        public ClassBeanWrapper(final Class clazz) {
             super();
             this.clazz = clazz;
+            fields = findInjectedFields(clazz);
+            constructor = findInjectedConstructor(clazz);
+        }
+
+        private Constructor findInjectedConstructor(Class clazz) {
             //noinspection unchecked
             final List<Constructor> constructors = stream(clazz.getDeclaredConstructors())
                     .filter(c -> (
@@ -128,7 +162,12 @@ abstract class BeanWrapper {
             if (constructors.size() > 1) {
                 throw new JustJSystemException("More than one constructor with Inject annotation");
             }
-            constructor = constructors.isEmpty() ? null : constructors.get(0);
+            return constructors.isEmpty() ? null : constructors.get(0);
+        }
+
+        @Override
+        protected Collection<Field> getInjectedFields(Class<?> beanClass) {
+            return fields;
         }
 
         @Override
@@ -137,19 +176,7 @@ abstract class BeanWrapper {
         }
 
         @Override
-        public <T> T bean(final Context context) {
-            //noinspection unchecked
-            final T result = (T) cache.get(context);
-            if (result != null) {
-                return result;
-            } else {
-                final T value = inject(context);
-                cache.put(context, value);
-                return value;
-            }
-        }
-
-        private <T> T inject(final Context context) {
+        protected <T> T create(final Context context) {
             if (constructor == null) {
                 try {
                     //noinspection unchecked

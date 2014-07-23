@@ -29,7 +29,7 @@ public class CommandMapperTest {
                 .verify();
     }
 
-    private static final class DummyCommandMapper extends CommandMapper {
+    private static final class DummyCommandMapper implements CommandMapper {
         @Override
         public Command commandBy(Object input) {
             return null;
