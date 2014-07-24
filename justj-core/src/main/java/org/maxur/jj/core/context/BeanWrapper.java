@@ -59,11 +59,10 @@ abstract class BeanWrapper {
 
     public final <T> T bean(final Context context) {
         final T bean = create(context);
-        if (bean == null) {
-            return null;
+        if (bean != null) {
+            final Class<?> beanClass = bean.getClass();
+            context.inject(bean, getInjectedFields(beanClass));
         }
-        final Class<?> beanClass = bean.getClass();
-        context.inject(bean, getInjectedFields(beanClass));
         return bean;
     }
 
@@ -97,11 +96,7 @@ abstract class BeanWrapper {
         @Override
         @SuppressWarnings("unchecked")
         protected <T> T create(final Context context) {
-            final T bean = (T) supplier.get();
-            if (bean == null) {
-                throw new JustJSystemException("Error of supplier.");
-            }
-            return bean;
+            return (T) supplier.get();
         }
 
         @Override
@@ -197,12 +192,16 @@ abstract class BeanWrapper {
             final Object[] parameters = new Object[parameterTypes.length];
             for (int i = 0; i < parameterTypes.length; i++) {
                 parameters[i] = context.bean(parameterTypes[i]);
+                if (parameters[i] == null) {   // TODO optional case
+                    throw new JustJSystemException("Bean of type '%' is not found.\n" +
+                            "It must be added to context.", type().getName());
+                }
             }
             try {
                 //noinspection unchecked
                 return (T) constructor.newInstance(parameters);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                throw new JustJSystemException("New instance error", e);
+                throw new JustJSystemException("New instance error: " + e.getMessage(), e);
             }
         }
 

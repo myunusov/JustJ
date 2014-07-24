@@ -16,7 +16,6 @@
 package org.maxur.jj.core.context;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +27,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.function.Supplier;
 
+import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.maxur.jj.core.domain.Role.role;
 
@@ -90,6 +90,56 @@ public class ContextTest {
         assertEquals(bean2, bean.dummy2);
     }
 
+    @Test (expected = JustJSystemException.class)
+    public void testBindTypeToTypeWithInjectWithoutInjectedBean() throws Exception {
+        root.put(Role.ANY, Dummy1.class);
+        root.bean(Role.ANY);
+    }
+
+    @Test (expected = IllegalArgumentException.class)
+    public void testBindTypeToNull() throws Exception {
+        root.put(Role.ANY, (Class) null);
+    }
+
+    @Test
+    public void testInjectBean() throws Exception {
+        final Dummy2 bean2 = new Dummy2();
+        root.put(Dummy2.class, bean2);
+        final Dummy1 bean = new Dummy1();
+        root.inject(bean);
+        assertEquals(bean2, bean.dummy2);
+    }
+
+    @Test
+    public void testBindTypeToTypeWithInjectByConstructor() throws Exception {
+        root.put(Role.ANY, Dummy3.class);
+        final Dummy2 bean2 = new Dummy2();
+        root.put(Dummy2.class, bean2);
+        final Dummy3 bean = root.bean(Role.ANY);
+        assertEquals(Dummy3.class, bean.getClass());
+        assertEquals(bean2, bean.dummy2);
+    }
+
+    @Test(expected = JustJSystemException.class)
+    public void testBindTypeToTypeWithInjectByConstructorWithLotOfOnes() throws Exception {
+        root.put(Role.ANY, Dummy4.class);
+    }
+
+    @Test(expected = JustJSystemException.class)
+    public void testBindTypeToTypeWithInjectByConstructorWithUnavailableOne() throws Exception {
+        root.put(Role.ANY, Dummy5.class);
+        root.bean(Role.ANY);
+    }
+
+    @Test// (expected = JustJSystemException.class)
+    public void testBindTypeToTypeWithInjectByConstructorWithLotOfParamsAndUnavailableOne() throws Exception {
+        root.put(Role.ANY, Dummy6.class);
+        final Dummy2 bean2 = new Dummy2();
+        root.put(Dummy2.class, bean2);
+        root.bean(Role.ANY);
+    }
+
+
     @Test
     public void testBindTypeToBean() throws Exception {
         root.put(String.class, "");
@@ -102,7 +152,6 @@ public class ContextTest {
         root.put(Role.ANY, () -> bean);
         assertEquals(bean, root.bean(Role.ANY));
     }
-
 
     @Test
     public void testBindTypeToSupplier() throws Exception {
@@ -129,15 +178,15 @@ public class ContextTest {
         root.put(String.class, "");
     }
 
-    @Test(expected = JustJSystemException.class)
+    @Test
     public void testAccessToAbsentBean() throws Exception {
-        root.bean(Role.ANY);
+        assertNull(root.bean(Role.ANY));
     }
 
-    @Test(expected = JustJSystemException.class)
+    @Test
     public void testAccessToInvalidSupplier() throws Exception {
-        root.put(Role.ANY, () -> null );
-        root.bean(Role.ANY);
+        root.put(Role.ANY, () -> null);
+        assertNull(root.bean(Role.ANY));
     }
 
     @Test(expected = JustJSystemException.class)
@@ -162,20 +211,25 @@ public class ContextTest {
     }
 
     @Test
- //   @Ignore
+    public void testGetParent() throws Exception {
+        assertEquals(root, child.parent());
+    }
+
+    @Test
     public void testEqualsContract() {
         EqualsVerifier
-                .forClass(Context.class)
-                .suppress(Warning.NULL_FIELDS)
+                .forClass(DummyContext.class)
                 .withRedefinedSuperclass()
-                .withPrefabValues(Context.class, root, child)
-                .withPrefabValues(ContextImpl.class, new BaseContextImpl(), new BaseContextImpl())
+                .withPrefabValues(Context.class, new Context(), new Context())
                 .verify();
+    }
+
+    public final static class DummyContext {
     }
 
 }
 
-class  Dummy1 {
+class Dummy1 {
     @Inject
     Dummy2 dummy2;
 
@@ -184,4 +238,42 @@ class  Dummy1 {
 }
 
 class Dummy2 {
+}
+
+class Dummy3 {
+
+    final Dummy2 dummy2;
+
+    @Inject
+    public Dummy3(Dummy2 dummy2) {
+        this.dummy2 = dummy2;
+    }
+}
+
+class Dummy4 {
+
+    final Dummy2 dummy2;
+
+    @Inject
+    public Dummy4(Dummy2 dummy2) {
+        this.dummy2 = dummy2;
+    }
+    @Inject
+    public Dummy4(Dummy2 dummy2, String value) {
+        this.dummy2 = dummy2;
+    }
+
+}
+
+class Dummy5 {
+    private Dummy5() {
+    }
+}
+
+class Dummy6 {
+    final Dummy2 dummy2;
+    @Inject
+    private Dummy6(Dummy2 dummy2) {
+        this.dummy2 = dummy2;
+    }
 }

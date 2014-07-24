@@ -45,8 +45,7 @@ public class BaseContextImpl implements ContextImpl {
     public BeanWrapper wrapper(final BeanIdentifier id) {
         final BeanWrapper wrapper = findBeanWrapper(id);
         if (wrapper == null) {
-            throw new JustJSystemException("Bean with %s is not found.\n" +
-                    "It must be added to config file.", id.getName());
+            return null;
         }
         return wrapper;
     }

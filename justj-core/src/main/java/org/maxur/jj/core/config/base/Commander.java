@@ -20,6 +20,9 @@ import org.maxur.jj.core.domain.Command;
 import org.maxur.jj.core.domain.CommandMapper;
 import org.maxur.jj.core.domain.Executor;
 
+import static org.maxur.jj.core.context.Application.branchContext;
+import static org.maxur.jj.core.context.Application.closeContext;
+
 /**
  * @author Maxim Yunusov
  * @version 1.0 18.07.2014
@@ -34,10 +37,10 @@ public abstract class Commander implements CommandMapper<String[]> {
             }
 
             public final void execute() {
-                final Context context = Context.current().branch();
+                final Context context = branchContext();
                 context.inject(this);
                 run();
-                context.stop();
+                closeContext();
             }
         };
     }

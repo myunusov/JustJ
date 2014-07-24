@@ -17,41 +17,26 @@ package org.maxur.jj.core.config.base;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.maxur.jj.core.context.Application;
 import org.maxur.jj.core.context.Config;
 import org.maxur.jj.core.domain.JustJSystemException;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BaseConfigTest {
 
     @Spy
-    private DummyConfig config = new DummyConfig();
-
-    @Test
-    public void testCreateEmptyConfig() throws Exception {
-        assertNotNull(BaseApplication.configBy(() -> config));
-        verify(config).run();
-    }
+    private Config config = new BaseConfig();
 
     @Test(expected = JustJSystemException.class)
-    public void testCreateConfigWithWrongSupplier() throws Exception {
-        BaseApplication.configBy(this::make);
+    public void testCreateEmptyConfig() throws Exception {
+        assertNotNull(Application.configBy(config));
+        verify(config).config(any());
     }
 
-    private Config make() {
-        return null;
-    }
-
-    private static class DummyConfig extends BaseConfig {
-        @Override
-        protected void config() {
-            run();
-        }
-        public void run() {
-        }
-    }
 }

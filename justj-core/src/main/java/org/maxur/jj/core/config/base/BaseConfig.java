@@ -18,7 +18,7 @@ package org.maxur.jj.core.config.base;
 import org.maxur.jj.core.context.Config;
 import org.maxur.jj.core.domain.CommandMapper;
 
-import static org.maxur.jj.core.domain.Application.APPLICATION;
+import static org.maxur.jj.core.context.Application.APPLICATION;
 
 /**
  * @author Maxim Yunusov
@@ -30,11 +30,12 @@ public class BaseConfig extends Config {
     @Override
     protected final void preConfig() {
         bind(APPLICATION).to(BaseApplication.class);
+        bind(CommandMapper.class).to(Commander.class);
     }
 
     @Override
     protected void config() {
-        bind(CommandMapper.class).to(Commander.class);
+        // Hook
     }
 
 }

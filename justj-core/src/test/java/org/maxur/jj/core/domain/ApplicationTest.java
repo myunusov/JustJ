@@ -17,9 +17,12 @@ package org.maxur.jj.core.domain;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.maxur.jj.core.context.Application;
+import org.maxur.jj.core.context.Config;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 
@@ -34,6 +37,34 @@ public class ApplicationTest {
         application = new DummyApplication();
     }
 
+    @Spy
+    private DummyConfig config = new DummyConfig();
+
+    @Test(expected = JustJSystemException.class)
+    public void testCreateEmptyConfig() throws Exception {
+        assertNotNull(Application.configBy(config));
+        verify(config).run();
+    }
+
+    @Test(expected = JustJSystemException.class)
+    public void testCreateConfigWithWrongSupplier() throws Exception {
+        Application.configBy(this::make);
+    }
+
+    private Config make() {
+        return null;
+    }
+
+    private static class DummyConfig extends Config {
+        @Override
+        protected void config() {
+            run();
+        }
+        public void run() {
+        }
+    }
+
+
     @Test
     public void testRunWith() throws Exception {
        // when(application.run()).thenCallRealMethod();
@@ -41,7 +72,7 @@ public class ApplicationTest {
         verify(application).runWith(any());
     }
 
-    static class DummyApplication implements Application {
+    static class DummyApplication extends Application {
 
     }
 }

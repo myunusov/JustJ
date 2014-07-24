@@ -39,8 +39,6 @@ import static org.maxur.jj.core.context.BeanWrapper.wrap;
  */
 public class Context extends Entity {
 
-    private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
-
     private final Context parent;
 
     /**
@@ -48,40 +46,14 @@ public class Context extends Entity {
      */
     private final ContextImpl contextImpl;
 
-    protected Context() {
+    Context() {
         this.parent = null;
         contextImpl = new BaseContextImpl(null);
     }
 
-    protected Context(final Context parent) {
+    Context(final Context parent) {
         this.parent = parent;
         contextImpl = new BaseContextImpl((BaseContextImpl) parent.contextImpl);
-    }
-
-    public static Context current() {
-        return contextHolder.get();
-    }
-
-    public static Context trunk() {
-        final Context current = current();
-        final Context root = current == null ? null : current.root();
-        if (root == null) {
-            final Context result = new Context();
-            contextHolder.set(result);
-            return result;
-        } else {
-            return root;
-        }
-    }
-
-    public Context branch() {
-        final Context result = new Context(this);
-        contextHolder.set(result);
-        return result;
-    }
-
-    public void stop() {
-        contextHolder.set(parent());
     }
 
     public <T> T inject(final T bean) {
@@ -92,7 +64,12 @@ public class Context extends Entity {
         for (Field field : fields) {
             field.setAccessible(true);
             try {
-                field.set(bean, bean(field.getType()));
+                final Object injectedBean = bean(field.getType());
+                if (injectedBean == null) {     // TODO optional case
+                    throw new JustJSystemException("Bean of type '%' is not found.\n" +
+                            "It must be added to context.", field.getType().getName());
+                }
+                field.set(bean, injectedBean);
             } catch (IllegalAccessException ignore) {
             }
         }
@@ -115,6 +92,9 @@ public class Context extends Entity {
 
     private <T> T bean(final BeanIdentifier id) {
         final BeanWrapper wrapper = contextImpl.wrapper(id);
+        if (wrapper == null)  {
+            return null;
+        }
         try {
             return wrapper.bean(this);
         } catch (Exception e) {

@@ -15,16 +15,19 @@
 
 package org.maxur.jj.core.config.base;
 
+import org.maxur.jj.core.context.Config;
 import org.maxur.jj.core.domain.Command;
 import org.maxur.jj.core.domain.CommandMapper;
 import org.maxur.jj.core.domain.Executor;
+
+import static org.maxur.jj.core.context.Application.APPLICATION;
 
 /**
  * @author Maxim Yunusov
  * @version 1.0
  * @since <pre>7/24/2014</pre>
  */
-public class UtilConfig extends BaseConfig {
+public class UtilConfig extends Config {
 
     private final Executor executor;
 
@@ -37,8 +40,14 @@ public class UtilConfig extends BaseConfig {
     }
 
     @Override
-    protected void config() {
+    protected final void preConfig() {
+        bind(APPLICATION).to(BaseApplication.class);
         bind(CommandMapper.class).to(new UtilCommander());
+    }
+
+    @Override
+    protected void config() {
+        // Hook
     }
 
     public class UtilCommander extends Commander {

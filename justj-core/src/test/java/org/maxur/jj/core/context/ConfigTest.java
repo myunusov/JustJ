@@ -20,6 +20,7 @@ import nl.jqno.equalsverifier.Warning;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.maxur.jj.core.domain.Role;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -27,6 +28,8 @@ import org.mockito.stubbing.Answer;
 
 import java.util.function.Supplier;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
@@ -77,7 +80,9 @@ public class ConfigTest {
         };
         doAnswer(answer).when(config).config(context);
         config.config(context);
-        verify(context).put(Role.ANY, (Supplier) supplier);
+        ArgumentCaptor<Supplier> argument = ArgumentCaptor.forClass(Supplier.class);
+        verify(context).put(eq(Role.ANY), argument.capture());
+        assertEquals(supplier.hashCode(), argument.getValue().hashCode());
     }
 
     @Test
@@ -88,8 +93,10 @@ public class ConfigTest {
             return null;
         };
         doAnswer(answer).when(config).config(context);
+        ArgumentCaptor<Supplier> argument = ArgumentCaptor.forClass(Supplier.class);
         config.config(context);
-        verify(context).put(String.class, (Supplier) supplier);
+        verify(context).put(eq(String.class), argument.capture());
+        assertEquals(supplier.hashCode(), argument.getValue().hashCode());
     }
 
     @Test
@@ -101,6 +108,7 @@ public class ConfigTest {
                 .withPrefabValues(Context.class, new Context(), new Context())
                 .verify();
     }
+
 
 
 }

@@ -15,16 +15,9 @@
 
 package org.maxur.jj.core.config.base;
 
-import org.maxur.jj.core.context.Config;
-import org.maxur.jj.core.context.Context;
-import org.maxur.jj.core.domain.Application;
+import org.maxur.jj.core.context.Application;
 import org.maxur.jj.core.domain.CommandMapper;
 import org.maxur.jj.core.domain.Inject;
-import org.maxur.jj.core.domain.JustJSystemException;
-
-import java.util.function.Supplier;
-
-import static java.lang.String.format;
 
 /**
  * Hold lifecycle of application.
@@ -32,30 +25,9 @@ import static java.lang.String.format;
  * @author Maxim Yunusov
  * @version 1.0 18.07.2014
  */
-public class BaseApplication implements Application {
+public class BaseApplication extends Application {
 
     private final CommandMapper<String[]> commandMapper;
-
-    public static BaseApplication configBy(
-            final Supplier<? extends Config> supplier
-    ) throws JustJSystemException {
-        try {
-            final Config config = supplier.get();
-            config.config(Context.trunk());
-            return Context.current().bean(APPLICATION);
-        } catch (RuntimeException cause) {
-            throw new JustJSystemException(format("Cannot create instance of Config with Supplier"), cause);
-        }
-    }
-
-    public static BaseApplication configBy(final Config config) throws JustJSystemException {
-        config.config(Context.trunk());
-        return Context.current().bean(APPLICATION);
-    }
-
-    public static void runWithConfig(final BaseConfig config) {
-        configBy(config).run();
-    }
 
     @Override
     public final void run() {
@@ -67,15 +39,13 @@ public class BaseApplication implements Application {
         preStart();
         commandMapper.commandBy(args).execute();
         postStop();
-        Context.current().stop();
+        Application.closeContext();   // TODO Must be removed to Application
     }
-
 
     @Inject
     public BaseApplication(final CommandMapper<String[]> commandMapper) {
         this.commandMapper = commandMapper;
     }
-
 
     protected void postStop() {
         // It's hook
