@@ -15,26 +15,37 @@
 
 package org.maxur.jj.core.config.base;
 
-import org.maxur.jj.core.context.Config;
+import org.maxur.jj.core.domain.Command;
 import org.maxur.jj.core.domain.CommandMapper;
-
-import static org.maxur.jj.core.domain.Application.APPLICATION;
+import org.maxur.jj.core.domain.Executor;
 
 /**
  * @author Maxim Yunusov
  * @version 1.0
- * @since <pre>7/18/2014</pre>
+ * @since <pre>7/24/2014</pre>
  */
-public class BaseConfig extends Config {
+public class UtilConfig extends BaseConfig {
 
-    @Override
-    protected final void preConfig() {
-        bind(APPLICATION).to(BaseApplication.class);
+    private final Executor executor;
+
+    public static UtilConfig runOnStart(final Executor executor) {
+        return new UtilConfig(executor);
+    }
+
+    public UtilConfig(final Executor executor) {
+        this.executor = executor;
     }
 
     @Override
     protected void config() {
-        bind(CommandMapper.class).to(Commander.class);
+        bind(CommandMapper.class).to(new UtilCommander());
+    }
+
+    public class UtilCommander extends Commander {
+        @Override
+        public Command commandBy(final String[] input) {
+            return command(executor);
+        }
     }
 
 }

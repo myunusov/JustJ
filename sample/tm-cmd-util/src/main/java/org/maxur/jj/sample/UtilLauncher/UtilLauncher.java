@@ -13,23 +13,22 @@
  *    limitations under the License.
  */
 
-package org.maxur.jj.sample.tm;
+package org.maxur.jj.sample.UtilLauncher;
 
-import org.maxur.jj.core.config.base.BaseConfig;
-
-import static org.maxur.jj.core.config.base.BaseContext.configBy;
+import static org.maxur.jj.core.config.base.BaseContext.runWithConfig;
+import static org.maxur.jj.core.config.base.UtilConfig.runOnStart;
 
 /**
  * @author Maxim Yunusov
  * @version 1.0
  * @since <pre>7/18/2014</pre>
  */
-public class Launcher {
+public class UtilLauncher {
 
     public static void main(final String[] args) {
-        configBy(BaseConfig::new)
-                .system()
-                .runWith(args);
+        runWithConfig(runOnStart(() -> System.out.print("Hello World")));
+
+        //runWithConfig(runOnStart(() -> System.out.print("Hello World")));  ///TODO
     }
 
 }

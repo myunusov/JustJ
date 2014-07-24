@@ -49,6 +49,17 @@ public class BaseContext extends Context<BaseContext> {
         }
     }
 
+    public static BaseContext configBy(final Config config) throws JustJSystemException {
+        config.config(BaseContext.trunk());
+        return BaseContext.current();
+    }
+
+    public static void runWithConfig(final BaseConfig config) {
+        configBy(config)
+                .system()
+                .run();
+    }
+
     public static Context trunk() {
         final BaseContext current = current();
         final Context root = current == null ? null : current.root();
@@ -67,6 +78,8 @@ public class BaseContext extends Context<BaseContext> {
     private BaseContext(final BaseContext parent) {
         super(parent);
     }
+
+
 
     public Application system() {
         return BaseContext.current().bean(APPLICATION);

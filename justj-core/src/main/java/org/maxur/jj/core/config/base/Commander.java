@@ -26,7 +26,7 @@ import static org.maxur.jj.core.config.base.BaseContext.current;
  * @author Maxim Yunusov
  * @version 1.0 18.07.2014
  */
-public final class BaseCommander implements CommandMapper<String[]> {
+public abstract class Commander implements CommandMapper<String[]> {
 
     public Command command(final Executor executor) {
         return new Command() {
@@ -44,9 +44,5 @@ public final class BaseCommander implements CommandMapper<String[]> {
         };
     }
 
-    @Override
-    public Command commandBy(final String[] input) {
-        return command(() -> System.out.print("Hello Word")); // TODO  stub
-    }
 
 }

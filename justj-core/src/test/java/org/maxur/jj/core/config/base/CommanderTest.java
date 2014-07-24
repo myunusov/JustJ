@@ -18,12 +18,13 @@ package org.maxur.jj.core.config.base;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.maxur.jj.core.context.Context;
+import org.maxur.jj.core.domain.Command;
 import org.maxur.jj.test.ImmutableVerifier;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class BaseCommanderTest {
+public class CommanderTest {
 
     @Mock
     private Context context;
@@ -31,7 +32,14 @@ public class BaseCommanderTest {
     @Test
     public void testImmutable() throws Exception {
         ImmutableVerifier
-                .forInstance(new BaseCommander())
+                .forInstance(new MyCommander())
                 .verify();
+    }
+
+    private static final class MyCommander extends Commander {
+        @Override
+        public Command commandBy(String[] input) {
+            return null;
+        }
     }
 }

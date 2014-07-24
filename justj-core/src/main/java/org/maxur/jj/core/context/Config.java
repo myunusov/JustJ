@@ -33,7 +33,17 @@ public abstract class Config extends Entity {
 
     public final void config(final Context root) {
         context = root;
+        preConfig();
         config();
+        postConfig();
+    }
+
+    protected void postConfig() {
+        //  Hook
+    }
+
+    protected void preConfig() {
+        //  Hook
     }
 
     public Binder bind(final Role role) {
