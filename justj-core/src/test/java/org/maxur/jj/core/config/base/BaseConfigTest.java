@@ -23,7 +23,6 @@ import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertNotNull;
-import static org.maxur.jj.core.config.base.BaseContext.configBy;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -34,20 +33,20 @@ public class BaseConfigTest {
 
     @Test
     public void testCreateEmptyConfig() throws Exception {
-        assertNotNull(configBy(() -> config));
+        assertNotNull(BaseApplication.configBy(() -> config));
         verify(config).run();
     }
 
     @Test(expected = JustJSystemException.class)
     public void testCreateConfigWithWrongSupplier() throws Exception {
-        configBy(this::make);
+        BaseApplication.configBy(this::make);
     }
 
     private Config make() {
         return null;
     }
 
-    private static class DummyConfig extends Config {
+    private static class DummyConfig extends BaseConfig {
         @Override
         protected void config() {
             run();

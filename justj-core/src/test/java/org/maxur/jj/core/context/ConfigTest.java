@@ -98,19 +98,9 @@ public class ConfigTest {
                 .forClass(Config.class)
                 .suppress(Warning.NULL_FIELDS)
                 .withRedefinedSuperclass()
-                .withPrefabValues(Context.class, new DummyContext(), new DummyContext())
+                .withPrefabValues(Context.class, new Context(), new Context())
                 .verify();
     }
 
 
-
-    private static class DummyContext extends Context<DummyContext> {
-        private DummyContext() {
-        }
-        public DummyContext(Context root) {
-        }
-        @Override
-        public void stop() {
-        }
-    }
 }

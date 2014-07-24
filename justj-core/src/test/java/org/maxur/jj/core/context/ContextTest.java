@@ -18,7 +18,6 @@ package org.maxur.jj.core.context;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.maxur.jj.core.domain.Inject;
@@ -36,15 +35,15 @@ import static org.maxur.jj.core.domain.Role.role;
 public class ContextTest {
 
     @Spy
-    private DummyContext root;
+    private Context root;
 
     @Spy
-    private DummyContext child;
+    private Context child;
 
     @Before
     public void setUp() throws Exception {
-        root = new DummyContext();
-        child = new DummyContext(root);
+        root = new Context();
+        child = new Context(root);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -163,38 +162,16 @@ public class ContextTest {
     }
 
     @Test
-    @Ignore
+ //   @Ignore
     public void testEqualsContract() {
         EqualsVerifier
                 .forClass(Context.class)
                 .suppress(Warning.NULL_FIELDS)
                 .withRedefinedSuperclass()
                 .withPrefabValues(Context.class, root, child)
-                .withPrefabValues(ContextImpl.class, new DummyContextImpl(), new DummyContextImpl())
+                .withPrefabValues(ContextImpl.class, new BaseContextImpl(), new BaseContextImpl())
                 .verify();
     }
-
-    private static class DummyContextImpl implements ContextImpl {
-        @Override
-        public BeanWrapper wrapper(BeanIdentifier id) {
-            return null;
-        }
-        @Override
-        public void put(Supplier<BeanWrapper> supplier, BeanIdentifier id) {
-        }
-    }
-
-    private static class DummyContext extends Context<DummyContext> {
-        private DummyContext() {
-        }
-        private DummyContext(DummyContext root) {
-            super(root);
-        }
-        @Override
-        public void stop() {
-        }
-    }
-
 
 }
 

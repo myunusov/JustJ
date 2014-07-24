@@ -7,8 +7,6 @@ import org.junit.runner.RunWith;
 import org.maxur.jj.core.context.Context;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.maxur.jj.core.config.base.BaseContext.current;
-
 @RunWith(MockitoJUnitRunner.class)
 public class CommandTest {
 
@@ -18,9 +16,8 @@ public class CommandTest {
             protected void run() {
 
             }
-
             public final void execute() {
-                final Context context = current().branch();
+                final Context context = Context.current().branch();
                 context.inject(this);
                 run();
                 context.stop();

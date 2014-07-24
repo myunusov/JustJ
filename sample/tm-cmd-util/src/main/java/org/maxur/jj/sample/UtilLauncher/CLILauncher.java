@@ -20,7 +20,7 @@ import org.maxur.jj.core.config.base.Commander;
 import org.maxur.jj.core.domain.Command;
 import org.maxur.jj.core.domain.CommandMapper;
 
-import static org.maxur.jj.core.config.base.BaseContext.configBy;
+import static org.maxur.jj.core.config.base.BaseApplication.configBy;
 
 /**
  * @author Maxim Yunusov
@@ -30,9 +30,7 @@ import static org.maxur.jj.core.config.base.BaseContext.configBy;
 public class CLILauncher {
 
     public static void main(final String[] args) {
-        configBy(TMConfig::new)
-                .system()
-                .runWith(args);
+        configBy(TMConfig::new).runWith(args);
     }
 
     public static class TMCommander extends Commander {

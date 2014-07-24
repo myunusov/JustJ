@@ -37,9 +37,11 @@ import static org.maxur.jj.core.context.BeanWrapper.wrap;
  * @version 1.0
  * @since <pre>7/18/2014</pre>
  */
-public class Context<C extends Context> extends Entity {
+public class Context extends Entity {
 
-    private final C parent;
+    private static final ThreadLocal<Context> contextHolder = new ThreadLocal<>();
+
+    private final Context parent;
 
     /**
      * Bridge Context -> ContextImpl
@@ -51,13 +53,35 @@ public class Context<C extends Context> extends Entity {
         contextImpl = new BaseContextImpl(null);
     }
 
-    protected Context(final C parent) {
+    protected Context(final Context parent) {
         this.parent = parent;
-        contextImpl = new BaseContextImpl((BaseContextImpl)((Context) parent).contextImpl);
+        contextImpl = new BaseContextImpl((BaseContextImpl) parent.contextImpl);
+    }
+
+    public static Context current() {
+        return contextHolder.get();
+    }
+
+    public static Context trunk() {
+        final Context current = current();
+        final Context root = current == null ? null : current.root();
+        if (root == null) {
+            final Context result = new Context();
+            contextHolder.set(result);
+            return result;
+        } else {
+            return root;
+        }
+    }
+
+    public Context branch() {
+        final Context result = new Context(this);
+        contextHolder.set(result);
+        return result;
     }
 
     public void stop() {
-        // It's hook
+        contextHolder.set(parent());
     }
 
     public <T> T inject(final T bean) {
@@ -126,12 +150,11 @@ public class Context<C extends Context> extends Entity {
         contextImpl.put(() -> wrap(clazz), identifier(type));
     }
 
-    public C parent() {
+    public Context parent() {
         return parent;
     }
 
-    public C root() {
-        //noinspection unchecked
-        return (C) (parent == null ?  this : parent.root());
+    public Context root() {
+        return parent == null ?  this : parent.root();
     }
 }

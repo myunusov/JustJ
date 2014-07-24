@@ -15,7 +15,6 @@
 
 package org.maxur.jj.core.domain;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Spy;
@@ -25,7 +24,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-@Ignore
 public class ApplicationTest {
 
     @Spy
@@ -38,6 +36,7 @@ public class ApplicationTest {
 
     @Test
     public void testRunWith() throws Exception {
+       // when(application.run()).thenCallRealMethod();
         application.run();
         verify(application).runWith(any());
     }

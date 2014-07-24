@@ -15,7 +15,8 @@
 
 package org.maxur.jj.sample.UtilLauncher;
 
-import static org.maxur.jj.core.config.base.BaseContext.runWithConfig;
+import static org.maxur.jj.core.config.base.BaseApplication.configBy;
+import static org.maxur.jj.core.config.base.BaseApplication.runWithConfig;
 import static org.maxur.jj.core.config.base.UtilConfig.runOnStart;
 
 /**
@@ -26,9 +27,10 @@ import static org.maxur.jj.core.config.base.UtilConfig.runOnStart;
 public class UtilLauncher {
 
     public static void main(final String[] args) {
-        runWithConfig(runOnStart(() -> System.out.print("Hello World")));
+        configBy(runOnStart(() -> System.out.println("Hello World"))).run();
 
-        //runWithConfig(runOnStart(() -> System.out.print("Hello World")));  ///TODO
+        runWithConfig(runOnStart(() -> System.out.println("Hello World")));
+
     }
 
 }
