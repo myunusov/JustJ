@@ -67,12 +67,14 @@ public class ApplicationTest {
 
     @Test
     public void testRunWith() throws Exception {
-       // when(application.run()).thenCallRealMethod();
         application.run();
-        verify(application).runWith(any());
+        verify(application).execute(any());
     }
 
     static class DummyApplication extends Application {
 
+        @Override
+        protected void execute(String[] args) {
+        }
     }
 }

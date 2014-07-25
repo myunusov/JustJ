@@ -33,6 +33,8 @@ public abstract class Application {
 
     private static final ThreadLocal<Context> CONTEXT_HOLDER = new ThreadLocal<>();
 
+    private Context context;
+
     public static Context currentContext() {
         return CONTEXT_HOLDER.get();
     }
@@ -68,12 +70,14 @@ public abstract class Application {
     }
 
     public static Application configBy(final Config config) throws JustJSystemException {
-        config.config(trunkContext());
-        final Application result = currentContext().bean(APPLICATION);
+        final Context root = new Context();
+        config.config(root);
+        final Application result = root.bean(APPLICATION);
         if (result == null) {
             throw new JustJSystemException("Cannot create instance of Application. " +
                     "Type of application must be described in config");
         }
+        result.context = root;
         return result;
     }
 
@@ -81,11 +85,31 @@ public abstract class Application {
         configBy(config).run();
     }
 
-    public void runWith(final String[] args) {
+    public final void runWith(final String[] args) {
+        openContext(context);
+        preStart();
+        execute(args);
+        postStop();
+        closeContext();
+    }
+
+    public static void openContext(final Context context) {
+        CONTEXT_HOLDER.set(context == null ? new Context() : context);
+    }
+
+    protected void execute(final String[] args) {
         // It's hook
     }
 
-    public void run() {
+    protected void preStart() {
+        // It's hook
+    }
+
+    protected void postStop() {
+        // It's hook
+    }
+
+    public final void run() {
         runWith(new String[]{});
     }
 }

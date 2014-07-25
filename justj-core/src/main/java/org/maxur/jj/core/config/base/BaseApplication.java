@@ -25,34 +25,20 @@ import org.maxur.jj.core.domain.Inject;
  * @author Maxim Yunusov
  * @version 1.0 18.07.2014
  */
-public class BaseApplication extends Application {
+public final class BaseApplication extends Application {
 
     private final CommandMapper<String[]> commandMapper;
-
-    @Override
-    public final void run() {
-        runWith(new String[]{});
-    }
-
-    @Override
-    public final void runWith(final String[] args) {
-        preStart();
-        commandMapper.commandBy(args).execute();
-        postStop();
-        Application.closeContext();   // TODO Must be removed to Application
-    }
 
     @Inject
     public BaseApplication(final CommandMapper<String[]> commandMapper) {
         this.commandMapper = commandMapper;
     }
 
-    protected void postStop() {
-        // It's hook
+
+    @Override
+    protected void execute(String[] args) {
+        commandMapper.commandBy(args).execute();
     }
 
-    protected void preStart() {
-        // It's hook
-    }
 
 }
