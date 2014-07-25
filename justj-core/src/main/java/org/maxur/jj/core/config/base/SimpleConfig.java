@@ -15,30 +15,25 @@
 
 package org.maxur.jj.core.config.base;
 
-import org.maxur.jj.core.context.Application;
-import org.maxur.jj.core.domain.CommandMapper;
-import org.maxur.jj.core.domain.Inject;
+import org.maxur.jj.core.context.Config;
+
+import java.util.function.Consumer;
 
 /**
- * Hold lifecycle of application.
- *
- * @author Maxim Yunusov
- * @version 1.0 18.07.2014
- */
-public final class BaseApplication extends Application {
+* @author Maxim Yunusov
+* @version 1.0 25.07.2014
+*/
+public class SimpleConfig extends Config {
 
-    private final CommandMapper<String[]> commandMapper;
+    private Consumer<SimpleConfig> consumer;
 
-    @Inject
-    public BaseApplication(final CommandMapper<String[]> commandMapper) {
-        this.commandMapper = commandMapper;
+    public SimpleConfig config(final Consumer<SimpleConfig> consumer) {
+        this.consumer = consumer;
+        return this;
     }
-
 
     @Override
-    protected void execute(String[] args) {
-        commandMapper.commandBy(args).run();
+    public void config() {
+        consumer.accept(this);
     }
-
-
 }

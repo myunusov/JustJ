@@ -13,32 +13,36 @@
  *     limitations under the License.
  */
 
-package org.maxur.jj.core.config.base;
+package org.maxur.jj.sample.hello;
 
-import org.maxur.jj.core.context.Application;
-import org.maxur.jj.core.domain.CommandMapper;
+import org.maxur.jj.core.config.base.SimpleConfig;
+import org.maxur.jj.core.domain.Command;
 import org.maxur.jj.core.domain.Inject;
 
+import static java.lang.String.format;
+import static org.maxur.jj.core.context.Application.configBy;
+
 /**
- * Hold lifecycle of application.
+ * IoC Container and Injector.
  *
  * @author Maxim Yunusov
- * @version 1.0 18.07.2014
+ * @version 1.0
+ * @since <pre>7/25/2014</pre>
  */
-public final class BaseApplication extends Application {
-
-    private final CommandMapper<String[]> commandMapper;
+public class HelloWorldInjector extends Command {
 
     @Inject
-    public BaseApplication(final CommandMapper<String[]> commandMapper) {
-        this.commandMapper = commandMapper;
-    }
+    private String value;
 
+    public static void main(String[] args) {
+        configBy(new SimpleConfig()
+                .config(c -> c.bind(String.class).to("World"))
+        ).runWith(new HelloWorldInjector());
+    }
 
     @Override
-    protected void execute(String[] args) {
-        commandMapper.commandBy(args).run();
+    public void run() {
+        System.out.println(format("Hello %s", value));
     }
-
 
 }

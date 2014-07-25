@@ -13,48 +13,37 @@
  *    limitations under the License.
  */
 
-package org.maxur.jj.core.config.base;
+package org.maxur.jj.sample.cli;
 
-import org.maxur.jj.core.context.Config;
+import org.maxur.jj.core.config.base.BaseConfig;
+import org.maxur.jj.core.config.base.Commander;
 import org.maxur.jj.core.domain.Command;
 import org.maxur.jj.core.domain.CommandMapper;
-import org.maxur.jj.core.domain.Executor;
 
-import static org.maxur.jj.core.context.Application.APPLICATION;
+import static org.maxur.jj.core.config.base.BaseApplication.configBy;
 
 /**
  * @author Maxim Yunusov
  * @version 1.0
- * @since <pre>7/24/2014</pre>
+ * @since <pre>7/18/2014</pre>
  */
-public class UtilConfig extends Config {
+public class CLILauncher {
 
-    private final Executor executor;
-
-    public static UtilConfig runOnStart(final Executor executor) {
-        return new UtilConfig(executor);
+    public static void main(final String[] args) {
+        configBy(TMConfig::new).runWith(args);
     }
 
-    public UtilConfig(final Executor executor) {
-        this.executor = executor;
-    }
-
-    @Override
-    protected final void preConfig() {
-        bind(APPLICATION).to(BaseApplication.class);
-        bind(CommandMapper.class).to(new UtilCommander());
-    }
-
-    @Override
-    protected void config() {
-        // Hook
-    }
-
-    public class UtilCommander extends Commander {
+    public static class TMCommander extends Commander {
         @Override
         public Command commandBy(final String[] input) {
-            return command(executor);
+            return command(() -> System.out.print("Hello World"));
         }
     }
 
+    public static class TMConfig extends BaseConfig {
+        @Override
+        protected void config() {
+            bind(CommandMapper.class).to(TMCommander.class);
+        }
+    }
 }

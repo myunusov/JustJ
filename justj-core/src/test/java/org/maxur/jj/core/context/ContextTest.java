@@ -131,9 +131,23 @@ public class ContextTest {
         root.bean(Role.ANY);
     }
 
-    @Test// (expected = JustJSystemException.class)
+    @Test
     public void testBindTypeToTypeWithInjectByConstructorWithLotOfParamsAndUnavailableOne() throws Exception {
         root.put(Role.ANY, Dummy6.class);
+        final Dummy2 bean2 = new Dummy2();
+        root.put(Dummy2.class, bean2);
+        root.bean(Role.ANY);
+    }
+
+    @Test(expected = JustJSystemException.class)
+    public void testBindTypeToTypeWithInjectByConstructorWithAbsentParam() throws Exception {
+        root.put(Role.ANY, Dummy6.class);
+        root.bean(Role.ANY);
+    }
+
+    @Test(expected = JustJSystemException.class)
+    public void testBindTypeToTypeWithInjectByConstructorWithLotOfParamsAndAbstractClass() throws Exception {
+        root.put(Role.ANY, Dummy7.class);
         final Dummy2 bean2 = new Dummy2();
         root.put(Dummy2.class, bean2);
         root.bean(Role.ANY);
@@ -232,7 +246,7 @@ public class ContextTest {
 class Dummy1 {
     @Inject
     Dummy2 dummy2;
-
+    Dummy2 dummy2a;
     public Dummy1() {
     }
 }
@@ -241,7 +255,6 @@ class Dummy2 {
 }
 
 class Dummy3 {
-
     final Dummy2 dummy2;
 
     @Inject
@@ -274,6 +287,14 @@ class Dummy6 {
     final Dummy2 dummy2;
     @Inject
     private Dummy6(Dummy2 dummy2) {
+        this.dummy2 = dummy2;
+    }
+}
+
+abstract class Dummy7 {
+    final Dummy2 dummy2;
+    @Inject
+    private Dummy7(Dummy2 dummy2) {
         this.dummy2 = dummy2;
     }
 }

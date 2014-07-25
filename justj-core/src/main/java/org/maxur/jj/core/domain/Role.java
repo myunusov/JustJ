@@ -21,31 +21,32 @@ package org.maxur.jj.core.domain;
  */
 public class Role extends Entity {
 
-    private final Class<?> suitableType;
+    private final Class suitableType;
 
     private final String name;
 
     public static final Role ANY = new Role("Anything", Object.class) {
         @Override
-        public boolean suitableTo(Class<?> type) {
+        public boolean suitableTo(Class type) {
             return true;
         }
     };
 
-    public static Role role(final String name, final Class<?> suitableType) {
+    public static Role role(final String name, final Class suitableType) {
         return new Role(name, suitableType);
     }
 
-    private Role(final String name, final Class<?> suitableType) {
+    private Role(final String name, final Class suitableType) {
         this.suitableType = suitableType;
         this.name = name;
     }
 
-    public boolean suitableTo(final Class<?> type) {
+    public boolean suitableTo(final Class type) {
+        //noinspection unchecked
         return suitableType.isAssignableFrom(type);
     }
 
-    public Class<?> getSuitableType() {
+    public Class getSuitableType() {
         return suitableType;
     }
 

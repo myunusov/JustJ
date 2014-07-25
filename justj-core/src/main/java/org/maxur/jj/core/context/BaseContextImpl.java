@@ -68,10 +68,8 @@ public class BaseContextImpl implements ContextImpl {
 
     protected BeanWrapper findBeanWrapper(final BeanIdentifier id) {
         final BeanWrapper wrapper = beans.get(id);
-        if (wrapper == null)  {
-            if (parent != null) {
-                return parent.findBeanWrapper(id);
-            }
+        if (wrapper == null && parent != null) {
+            return parent.findBeanWrapper(id);
         }
         return wrapper;
     }

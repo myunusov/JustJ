@@ -15,6 +15,8 @@
 
 package org.maxur.jj.core.domain;
 
+import static org.maxur.jj.core.context.Application.closeContext;
+
 /**
  * @author Maxim Yunusov
  * @version 1.0
@@ -22,7 +24,14 @@ package org.maxur.jj.core.domain;
  */
 public abstract class Command extends Entity {
 
-    public abstract void execute();
+    public static Command command(final Executor executor) {
+        return new Command() {
+            public final void run() {
+                executor.run();
+            }
+        };
+    }
 
+    public abstract void run();
 
 }

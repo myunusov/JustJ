@@ -32,14 +32,14 @@ public abstract class Commander implements CommandMapper<String[]> {
     public Command command(final Executor executor) {
         return new Command() {
 
-            protected void run() {
+            protected void doIt() {
                 executor.run();
             }
 
-            public final void execute() {
+            public final void run() {
                 final Context context = branchContext();
                 context.inject(this);
-                run();
+                doIt();
                 closeContext();
             }
         };

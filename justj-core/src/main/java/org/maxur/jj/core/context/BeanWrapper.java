@@ -156,10 +156,8 @@ abstract class BeanWrapper {
         private Constructor findInjectedConstructor(Class clazz) {
             //noinspection unchecked
             final List<Constructor> constructors = stream(clazz.getDeclaredConstructors())
-                    .filter(c -> (
-                                    stream(c.getDeclaredAnnotations())
-                                            .anyMatch(a -> Inject.class.equals(a.annotationType()))
-                            )
+                    .filter(c -> stream(c.getDeclaredAnnotations())
+                                    .anyMatch(a -> Inject.class.equals(a.annotationType()))
                     ).collect(toList());
             if (constructors.size() > 1) {
                 throw new JustJSystemException("More than one constructor with Inject annotation");
@@ -180,27 +178,36 @@ abstract class BeanWrapper {
         @Override
         protected <T> T create(final Context context) {
             if (constructor == null) {
-                try {
-                    //noinspection unchecked
-                    return (T) clazz.newInstance();
-                } catch (InstantiationException | IllegalAccessException e) {
-                    throw new JustJSystemException("New instance error: " + e.getMessage(), e);
-                }
+                return makeNewInstance();
             }
-            constructor.setAccessible(true);
+            try {
+                constructor.setAccessible(true);
+                //noinspection unchecked
+                return (T) constructor.newInstance(getParameters(context));
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                throw new JustJSystemException("Error instantiating" +
+                        (e.getMessage() == null ? "" : ": " + e.getMessage()), e);
+            }
+        }
+
+        private Object[] getParameters(Context context) {
             final Class[] parameterTypes = constructor.getParameterTypes();
             final Object[] parameters = new Object[parameterTypes.length];
             for (int i = 0; i < parameterTypes.length; i++) {
                 parameters[i] = context.bean(parameterTypes[i]);
                 if (parameters[i] == null) {   // TODO optional case
-                    throw new JustJSystemException("Bean of type '%' is not found.\n" +
-                            "It must be added to context.", type().getName());
+                    throw new JustJSystemException("Bean of type '%s' is not found.\n" +
+                            "It must be added to context.", parameterTypes[i]);
                 }
             }
+            return parameters;
+        }
+
+        private <T> T makeNewInstance() {
             try {
                 //noinspection unchecked
-                return (T) constructor.newInstance(parameters);
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+                return (T) clazz.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
                 throw new JustJSystemException("New instance error: " + e.getMessage(), e);
             }
         }

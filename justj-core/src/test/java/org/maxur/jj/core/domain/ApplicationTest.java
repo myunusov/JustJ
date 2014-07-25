@@ -15,35 +15,112 @@
 
 package org.maxur.jj.core.domain;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.maxur.jj.core.context.Application;
 import org.maxur.jj.core.context.Config;
-import org.mockito.Spy;
+import org.maxur.jj.core.context.Context;
+import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.maxur.jj.core.context.Application.APPLICATION;
+import static org.maxur.jj.core.context.Application.branchContext;
+import static org.maxur.jj.core.context.Application.currentContext;
+import static org.maxur.jj.core.domain.Command.command;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ApplicationTest {
 
-    @Spy
-    private DummyApplication application  = new DummyApplication();
+    private DummyApplication application;
+    private DummyConfig config;
+    @Mock
+    private List fake;
 
-    @Spy
-    private DummyConfig config = new DummyConfig();
+    @Before
+    public void setUp() throws Exception {
+        config = spy(new DummyConfig());
+        application = spy(new DummyApplication());
+    }
 
-    @Test(expected = JustJSystemException.class)
-    public void testCreateEmptyConfig() throws Exception {
+    @After
+    public void tearDown() throws Exception {
+        Application.closeContext();
+    }
+
+    @Test
+    public void testSystem() throws Exception {
+        assertNotNull(Application.system());
+    }
+
+    @Test
+    public void testConfigBy() throws Exception {
         assertNotNull(Application.configBy(config));
         verify(config).run();
     }
 
+    @Test
+    public void testConfigByWithEmptyConfig() throws Exception {
+        assertNotNull(Application.configBy(config));
+        verify(config).run();
+    }
+
+    @Test
+    public void testConfigByWithApplicationBean() throws Exception {
+        final Answer answer = invocation -> {
+            config.bind(APPLICATION).to(application);
+            return null;
+        };
+        doAnswer(answer).when(config).config();
+        assertEquals(application, Application.configBy(config));
+    }
+
+
     @Test(expected = JustJSystemException.class)
-    public void testCreateConfigWithWrongSupplier() throws Exception {
+    public void testConfigByWithWrongSupplier() throws Exception {
         Application.configBy(this::make);
+    }
+
+    @Test
+    public void testRun() throws Exception {
+        application.run();
+        verify(application).execute(any());
+    }
+
+    @Test
+    public void testRunWithArgs() throws Exception {
+        application.runWith(new String[] {"a"});
+        verify(application).execute(any());
+    }
+
+    @Test
+    public void testRunWithCommand() throws Exception {
+        application.runWith(command(fake::size));
+        verify(fake).size();
+    }
+
+    @Test
+    public void testRunWithExecutor() throws Exception {
+        application.runWith(fake::size);
+        verify(fake).size();
+    }
+
+    @Test
+    public void testBranchContext() throws Exception {
+        final Context root = currentContext();
+        final Context context = branchContext();
+        assertEquals(root, context.parent());
+        Application.closeContext();
     }
 
     private Config make() {
@@ -59,15 +136,7 @@ public class ApplicationTest {
         }
     }
 
-
-    @Test
-    public void testRunWith() throws Exception {
-        application.run();
-        verify(application).execute(any());
-    }
-
     static class DummyApplication extends Application {
-
         @Override
         protected void execute(String[] args) {
         }

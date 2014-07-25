@@ -15,22 +15,27 @@
 
 package org.maxur.jj.sample.hello;
 
-import static org.maxur.jj.core.config.base.BaseApplication.configBy;
-import static org.maxur.jj.core.config.base.BaseApplication.runWithConfig;
-import static org.maxur.jj.core.config.base.UtilConfig.runOnStart;
+import static java.lang.String.format;
+import static org.maxur.jj.core.context.Application.currentContext;
+import static org.maxur.jj.core.context.Application.system;
 
 /**
+ * Service Locator.
+ *
  * @author Maxim Yunusov
  * @version 1.0
- * @since <pre>7/18/2014</pre>
+ * @since <pre>7/25/2014</pre>
  */
-public class UtilLauncher {
+public class HelloWorldServiceLocator {
 
-    public static void main(final String[] args) {
-        configBy(runOnStart(() -> System.out.println("Hello World"))).run();
+    public static void main(String[] args) {
+        system().runWith(
+                () -> {
+                    currentContext().put(String.class, "World");
+                    System.out.println(format("Hello %s", currentContext().bean(String.class)));
+                }
+        );
 
-        runWithConfig(runOnStart(() -> System.out.println("Hello World")));
 
     }
-
 }

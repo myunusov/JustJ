@@ -24,6 +24,7 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.function.Supplier;
 
+import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.maxur.jj.core.context.BeanIdentifier.identifier;
@@ -48,7 +49,7 @@ public class Context extends Entity {
 
     Context() {
         this.parent = null;
-        contextImpl = new BaseContextImpl(null);
+        contextImpl = new BaseContextImpl();
     }
 
     Context(final Context parent) {
@@ -62,15 +63,16 @@ public class Context extends Entity {
 
     <T> T inject(final T bean, final Collection<Field> fields) {
         for (Field field : fields) {
+            final Object injectedBean = bean(field.getType());
+            if (injectedBean == null) {     // TODO optional case
+                throw new JustJSystemException("Bean of type '%s' is not found.\n" +
+                        "It must be added to context.", field.getType().getName());
+            }
             field.setAccessible(true);
             try {
-                final Object injectedBean = bean(field.getType());
-                if (injectedBean == null) {     // TODO optional case
-                    throw new JustJSystemException("Bean of type '%' is not found.\n" +
-                            "It must be added to context.", field.getType().getName());
-                }
                 field.set(bean, injectedBean);
             } catch (IllegalAccessException ignore) {
+                assert false : "Unreachable operation";
             }
         }
         return bean;
@@ -98,10 +100,9 @@ public class Context extends Entity {
         try {
             return wrapper.bean(this);
         } catch (Exception e) {
-            throw new JustJSystemException(
-                    "Bean '%s' is not created. Cause: %s",
+            throw new JustJSystemException(format("Bean '%s' is not created. Cause: %s",
                     id.getName(),
-                    e.getMessage()
+                    e.getMessage()), e
             );
         }
     }

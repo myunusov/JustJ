@@ -15,29 +15,41 @@
 
 package org.maxur.jj.core.config.base;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.maxur.jj.core.context.Application;
 import org.maxur.jj.core.context.Config;
 import org.maxur.jj.core.context.Context;
 import org.maxur.jj.core.domain.JustJSystemException;
-import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BaseConfigTest {
 
-    @Spy
-    private Config config = new BaseConfig();
+    private Config config;
+
+    @Before
+    public void setUp() throws Exception {
+        config = spy(new BaseConfig());
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        Application.closeContext();
+    }
 
     @Test(expected = JustJSystemException.class)
     public void testCreateEmptyConfig() throws Exception {
         assertNotNull(Application.configBy(config));
         verify(config).applyTo(any(Context.class));
+
     }
 
 }

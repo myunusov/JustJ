@@ -6,7 +6,6 @@ target/
 logs/
 site/
 
-.idea
 *.iml
 
 gradle/
