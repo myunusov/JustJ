@@ -46,6 +46,12 @@ public class Context extends Entity {
      */
     private final ContextImpl contextImpl;
 
+    public static Context configBy(final Config config) {
+        final Context result = new Context();
+        config.applyTo(result);
+        return result;
+    }
+
     Context() {
         this.parent = null;
         contextImpl = new BaseContextImpl(null);
@@ -137,4 +143,5 @@ public class Context extends Entity {
     public Context root() {
         return parent == null ?  this : parent.root();
     }
+
 }

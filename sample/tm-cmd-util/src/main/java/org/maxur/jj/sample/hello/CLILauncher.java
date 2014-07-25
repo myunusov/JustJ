@@ -13,7 +13,7 @@
  *    limitations under the License.
  */
 
-package org.maxur.jj.sample.UtilLauncher;
+package org.maxur.jj.sample.hello;
 
 import org.maxur.jj.core.config.base.BaseConfig;
 import org.maxur.jj.core.config.base.Commander;

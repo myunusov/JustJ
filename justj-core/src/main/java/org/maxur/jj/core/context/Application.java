@@ -70,14 +70,13 @@ public abstract class Application {
     }
 
     public static Application configBy(final Config config) throws JustJSystemException {
-        final Context root = new Context();
-        config.config(root);
-        final Application result = root.bean(APPLICATION);
+        final Context context = Context.configBy(config);
+        final Application result = context.bean(APPLICATION);
         if (result == null) {
             throw new JustJSystemException("Cannot create instance of Application. " +
                     "Type of application must be described in config");
         }
-        result.context = root;
+        result.context = context;
         return result;
     }
 

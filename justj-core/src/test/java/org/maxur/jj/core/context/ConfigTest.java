@@ -46,16 +46,16 @@ public class ConfigTest {
         }
     };
 
-
     @Test
     public void testCallContextPutOnBindRoleToObject() throws Exception {
         final Object object = new Object();
         final Answer answer = invocation -> {
+            new Context();
             config.bind(Role.ANY).to(object);
             return null;
         };
-        doAnswer(answer).when(config).config(context);
-        config.config(context);
+        doAnswer(answer).when(config).applyTo(context);
+        config.applyTo(context);
         verify(context).put(Role.ANY, object);
     }
 
@@ -66,8 +66,8 @@ public class ConfigTest {
             config.bind(String.class).to(object);
             return null;
         };
-        doAnswer(answer).when(config).config(context);
-        config.config(context);
+        doAnswer(answer).when(config).applyTo(context);
+        config.applyTo(context);
         verify(context).put(String.class, object);
     }
 
@@ -78,8 +78,8 @@ public class ConfigTest {
             config.bind(Role.ANY).to(supplier);
             return null;
         };
-        doAnswer(answer).when(config).config(context);
-        config.config(context);
+        doAnswer(answer).when(config).applyTo(context);
+        config.applyTo(context);
         ArgumentCaptor<Supplier> argument = ArgumentCaptor.forClass(Supplier.class);
         verify(context).put(eq(Role.ANY), argument.capture());
         assertEquals(supplier.hashCode(), argument.getValue().hashCode());
@@ -92,9 +92,9 @@ public class ConfigTest {
             config.bind(String.class).to(supplier);
             return null;
         };
-        doAnswer(answer).when(config).config(context);
         ArgumentCaptor<Supplier> argument = ArgumentCaptor.forClass(Supplier.class);
-        config.config(context);
+        doAnswer(answer).when(config).applyTo(context);
+        config.applyTo(context);
         verify(context).put(eq(String.class), argument.capture());
         assertEquals(supplier.hashCode(), argument.getValue().hashCode());
     }

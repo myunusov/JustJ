@@ -29,14 +29,15 @@ public abstract class Config extends Entity {
 
     private Context context;
 
-    protected abstract void config();
-
-    public final void config(final Context root) {
-        context = root;
+    public final Context applyTo(final Context context) {
+        this.context = context;
         preConfig();
         config();
         postConfig();
+        return context;
     }
+
+    protected abstract void config();
 
     protected void postConfig() {
         //  Hook

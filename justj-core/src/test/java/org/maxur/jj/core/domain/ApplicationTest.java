@@ -32,11 +32,6 @@ public class ApplicationTest {
     @Spy
     private DummyApplication application  = new DummyApplication();
 
-    //@Before
-    public void setUp() throws Exception {
-        application = new DummyApplication();
-    }
-
     @Spy
     private DummyConfig config = new DummyConfig();
 
