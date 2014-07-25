@@ -78,7 +78,7 @@ public class BaseContextImpl implements ContextImpl {
 
     private void checkDuplicate(final BeanIdentifier id) {
         if (findBeanWrapper(id) != null) {
-            throw new JustJSystemException("Bean of %s is exist already", id.getName());
+            throw new JustJSystemException("Bean with %s is exist already", id.getName());
         }
     }
 

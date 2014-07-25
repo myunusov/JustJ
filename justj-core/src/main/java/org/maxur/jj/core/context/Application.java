@@ -15,6 +15,7 @@
 
 package org.maxur.jj.core.context;
 
+import org.maxur.jj.core.domain.Executor;
 import org.maxur.jj.core.domain.JustJSystemException;
 import org.maxur.jj.core.domain.Role;
 
@@ -24,6 +25,8 @@ import static java.lang.String.format;
 import static org.maxur.jj.core.domain.Role.role;
 
 /**
+ * This class is context container and it's response is project lifecycle.
+ *
  * @author Maxim Yunusov
  * @version 1.0 23.07.2014
  */
@@ -33,13 +36,17 @@ public abstract class Application {
 
     private static final ThreadLocal<Context> CONTEXT_HOLDER = new ThreadLocal<>();
 
-    private Context context;
-
     public static Context currentContext() {
-        return CONTEXT_HOLDER.get();
+        final Context result = CONTEXT_HOLDER.get();
+        if (result != null) {
+            return result;
+        }
+        final Context context = new Context();
+        CONTEXT_HOLDER.set(context);
+        return context;
     }
 
-    public static Context trunkContext() {
+/*    public static Context trunkContext() {
         final Context current = currentContext();
         final Context root = current == null ? null : current.root();
         if (root == null) {
@@ -49,7 +56,7 @@ public abstract class Application {
         } else {
             return root;
         }
-    }
+    }*/
 
     public static Context branchContext() {
         final Context result = new Context(currentContext());
@@ -70,30 +77,43 @@ public abstract class Application {
     }
 
     public static Application configBy(final Config config) throws JustJSystemException {
-        final Context context = Context.configBy(config);
+        final Context context = currentContext();
+        config.applyTo(context);
+        return checkApplication(context);
+    }
+
+    public static Application system() throws JustJSystemException {
+        final Context context = currentContext();
+        context.put(APPLICATION, new Application() {
+        });
+        return checkApplication(context);
+    }
+
+    public static Application checkApplication(Context context) {
         final Application result = context.bean(APPLICATION);
         if (result == null) {
             throw new JustJSystemException("Cannot create instance of Application. " +
-                    "Type of application must be described in config");
+                    "The bean with Application role must be presented in config");
         }
-        result.context = context;
         return result;
     }
+
 
     public static void runWithConfig(final Config config) {
         configBy(config).run();
     }
 
     public final void runWith(final String[] args) {
-        openContext(context);
         preStart();
         execute(args);
         postStop();
-        closeContext();
+        shutdown();
     }
 
-    public static void openContext(final Context context) {
-        CONTEXT_HOLDER.set(context == null ? new Context() : context);
+
+    public void shutdown() {
+        closeContext();
+        //System.exit(0);
     }
 
     protected void execute(final String[] args) {
@@ -110,5 +130,9 @@ public abstract class Application {
 
     public final void run() {
         runWith(new String[]{});
+    }
+
+    public void run(final Executor executor) {
+        executor.run();
     }
 }

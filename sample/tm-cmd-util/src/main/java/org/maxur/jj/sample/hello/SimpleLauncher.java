@@ -15,6 +15,10 @@
 
 package org.maxur.jj.sample.hello;
 
+import static java.lang.String.format;
+import static org.maxur.jj.core.context.Application.currentContext;
+import static org.maxur.jj.core.context.Application.system;
+
 /**
  * @author Maxim Yunusov
  * @version 1.0
@@ -22,11 +26,14 @@ package org.maxur.jj.sample.hello;
  */
 public class SimpleLauncher {
 
-/*    public static void main(String[] args) {
-        final Context context = Config.;
-        final Executor executor = () -> System.out.println("Hello World");
-        Command.
+    public static void main(String[] args) {
+        system().run(
+                () -> {
+                    currentContext().put(String.class, "World");
+                    System.out.println(format("Hello %s", currentContext().bean(String.class)));
+                }
+        );
 
-        configBy(runOnStart(executor)).run();
-    }*/
+
+    }
 }
