@@ -17,7 +17,8 @@ package org.maxur.jj.sample.hello;
 
 import org.maxur.jj.core.config.base.SimpleConfig;
 import org.maxur.jj.core.domain.Command;
-import org.maxur.jj.core.domain.Inject;
+
+import javax.inject.Inject;
 
 import static java.lang.String.format;
 import static org.maxur.jj.core.context.Application.configBy;

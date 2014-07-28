@@ -6,6 +6,7 @@ mainClassName = "org.maxur.jj.sample.tm.Launcher"
 
 dependencies {
   compile project(':justj-core')
+  compile 'javax.annotation:javax.annotation-api:1.2'
 }
 
 jar {

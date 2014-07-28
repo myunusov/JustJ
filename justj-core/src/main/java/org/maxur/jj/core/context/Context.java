@@ -16,10 +16,10 @@
 package org.maxur.jj.core.context;
 
 import org.maxur.jj.core.domain.Entity;
-import org.maxur.jj.core.domain.Inject;
 import org.maxur.jj.core.domain.JustJSystemException;
 import org.maxur.jj.core.domain.Role;
 
+import javax.inject.Inject;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.function.Supplier;
@@ -46,6 +46,11 @@ public class Context extends Entity {
      * Bridge Context -> ContextImpl
      */
     private final ContextImpl contextImpl;
+
+    /**
+     *
+     */
+    private ChangeManager changeManager;
 
     Context() {
         this.parent = null;

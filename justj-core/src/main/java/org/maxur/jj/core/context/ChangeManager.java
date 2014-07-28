@@ -13,33 +13,11 @@
  *     limitations under the License.
  */
 
-package org.maxur.jj.core.config.base;
-
-import org.maxur.jj.core.context.Application;
-import org.maxur.jj.core.domain.CommandMapper;
-
-import javax.inject.Inject;
+package org.maxur.jj.core.context;
 
 /**
- * Hold lifecycle of application.
- *
  * @author Maxim Yunusov
- * @version 1.0 18.07.2014
+ * @version 1.0 27.07.2014
  */
-public final class BaseApplication extends Application {
-
-    private final CommandMapper<String[]> commandMapper;
-
-    @Inject
-    public BaseApplication(final CommandMapper<String[]> commandMapper) {
-        this.commandMapper = commandMapper;
-    }
-
-
-    @Override
-    protected void execute(String[] args) {
-        commandMapper.commandBy(args).run();
-    }
-
-
+public interface ChangeManager {
 }

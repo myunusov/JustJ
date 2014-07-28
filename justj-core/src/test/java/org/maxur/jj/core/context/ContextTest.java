@@ -17,14 +17,15 @@ package org.maxur.jj.core.context;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.maxur.jj.core.domain.Inject;
 import org.maxur.jj.core.domain.JustJSystemException;
 import org.maxur.jj.core.domain.Role;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import javax.inject.Inject;
 import java.util.function.Supplier;
 
 import static junit.framework.TestCase.assertNull;
@@ -80,79 +81,10 @@ public class ContextTest {
         root.put(String.class, Object.class);
     }
 
-    @Test
-    public void testBindTypeToTypeWithInject() throws Exception {
-        root.put(Role.ANY, Dummy1.class);
-        final Dummy2 bean2 = new Dummy2();
-        root.put(Dummy2.class, bean2);
-        final Dummy1 bean = root.bean(Role.ANY);
-        assertEquals(Dummy1.class, bean.getClass());
-        assertEquals(bean2, bean.dummy2);
-    }
-
-    @Test (expected = JustJSystemException.class)
-    public void testBindTypeToTypeWithInjectWithoutInjectedBean() throws Exception {
-        root.put(Role.ANY, Dummy1.class);
-        root.bean(Role.ANY);
-    }
-
     @Test (expected = IllegalArgumentException.class)
     public void testBindTypeToNull() throws Exception {
         root.put(Role.ANY, (Class) null);
     }
-
-    @Test
-    public void testInjectBean() throws Exception {
-        final Dummy2 bean2 = new Dummy2();
-        root.put(Dummy2.class, bean2);
-        final Dummy1 bean = new Dummy1();
-        root.inject(bean);
-        assertEquals(bean2, bean.dummy2);
-    }
-
-    @Test
-    public void testBindTypeToTypeWithInjectByConstructor() throws Exception {
-        root.put(Role.ANY, Dummy3.class);
-        final Dummy2 bean2 = new Dummy2();
-        root.put(Dummy2.class, bean2);
-        final Dummy3 bean = root.bean(Role.ANY);
-        assertEquals(Dummy3.class, bean.getClass());
-        assertEquals(bean2, bean.dummy2);
-    }
-
-    @Test(expected = JustJSystemException.class)
-    public void testBindTypeToTypeWithInjectByConstructorWithLotOfOnes() throws Exception {
-        root.put(Role.ANY, Dummy4.class);
-    }
-
-    @Test(expected = JustJSystemException.class)
-    public void testBindTypeToTypeWithInjectByConstructorWithUnavailableOne() throws Exception {
-        root.put(Role.ANY, Dummy5.class);
-        root.bean(Role.ANY);
-    }
-
-    @Test
-    public void testBindTypeToTypeWithInjectByConstructorWithLotOfParamsAndUnavailableOne() throws Exception {
-        root.put(Role.ANY, Dummy6.class);
-        final Dummy2 bean2 = new Dummy2();
-        root.put(Dummy2.class, bean2);
-        root.bean(Role.ANY);
-    }
-
-    @Test(expected = JustJSystemException.class)
-    public void testBindTypeToTypeWithInjectByConstructorWithAbsentParam() throws Exception {
-        root.put(Role.ANY, Dummy6.class);
-        root.bean(Role.ANY);
-    }
-
-    @Test(expected = JustJSystemException.class)
-    public void testBindTypeToTypeWithInjectByConstructorWithLotOfParamsAndAbstractClass() throws Exception {
-        root.put(Role.ANY, Dummy7.class);
-        final Dummy2 bean2 = new Dummy2();
-        root.put(Dummy2.class, bean2);
-        root.bean(Role.ANY);
-    }
-
 
     @Test
     public void testBindTypeToBean() throws Exception {
@@ -229,6 +161,10 @@ public class ContextTest {
         assertEquals(root, child.parent());
     }
 
+
+    public final static class DummyContext {
+    }
+
     @Test
     public void testEqualsContract() {
         EqualsVerifier
@@ -238,63 +174,198 @@ public class ContextTest {
                 .verify();
     }
 
-    public final static class DummyContext {
+
+    // InjectByConstructor
+
+    @Test
+    public void testBindTypeToTypeWithInjectByConstructor() throws Exception {
+        root.put(Role.ANY, Dummy2.class);
+        final Dummy bean2 = new Dummy();
+        root.put(Dummy.class, bean2);
+        final Dummy2 bean = root.bean(Role.ANY);
+        assertEquals(Dummy2.class, bean.getClass());
+        assertEquals(bean2, bean.dummy);
     }
+
+    @Test(expected = JustJSystemException.class)
+    public void testBindTypeToTypeWithInjectByConstructorWithSecondConstructor() throws Exception {
+        root.put(Dummy.class, new Dummy());
+        root.put(String.class, "");
+        root.put(Role.ANY, Dummy3.class);
+    }
+
+    @Test(expected = JustJSystemException.class)
+    public void testBindTypeToTypeWithInjectByConstructorWithUnavailableOne() throws Exception {
+        root.put(Role.ANY, Dummy4.class);
+        root.bean(Role.ANY);
+    }
+
+    @Test
+    public void testBindTypeToTypeWithInjectByConstructorWithTwoParams() throws Exception {
+        root.put(Role.ANY, Dummy5.class);
+        root.put(String.class, "");
+        final Dummy bean2 = new Dummy();
+        root.put(Dummy.class, bean2);
+        final Dummy5 bean = root.bean(Role.ANY);
+        assertEquals(Dummy5.class, bean.getClass());
+        assertEquals("", bean.value);
+        assertEquals(bean2, bean.dummy);
+    }
+
+    @Test(expected = JustJSystemException.class)
+    public void testBindTypeToTypeWithInjectByConstructorWithAbsentOneParam() throws Exception {
+        root.put(Role.ANY, Dummy5.class);
+        final Dummy bean2 = new Dummy();
+        root.put(Dummy.class, bean2);
+        root.bean(Role.ANY);
+    }
+
+    @Test(expected = JustJSystemException.class)
+    public void testBindTypeToTypeWithInjectByConstructorWithAbsentAllParams() throws Exception {
+        root.put(Role.ANY, Dummy5.class);
+        root.bean(Role.ANY);
+    }
+
+    @Test(expected = JustJSystemException.class)
+    public void testBindTypeToTypeWithInjectByConstructorWithAbstractClass() throws Exception {
+        root.put(Role.ANY, Dummy6.class);
+        final Dummy bean2 = new Dummy();
+        root.put(Dummy.class, bean2);
+        root.bean(Role.ANY);
+    }
+
+    @Test
+    @Ignore
+    public void testBindTypeToTypeWithInjectByConstructorWithCircularDependencies() throws Exception {
+        root.put(Dummy7.class, Dummy7.class);
+        root.put(Dummy8.class, Dummy8.class);
+        root.bean(Dummy7.class);
+        root.bean(Dummy8.class);
+    }
+
+    // InjectByField
+
+    @Test
+    public void testInjectByFieldBean() throws Exception {
+        final Dummy bean2 = new Dummy();
+        root.put(Dummy.class, bean2);
+        final Dummy10 bean = new Dummy10();
+        root.inject(bean);
+        assertEquals(bean2, bean.a);
+    }
+
+    @Test
+    public void testBindTypeToTypeWithInjectByField() throws Exception {
+        root.put(Role.ANY, Dummy10.class);
+        final Dummy bean2 = new Dummy();
+        root.put(Dummy.class, bean2);
+        final Dummy10 bean = root.bean(Role.ANY);
+        assertEquals(Dummy10.class, bean.getClass());
+        assertEquals(bean2, bean.a);
+    }
+
+    @Test (expected = JustJSystemException.class)
+    public void testInjectByFieldWithoutInjectedBean() throws Exception {
+        root.inject(new Dummy10());
+    }
+
+    @Test
+    @Ignore
+    public void testInjectByFieldWithCircularDependencies() {
+        root.put(Dummy11.class, Dummy11.class);
+        root.put(Dummy12.class, Dummy12.class);
+        final Dummy11 dummy11 = root.bean(Dummy11.class);
+        final Dummy12 dummy12 = root.bean(Dummy12.class);
+        assertEquals(dummy11, dummy12.dummy);
+    }
+
 
 }
 
-class Dummy1 {
-    @Inject
-    Dummy2 dummy2;
-    Dummy2 dummy2a;
-    public Dummy1() {
-    }
+
+class Dummy {
 }
+
+
 
 class Dummy2 {
+    final Dummy dummy;
+    @Inject
+    public Dummy2(Dummy dummy) {
+        this.dummy = dummy;
+    }
 }
 
 class Dummy3 {
-    final Dummy2 dummy2;
-
+    final Dummy dummy;
     @Inject
-    public Dummy3(Dummy2 dummy2) {
-        this.dummy2 = dummy2;
+    public Dummy3(Dummy dummy) {
+        this.dummy = dummy;
+    }
+    @Inject
+    public Dummy3(Dummy dummy, String value) {
+        this.dummy = dummy;
     }
 }
 
 class Dummy4 {
-
-    final Dummy2 dummy2;
-
-    @Inject
-    public Dummy4(Dummy2 dummy2) {
-        this.dummy2 = dummy2;
+    private Dummy4() {
     }
-    @Inject
-    public Dummy4(Dummy2 dummy2, String value) {
-        this.dummy2 = dummy2;
-    }
-
 }
 
 class Dummy5 {
-    private Dummy5() {
+    final Dummy dummy;
+    final String value;
+    @Inject
+    public Dummy5(Dummy dummy, String value) {
+        this.dummy = dummy;
+        this.value = value;
     }
 }
 
-class Dummy6 {
-    final Dummy2 dummy2;
+abstract class Dummy6 {
+    final Dummy dummy;
     @Inject
-    private Dummy6(Dummy2 dummy2) {
-        this.dummy2 = dummy2;
+    private Dummy6(Dummy dummy) {
+        this.dummy = dummy;
     }
 }
 
-abstract class Dummy7 {
-    final Dummy2 dummy2;
+class Dummy7 {
+    final Dummy8 dummy;
     @Inject
-    private Dummy7(Dummy2 dummy2) {
-        this.dummy2 = dummy2;
+    private Dummy7(Dummy8 dummy) {
+        this.dummy = dummy;
+    }
+}
+class Dummy8 {
+    final Dummy7 dummy;
+    @Inject
+    private Dummy8(Dummy7 dummy) {
+        this.dummy = dummy;
+    }
+}
+
+
+class Dummy10 {
+    @Inject
+    Dummy a;
+    Dummy b;
+    public Dummy10() {
+    }
+}
+
+
+class Dummy11 {
+    @Inject
+    Dummy12 dummy;
+    public Dummy11() {
+    }
+}
+
+class Dummy12 {
+    @Inject
+    Dummy11 dummy;
+    public Dummy12() {
     }
 }

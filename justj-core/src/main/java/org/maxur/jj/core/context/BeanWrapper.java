@@ -15,9 +15,9 @@
 
 package org.maxur.jj.core.context;
 
-import org.maxur.jj.core.domain.Inject;
 import org.maxur.jj.core.domain.JustJSystemException;
 
+import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -48,11 +48,11 @@ abstract class BeanWrapper {
         return new ObjectBeanWrapper(bean);
     }
 
-    public static BeanWrapper wrap(final Class clazz) {
+    public static <T> BeanWrapper wrap(final Class<T> clazz) {
         if (clazz == null) {
             throw new IllegalArgumentException("Class of been must not be null");
         }
-        return new ClassBeanWrapper(clazz);
+        return new ClassBeanWrapper<T>(clazz);
     }
 
     public abstract Class type();
@@ -138,24 +138,25 @@ abstract class BeanWrapper {
         }
     }
 
-    private static class ClassBeanWrapper extends BeanWrapper {
+    private static class ClassBeanWrapper<T> extends BeanWrapper {
 
-        private final Class clazz;
+        private final Class<T> clazz;
 
-        private final Constructor constructor;
+        private final Constructor<T> constructor;
 
         private final Collection<Field> fields;
 
-        public ClassBeanWrapper(final Class clazz) {
+        public ClassBeanWrapper(final Class<T> clazz) {
             super();
             this.clazz = clazz;
             fields = findInjectedFields(clazz);
             constructor = findInjectedConstructor(clazz);
         }
 
-        private Constructor findInjectedConstructor(Class clazz) {
+        private Constructor<T> findInjectedConstructor(Class<T> clazz) {
             //noinspection unchecked
-            final List<Constructor> constructors = stream(clazz.getDeclaredConstructors())
+            final Constructor<T>[] declaredConstructors = (Constructor<T>[]) clazz.getDeclaredConstructors();
+            final List<Constructor<T>> constructors = stream(declaredConstructors)
                     .filter(c -> stream(c.getDeclaredAnnotations())
                                     .anyMatch(a -> Inject.class.equals(a.annotationType()))
                     ).collect(toList());
@@ -176,21 +177,21 @@ abstract class BeanWrapper {
         }
 
         @Override
-        protected <T> T create(final Context context) {
-            if (constructor == null) {
-                return makeNewInstance();
-            }
+        @SuppressWarnings("unchecked")
+        protected T create(final Context context) {
             try {
-                constructor.setAccessible(true);
-                //noinspection unchecked
-                return (T) constructor.newInstance(getParameters(context));
+                if (constructor == null) {
+                    return clazz.newInstance();
+                } else {
+                    return constructor.newInstance(getParameters(context));
+                }
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new JustJSystemException("Error instantiating" +
                         (e.getMessage() == null ? "" : ": " + e.getMessage()), e);
             }
         }
 
-        private Object[] getParameters(Context context) {
+        private Object[] getParameters(final Context context) {
             final Class[] parameterTypes = constructor.getParameterTypes();
             final Object[] parameters = new Object[parameterTypes.length];
             for (int i = 0; i < parameterTypes.length; i++) {
@@ -201,15 +202,6 @@ abstract class BeanWrapper {
                 }
             }
             return parameters;
-        }
-
-        private <T> T makeNewInstance() {
-            try {
-                //noinspection unchecked
-                return (T) clazz.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new JustJSystemException("New instance error: " + e.getMessage(), e);
-            }
         }
 
         @Override
