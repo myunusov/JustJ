@@ -37,7 +37,7 @@ public abstract class BeanIdentifier {
 
     public abstract Class getType();
 
-    private static class RoleIdentifier extends BeanIdentifier {
+    static final class RoleIdentifier extends BeanIdentifier {
 
         private final Role role;
 
@@ -68,7 +68,7 @@ public abstract class BeanIdentifier {
         }
     }
 
-    public static class TypeIdentifier extends BeanIdentifier {
+    static final class TypeIdentifier extends BeanIdentifier {
 
         private final Class type;
 

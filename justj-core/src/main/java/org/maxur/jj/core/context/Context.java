@@ -19,8 +19,6 @@ import org.maxur.jj.core.domain.Entity;
 import org.maxur.jj.core.domain.JustJSystemException;
 import org.maxur.jj.core.domain.Role;
 
-import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
@@ -54,28 +52,7 @@ public class Context extends Entity {
     }
 
     public <T> T inject(final T bean) {
-        final BeanWrapper wrapper = wrap(bean);
-        final Collection<Field> fields = wrapper.findInjectedFields(bean.getClass());
-        return inject(bean, fields);
-    }
-
-    <T> T inject(final T bean, final Collection<Field> fields) {
-        for (Field field : fields) {
-            final Class<?> type = field.getType();
-
-            final Object injectedBean = bean(type);
-            if (injectedBean == null) {     // TODO optional case
-                throw new JustJSystemException("Bean of type '%s' is not found.\n" +
-                        "It must be added to context.", type.getName());
-            }
-            field.setAccessible(true);
-            try {
-                field.set(bean, injectedBean);
-            } catch (IllegalAccessException ignore) {
-                assert false : "Unreachable operation";
-            }
-        }
-        return bean;
+        return wrap(bean).injectFields(this, bean);
     }
 
     public <T> T bean(final Role role) {

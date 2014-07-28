@@ -279,6 +279,26 @@ public class ContextTest {
         assertEquals(dummy11, dummy12.dummy);
     }
 
+    @Test
+    public void testInjectByFieldWithOptionalField() {
+        root.put(Dummy13.class, Dummy13.class);
+        final Dummy dummy = new Dummy();
+        root.put(Dummy.class, dummy);
+        final Dummy13 bean = root.bean(Dummy13.class);
+        assertEquals(dummy, bean.a);
+        assertNull(bean.b);
+    }
+
+    @Test
+    @Ignore
+    public void testInjectByFieldWithDuplicateFields() {
+        root.put(Dummy14.class, Dummy14.class);
+        final Dummy dummy = new Dummy();
+        root.put(Dummy.class, dummy);
+        final Dummy14 bean = root.bean(Dummy14.class);
+        assertEquals(dummy, bean.a);
+        assertEquals(dummy, bean.b);
+    }
 
 }
 
@@ -367,5 +387,24 @@ class Dummy12 {
     @Inject
     Dummy11 dummy;
     public Dummy12() {
+    }
+}
+
+class Dummy13 {
+    @Inject
+    Dummy a;
+    @Inject
+    @Optional
+    Dummy2 b;
+    public Dummy13() {
+    }
+}
+
+class Dummy14 {
+    @Inject
+    Dummy a;
+    @Inject
+    Dummy b;
+    public Dummy14() {
     }
 }

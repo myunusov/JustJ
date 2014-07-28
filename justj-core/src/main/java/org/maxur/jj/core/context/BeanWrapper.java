@@ -22,12 +22,12 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.maxur.jj.core.context.BeanIdentifier.identifier;
@@ -62,28 +62,55 @@ abstract class BeanWrapper {
     public abstract Class type();
 
     public final <T> T bean(final Context context) {
-        final T bean = create(context);
-        if (bean != null) {
-            final Class<?> beanClass = bean.getClass();
-            context.inject(bean, getInjectedFields(beanClass));
+        return injectFields(context, create(context));
+    }
+
+    public  <T> T injectFields(final Context context, final T bean) {
+        if (bean == null) {
+            return null;
+        }
+        final Map<BeanIdentifier, Field> fields = getInjectedFields(bean.getClass());
+        for (BeanIdentifier id : fields.keySet()) {
+            final Field field = fields.get(id);
+            final Optional annotation = field.getDeclaredAnnotation(Optional.class);
+            final Object injectedBean = context.bean(id.getType());
+            if (annotation == null) {
+                checkDependency(injectedBean, id.getType());
+            }
+            field.setAccessible(true);
+            try {
+                field.set(bean, injectedBean);
+            } catch (IllegalAccessException ignore) {
+                assert false : "Unreachable operation";
+            }
         }
         return bean;
     }
 
-    protected Collection<Field> getInjectedFields(Class<?> beanClass) {
-        return findInjectedFields(beanClass).values();
+    protected <T> T checkDependency(final T bean, final Class type) {
+        if (bean == null) {
+            throw new JustJSystemException("Bean of type '%s' is not found.\n" +
+                    "It must be added to context.", type.getName());
+        }
+        return bean;
+    }
+
+    protected Map<BeanIdentifier, Field> getInjectedFields(Class<?> beanClass) {
+        return findInjectedFields(beanClass);
     }
 
     protected final Map<BeanIdentifier, Field> findInjectedFields(final Class<?> beanClass) {
         return stream(beanClass.getDeclaredFields())
                 .filter(f -> f.isAnnotationPresent(Inject.class))
-                .collect(toMap(f -> identifier(f.getClass()), f -> f));
+                .collect(toMap(f -> identifier(f.getType()), f -> f));
     }
 
     @SuppressWarnings("unchecked")
     protected abstract <T> T create(Context context);
 
     protected abstract boolean suitableTo(final Class type);
+
+
 
     private static class SupplierBeanWrapper extends BeanWrapper {
 
@@ -121,8 +148,8 @@ abstract class BeanWrapper {
         }
 
         @Override
-        protected Collection<Field> getInjectedFields(Class<?> beanClass) {
-            return fields.values();
+        protected Map<BeanIdentifier, Field> getInjectedFields(Class<?> beanClass) {
+            return fields;
         }
 
         public Class type() {
@@ -161,13 +188,6 @@ abstract class BeanWrapper {
             params = findInjectedConstructorParams();
         }
 
-        private List<BeanIdentifier> findInjectedConstructorParams() {
-            return Arrays
-                    .stream(constructor.getParameterTypes())
-                    .map(BeanIdentifier::identifier)
-                    .collect(toList());
-        }
-
         private Constructor<T> findInjectedConstructor(Class<T> clazz) {
             //noinspection unchecked
             final Constructor<T>[] declaredConstructors = (Constructor<T>[]) clazz.getDeclaredConstructors();
@@ -181,9 +201,17 @@ abstract class BeanWrapper {
             return constructors.isEmpty() ? null : constructors.get(0);
         }
 
+        private List<BeanIdentifier> findInjectedConstructorParams() {
+            return constructor == null ?
+                    emptyList() :
+                    Arrays.stream(constructor.getParameterTypes())
+                    .map(BeanIdentifier::identifier)
+                    .collect(toList());
+        }
+
         @Override
-        protected Collection<Field> getInjectedFields(Class<?> beanClass) {
-            return fields.values();
+        protected Map<BeanIdentifier, Field> getInjectedFields(Class<?> beanClass) {
+            return fields;
         }
 
         @Override
@@ -207,14 +235,10 @@ abstract class BeanWrapper {
         }
 
         private Object[] getParameters(final Context context) {
-            final Class[] parameterTypes = constructor.getParameterTypes();
-            final Object[] parameters = new Object[parameterTypes.length];
-            for (int i = 0; i < parameterTypes.length; i++) {
-                parameters[i] = context.bean(parameterTypes[i]);
-                if (parameters[i] == null) {   // TODO optional case
-                    throw new JustJSystemException("Bean of type '%s' is not found.\n" +
-                            "It must be added to context.", parameterTypes[i]);
-                }
+            final Object[] parameters = new Object[params.size()];
+            for (int i = 0; i < parameters.length; i++) {
+                final Class type = params.get(i).getType();
+                parameters[i] = checkDependency(context.bean(type), type);
             }
             return parameters;
         }
