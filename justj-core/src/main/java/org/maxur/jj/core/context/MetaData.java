@@ -21,7 +21,7 @@ import java.util.function.Supplier;
  * @author Maxim Yunusov
  * @version 1.0 20.07.2014
  */
-public interface ContextImpl {
+public interface MetaData {
 
     BeanWrapper wrapper(BeanIdentifier id);
 

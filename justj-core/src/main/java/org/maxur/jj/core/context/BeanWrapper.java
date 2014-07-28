@@ -21,12 +21,16 @@ import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static org.maxur.jj.core.context.BeanIdentifier.identifier;
 
 /**
  * @author Maxim Yunusov
@@ -52,7 +56,7 @@ abstract class BeanWrapper {
         if (clazz == null) {
             throw new IllegalArgumentException("Class of been must not be null");
         }
-        return new ClassBeanWrapper<T>(clazz);
+        return new ClassBeanWrapper<>(clazz);
     }
 
     public abstract Class type();
@@ -67,13 +71,13 @@ abstract class BeanWrapper {
     }
 
     protected Collection<Field> getInjectedFields(Class<?> beanClass) {
-        return findInjectedFields(beanClass);
+        return findInjectedFields(beanClass).values();
     }
 
-    protected final Collection<Field> findInjectedFields(final Class<?> beanClass) {
+    protected final Map<BeanIdentifier, Field> findInjectedFields(final Class<?> beanClass) {
         return stream(beanClass.getDeclaredFields())
                 .filter(f -> f.isAnnotationPresent(Inject.class))
-                .collect(toList());
+                .collect(toMap(f -> identifier(f.getClass()), f -> f));
     }
 
     @SuppressWarnings("unchecked")
@@ -109,7 +113,7 @@ abstract class BeanWrapper {
 
         private final Object bean;
 
-        private final Collection<Field> fields;
+        private final Map<BeanIdentifier, Field> fields;
 
         public ObjectBeanWrapper(Object bean) {
             this.bean = bean;
@@ -118,7 +122,7 @@ abstract class BeanWrapper {
 
         @Override
         protected Collection<Field> getInjectedFields(Class<?> beanClass) {
-            return fields;
+            return fields.values();
         }
 
         public Class type() {
@@ -144,13 +148,24 @@ abstract class BeanWrapper {
 
         private final Constructor<T> constructor;
 
-        private final Collection<Field> fields;
+        private final List<BeanIdentifier> params;
+
+        private final Map<BeanIdentifier, Field> fields;
+
 
         public ClassBeanWrapper(final Class<T> clazz) {
             super();
             this.clazz = clazz;
             fields = findInjectedFields(clazz);
             constructor = findInjectedConstructor(clazz);
+            params = findInjectedConstructorParams();
+        }
+
+        private List<BeanIdentifier> findInjectedConstructorParams() {
+            return Arrays
+                    .stream(constructor.getParameterTypes())
+                    .map(BeanIdentifier::identifier)
+                    .collect(toList());
         }
 
         private Constructor<T> findInjectedConstructor(Class<T> clazz) {
@@ -168,7 +183,7 @@ abstract class BeanWrapper {
 
         @Override
         protected Collection<Field> getInjectedFields(Class<?> beanClass) {
-            return fields;
+            return fields.values();
         }
 
         @Override

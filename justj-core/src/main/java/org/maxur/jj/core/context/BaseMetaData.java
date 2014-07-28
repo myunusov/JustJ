@@ -27,17 +27,17 @@ import static java.lang.String.format;
  * @author Maxim Yunusov
  * @version 1.0 20.07.2014
  */
-public class BaseContextImpl implements ContextImpl {
+public class BaseMetaData implements MetaData {
 
-    private final BaseContextImpl parent;
+    private final BaseMetaData parent;
 
     private final Map<BeanIdentifier, BeanWrapper> beans = new HashMap<>();
 
-    public BaseContextImpl() {
+    public BaseMetaData() {
         this.parent = null;
     }
 
-    public BaseContextImpl(final BaseContextImpl parent) {
+    public BaseMetaData(final BaseMetaData parent) {
         this.parent = parent;
     }
 

@@ -19,14 +19,11 @@ import org.maxur.jj.core.domain.Entity;
 import org.maxur.jj.core.domain.JustJSystemException;
 import org.maxur.jj.core.domain.Role;
 
-import javax.inject.Inject;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
-import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.toList;
 import static org.maxur.jj.core.context.BeanIdentifier.identifier;
 import static org.maxur.jj.core.context.BeanWrapper.wrap;
 
@@ -42,36 +39,34 @@ public class Context extends Entity {
 
     private final Context parent;
 
-    /**
-     * Bridge Context -> ContextImpl
-     */
-    private final ContextImpl contextImpl;
+    private final MetaData metaData;
 
-    /**
-     *
-     */
     private ChangeManager changeManager;
 
     Context() {
         this.parent = null;
-        contextImpl = new BaseContextImpl();
+        metaData = new BaseMetaData();
     }
 
     Context(final Context parent) {
         this.parent = parent;
-        contextImpl = new BaseContextImpl((BaseContextImpl) parent.contextImpl);
+        metaData = new BaseMetaData((BaseMetaData) parent.metaData);
     }
 
     public <T> T inject(final T bean) {
-        return inject(bean, findInjectedFields(bean.getClass()));
+        final BeanWrapper wrapper = wrap(bean);
+        final Collection<Field> fields = wrapper.findInjectedFields(bean.getClass());
+        return inject(bean, fields);
     }
 
     <T> T inject(final T bean, final Collection<Field> fields) {
         for (Field field : fields) {
-            final Object injectedBean = bean(field.getType());
+            final Class<?> type = field.getType();
+
+            final Object injectedBean = bean(type);
             if (injectedBean == null) {     // TODO optional case
                 throw new JustJSystemException("Bean of type '%s' is not found.\n" +
-                        "It must be added to context.", field.getType().getName());
+                        "It must be added to context.", type.getName());
             }
             field.setAccessible(true);
             try {
@@ -83,12 +78,6 @@ public class Context extends Entity {
         return bean;
     }
 
-    private Collection<Field> findInjectedFields(final Class<?> beanClass) {
-        return stream(beanClass.getDeclaredFields())
-                .filter(f -> f.isAnnotationPresent(Inject.class))
-                .collect(toList());
-    }
-
     public <T> T bean(final Role role) {
         return bean(identifier(role));
     }
@@ -98,7 +87,7 @@ public class Context extends Entity {
     }
 
     private <T> T bean(final BeanIdentifier id) {
-        final BeanWrapper wrapper = contextImpl.wrapper(id);
+        final BeanWrapper wrapper = metaData.wrapper(id);
         if (wrapper == null)  {
             return null;
         }
@@ -113,27 +102,27 @@ public class Context extends Entity {
     }
 
     public void put(final Role role, final Supplier<?> supplier) {
-        contextImpl.put(() -> wrap(supplier), identifier(role));
+        metaData.put(() -> wrap(supplier), identifier(role));
     }
 
     public void put(final Role role, final Object bean) {
-        contextImpl.put(() -> wrap(bean), identifier(role));
+        metaData.put(() -> wrap(bean), identifier(role));
     }
 
     public void put(final Role role, final Class clazz) {
-        contextImpl.put(() -> wrap(clazz), identifier(role));
+        metaData.put(() -> wrap(clazz), identifier(role));
     }
 
     public void put(final Class type, final Supplier<?> supplier) {
-        contextImpl.put(() -> wrap(supplier), identifier(type));
+        metaData.put(() -> wrap(supplier), identifier(type));
     }
 
     public void put(final Class type, final Object bean) {
-        contextImpl.put(() -> wrap(bean), identifier(type));
+        metaData.put(() -> wrap(bean), identifier(type));
     }
 
     public void put(final Class type, final Class clazz) {
-        contextImpl.put(() -> wrap(clazz), identifier(type));
+        metaData.put(() -> wrap(clazz), identifier(type));
     }
 
     public Context parent() {
