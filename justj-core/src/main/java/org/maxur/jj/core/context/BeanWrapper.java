@@ -70,7 +70,7 @@ abstract class BeanWrapper {
             return null;
         }
         final Map<BeanIdentifier, Field> fields = getInjectedFields(bean.getClass());
-        for (BeanIdentifier id : fields.keySet()) {
+        for (BeanIdentifier id : fields.keySet()) {             // TODO check and field value set should be separated
             final Field field = fields.get(id);
             final Optional annotation = field.getDeclaredAnnotation(Optional.class);
             final Object injectedBean = context.bean(id.getType());
@@ -159,7 +159,7 @@ abstract class BeanWrapper {
         @Override
         @SuppressWarnings("unchecked")
         protected <T> T create(Context context) {
-            return (T) bean;  // TODO must be catch exception
+            return (T) bean;
         }
 
         @Override
