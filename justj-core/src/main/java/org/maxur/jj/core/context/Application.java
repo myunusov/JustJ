@@ -22,7 +22,6 @@ import org.maxur.jj.core.domain.Role;
 
 import java.util.function.Supplier;
 
-import static java.lang.String.format;
 import static org.maxur.jj.core.domain.Role.role;
 
 /**
@@ -61,7 +60,7 @@ public abstract class Application {
         try {
             return configBy(supplier.get());
         } catch (RuntimeException cause) {
-            throw new JustJSystemException(format("Cannot create instance of Config with Supplier"), cause);
+            throw new JustJSystemException("Cannot create instance of Config with Supplier", cause);
         }
     }
 

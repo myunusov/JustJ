@@ -71,10 +71,7 @@ public class Context extends Entity {
         try {
             return wrapper.bean(this);
         } catch (Exception e) {
-            throw new JustJSystemException(format("Bean '%s' is not created. Cause: %s",
-                    id.getName(),
-                    e.getMessage()), e
-            );
+            throw new JustJSystemException(format("Bean '%s' is not created", id.getName()), e);
         }
     }
 

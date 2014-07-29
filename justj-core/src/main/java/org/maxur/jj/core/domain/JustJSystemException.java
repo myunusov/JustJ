@@ -27,7 +27,12 @@ public class JustJSystemException extends RuntimeException {
     private static final long serialVersionUID = 5376585918814932276L;
 
     public JustJSystemException(final String message, final Exception cause) {
-        super(message, cause);
+        super(
+                cause.getMessage() == null ?
+                        format("%s. The causes is '%s'", message, cause.getClass().getSimpleName()) :
+                        format("%s. The causes is '%s'", message, cause.getMessage()),
+                cause
+        );
     }
 
     public JustJSystemException(final String message, final Object... args) {

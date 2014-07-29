@@ -112,10 +112,9 @@ abstract class BeanWrapper {
                 assert false : "Unreachable operation";
             } catch (InvocationTargetException | IllegalArgumentException e) {
                 throw new JustJSystemException(format(
-                        "Error calling Injectable Method '%s.%s': '%s'.",
+                        "Error calling Injectable Method '%s.%s'",
                         type().getName(),
-                        method.getName(),
-                        e.getMessage()
+                        method.getName()
                 ), e);
             }
         }
@@ -146,9 +145,11 @@ abstract class BeanWrapper {
     }
 
     private List<BeanIdentifier> makeParams(final Method method) {
+        ///CLOVER:OFF
         return stream(method.getParameterTypes())
                 .map(BeanIdentifier::identifier)
                 .collect(toList());
+        ///CLOVER:ON
     }
 
     protected final Map<Field, BeanIdentifier> findInjectableFields(final Class<?> beanClass) {
@@ -277,11 +278,13 @@ abstract class BeanWrapper {
         }
 
         private List<BeanIdentifier> findInjectableConstructorParams() {
+            ///CLOVER:OFF
             return injectableConstructor == null ?
                     emptyList() :
                     Arrays.stream(injectableConstructor.getParameterTypes())
                     .map(BeanIdentifier::identifier)
                     .collect(toList());
+            ///CLOVER:ON
         }
 
         @Override
@@ -309,8 +312,7 @@ abstract class BeanWrapper {
                     return injectableConstructor.newInstance(getParameters(context, constructorParams));
                 }
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                throw new JustJSystemException("Error instantiating" +
-                        (e.getMessage() == null ? "" : ": " + e.getMessage()), e);
+                throw new JustJSystemException("Error instantiating", e);
             }
         }
 

@@ -384,6 +384,12 @@ public class ContextTest {
         assertNull(bean.a);
     }
 
+    @Test(expected = JustJSystemException.class)
+    public void testInjectByMethodWithThrowsException() {
+        root.put(Dummy28.class, Dummy28.class);
+        root.bean(Dummy28.class);
+    }
+
 
     @Test
     @Ignore
@@ -646,7 +652,13 @@ class Dummy27  {
     public void setA(Dummy26 a) {
         this.a = a;
     }
+}
 
-
-
+class Dummy28  {
+    public Dummy28() {
+    }
+    @Inject
+    public void setA() {
+        throw new RuntimeException();
+    }
 }

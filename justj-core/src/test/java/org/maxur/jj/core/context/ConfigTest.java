@@ -100,6 +100,34 @@ public class ConfigTest {
     }
 
     @Test
+    public void testCallContextPutOnBindRoleToType() throws Exception {
+        final Answer answer = invocation -> {
+            config.bind(Role.ANY).to(DummyObject.class);
+            return null;
+        };
+        doAnswer(answer).when(config).applyTo(context);
+        config.applyTo(context);
+        ArgumentCaptor<Class<DummyObject>> argument =
+                ArgumentCaptor.forClass((Class) DummyObject.class.getClass());
+        verify(context).put(eq(Role.ANY), argument.capture());
+        assertEquals(argument.getValue(), DummyObject.class);
+    }
+
+   @Test
+    public void testCallContextPutOnBindTypeToType() throws Exception {
+       final Answer answer = invocation -> {
+           config.bind(Object.class).to(DummyObject.class);
+           return null;
+       };
+       doAnswer(answer).when(config).applyTo(context);
+       config.applyTo(context);
+       ArgumentCaptor<Class<DummyObject>> argument =
+               ArgumentCaptor.forClass((Class) DummyObject.class.getClass());
+       verify(context).put(eq(Object.class), argument.capture());
+       assertEquals(argument.getValue(), DummyObject.class);
+    }
+
+    @Test
     public void testEqualsContract() {
         EqualsVerifier
                 .forClass(Config.class)
@@ -109,6 +137,8 @@ public class ConfigTest {
                 .verify();
     }
 
+}
 
+class DummyObject {
 
 }
