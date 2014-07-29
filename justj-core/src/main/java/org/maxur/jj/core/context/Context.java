@@ -52,7 +52,7 @@ public class Context extends Entity {
     }
 
     public <T> T inject(final T bean) {
-        return wrap(bean).injectFields(this, bean);
+        return BeanWrapper.inject(this, bean);
     }
 
     public <T> T bean(final Role role) {

@@ -30,6 +30,7 @@ import java.util.function.Supplier;
 
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.maxur.jj.core.domain.Role.role;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -245,6 +246,14 @@ public class ContextTest {
 
     // InjectByField
 
+/*
+    Injectable fields:
+
+    are annotated with @Inject.
+    are not final.
+    may have any otherwise valid name
+*/
+
     @Test
     public void testInjectByFieldBean() throws Exception {
         final Dummy bean2 = new Dummy();
@@ -299,6 +308,83 @@ public class ContextTest {
         assertEquals(dummy, bean.a);
         assertEquals(dummy, bean.b);
     }
+
+    @Test
+    public void testInjectByFieldWithFinalModifier() {
+        root.put(Dummy15.class, Dummy15.class);
+        final Dummy dummy = new Dummy();
+        root.put(Dummy.class, dummy);
+        final Dummy15 dummy15 = root.bean(Dummy15.class);
+        assertEquals(dummy, dummy15.a);
+    }
+
+    // InjectByMethod
+
+    /*
+    Injectable methods:
+
+    are annotated with @Inject.
+    are not abstract.
+    do not declare type parameters of their own.
+    may return a result
+    may have any otherwise valid name.
+    accept zero or more dependencies as arguments.
+    */
+
+    @Test
+    public void testInjectByMethod() {
+        root.put(Dummy20.class, Dummy20.class);
+        final Dummy20 bean = root.bean(Dummy20.class);
+        assertNotNull(bean.a);
+    }
+
+    @Test
+    public void testInjectByMethodWithParams() {
+        root.put(Dummy21.class, Dummy21.class);
+        final Dummy dummy = new Dummy();
+        root.put(Dummy.class, dummy);
+        final Dummy21 bean = root.bean(Dummy21.class);
+        assertEquals(dummy, bean.a);
+    }
+
+    @Test
+    public void testInjectByMethodWithTwoSameParams() {
+        root.put(Dummy22.class, Dummy22.class);
+        final Dummy dummy = new Dummy();
+        root.put(Dummy.class, dummy);
+        final Dummy22 bean = root.bean(Dummy22.class);
+        assertEquals(dummy, bean.a);
+        assertEquals(dummy, bean.b);
+    }
+
+    @Test
+    public void testInjectByMethodWithTwoParams() {
+        root.put(Dummy23.class, Dummy23.class);
+        final Dummy dummy = new Dummy();
+        root.put(Dummy.class, dummy);
+        root.put(Dummy2.class, Dummy2.class);
+        final Dummy23 bean = root.bean(Dummy23.class);
+        assertEquals(dummy, bean.a);
+        assertNotNull(bean.b);
+    }
+
+    @Test(expected = JustJSystemException.class)
+    public void testInjectByMethodWithAbsentParams() {
+        root.put(Dummy21.class, Dummy21.class);
+        root.bean(Dummy21.class);
+    }
+
+
+    @Test()
+    public void testInjectByMethodWithOverride() {
+        root.put(Dummy25.class, Dummy25.class);
+        final Dummy dummy = new Dummy();
+        root.put(Dummy.class, dummy);
+        final Dummy25 bean = root.bean(Dummy25.class);
+        assertEquals(dummy, bean.b);
+        assertNull(bean.a);
+    }
+
 
 }
 
@@ -407,4 +493,115 @@ class Dummy14 {
     Dummy b;
     public Dummy14() {
     }
+}
+
+class Dummy15 {
+    @Inject
+    final Dummy a;
+
+    public Dummy15() {
+        this.a = null;
+    }
+}
+
+class Dummy20 {
+
+    Dummy a;
+
+    public Dummy20() {
+    }
+
+    @Inject
+    public void makeA() {
+        this.a = new Dummy();
+    }
+
+}
+
+class Dummy21 {
+
+    Dummy a;
+
+    public Dummy21() {
+    }
+
+    @Inject
+    public void setA(Dummy a) {
+        this.a = a;
+    }
+
+}
+
+class Dummy22 {
+
+    Dummy a;
+    Dummy b;
+
+    public Dummy22() {
+    }
+
+    @Inject
+    public void init(Dummy a, Dummy b) {
+        this.a = a;
+        this.b = b;
+    }
+
+}
+
+class Dummy23 {
+
+    Dummy a;
+    Dummy2 b;
+
+    public Dummy23() {
+    }
+
+    @Inject
+    public void init(Dummy a, Dummy2 b) {
+        this.a = a;
+        this.b = b;
+    }
+
+}
+
+
+class Dummy24 {
+
+    Dummy a;
+    Dummy b;
+
+    public Dummy24() {
+    }
+
+    @Inject
+    public void setA(Dummy a) {
+        this.a = a;
+    }
+
+    @Inject
+    public void setB(Dummy b) {
+        this.b = b;
+    }
+
+}
+
+class Dummy25 extends Dummy24 {
+
+    Dummy a;
+    Dummy b;
+
+    public Dummy25() {
+    }
+
+    @Override
+    public void setA(Dummy a) {
+        this.a = a;
+    }
+
+    @Inject
+    @Override
+    public void setB(Dummy b) {
+        this.b = b;
+    }
+
 }
