@@ -5,6 +5,7 @@ tmp/
 target/
 logs/
 site/
+build/
 
 *.iml
 
