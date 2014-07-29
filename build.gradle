@@ -8,6 +8,23 @@ allprojects {
   group = 'org.maxur.justj'
 }
 
+buildscript {
+  repositories {
+    if (project.hasProperty("mavenProxyUrl")) {
+      maven {
+        url = mavenProxyUrl
+      }
+    } else {
+      mavenLocal()
+      mavenCentral()
+    }
+    dependencies {
+      classpath "info.solidsoft.gradle.pitest:gradle-pitest-plugin:0.32.0"
+      classpath "org.pitest:pitest-command-line:0.33"
+    }
+  }
+}
+
 subprojects {
   repositories {
     if (project.hasProperty("mavenProxyUrl")) {
@@ -21,7 +38,7 @@ subprojects {
   }
 }
 
-configure(subprojects.findAll {!it.name.contains('sample')}) {
+configure(subprojects.findAll { !it.name.contains('sample') }) {
   apply plugin: 'maven'
 
   uploadArchives {
@@ -73,13 +90,21 @@ configure(subprojects.findAll {!it.name.contains('sample')}) {
 
 }
 
-configure(subprojects.findAll {it.name != 'sample'}) {
+configure(subprojects.findAll { it.name != 'sample' }) {
   apply plugin: "java"
   apply plugin: "sonar-runner"
+  apply plugin: "pitest"
 
   println('MODULE: ' + name)
 
-  ext.slf4j_version='1.7.7'
+  pitest {
+    targetClasses = ['org.maxur.jj.*']
+    pitestVersion = "0.33"
+    threads = 4
+    outputFormats = ['XML', 'HTML']
+  }
+
+  ext.slf4j_version = '1.7.7'
 
   dependencies {
     compile group: 'org.slf4j', name: 'slf4j-api', version: slf4j_version
@@ -157,12 +182,12 @@ configure(subprojects.findAll {it.name != 'sample'}) {
   }
 
 // custom tasks for creating source/javadoc jars
-  task sourcesJar(type: Jar, dependsOn:classes) {
+  task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'
     from sourceSets.main.allSource
   }
 
-  task javadocJar(type: Jar, dependsOn:javadoc) {
+  task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
   }

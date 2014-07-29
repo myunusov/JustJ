@@ -1,7 +1,9 @@
 version = '1.0.1-SNAPSHOT'
 
-
 dependencies {
   compile 'javax.annotation:javax.annotation-api:1.2'
   testCompile project(':justj-test')
 }
+
+
+
