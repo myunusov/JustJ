@@ -79,9 +79,10 @@ abstract class BeanWrapper {
         if (bean == null) {
             return this;
         }
-        final Map<BeanIdentifier, Field> fields = getInjectableFields(bean.getClass());
-        for (BeanIdentifier id : fields.keySet()) {             // XXX check and field value set should be separated
-            final Field field = fields.get(id);
+        final Map<Field, BeanIdentifier> fields = getInjectableFields(bean.getClass());
+        for (Map.Entry<Field, BeanIdentifier> entry : fields.entrySet()) { // XXX check and field value set should be separated
+            final Field field = entry.getKey();
+            final BeanIdentifier id = entry.getValue();
             final Optional annotation = field.getDeclaredAnnotation(Optional.class);
             final Object injectedBean = context.bean(id.getType());
             if (annotation == null) {
@@ -102,7 +103,7 @@ abstract class BeanWrapper {
             return this;
         }
         final Map<Method, List<BeanIdentifier>> methods = getInjectableMethods(bean.getClass());
-        for (Map.Entry<Method, List<BeanIdentifier>> entry : methods.entrySet()) {
+        for (Map.Entry<Method, List<BeanIdentifier>> entry : methods.entrySet()) { // XXX check and field value set should be separated
             Method method = entry.getKey();
             try {
                 method.setAccessible(true);
@@ -134,7 +135,7 @@ abstract class BeanWrapper {
         return findInjectableMethods(beanClass);
     }
 
-    protected Map<BeanIdentifier, Field> getInjectableFields(Class<?> beanClass) {
+    protected Map<Field, BeanIdentifier> getInjectableFields(Class<?> beanClass) {
         return findInjectableFields(beanClass);
     }
 
@@ -150,10 +151,10 @@ abstract class BeanWrapper {
                 .collect(toList());
     }
 
-    protected final Map<BeanIdentifier, Field> findInjectableFields(final Class<?> beanClass) {
+    protected final Map<Field, BeanIdentifier> findInjectableFields(final Class<?> beanClass) {
         return stream(beanClass.getDeclaredFields())
                 .filter(f -> f.isAnnotationPresent(Inject.class))
-                .collect(toMap(f -> identifier(f.getType()), f -> f));
+                .collect(toMap(f -> f, f -> identifier(f.getType())));
     }
 
     @SuppressWarnings("unchecked")
@@ -200,7 +201,7 @@ abstract class BeanWrapper {
 
         private final Object bean;
 
-        private final Map<BeanIdentifier, Field> injectableFields;
+        private final Map<Field, BeanIdentifier> injectableFields;
         private final Map<Method, List<BeanIdentifier>> injectableMethods;
 
         public ObjectBeanWrapper(final Object bean) {
@@ -210,7 +211,7 @@ abstract class BeanWrapper {
         }
 
         @Override
-        protected Map<BeanIdentifier, Field> getInjectableFields(Class<?> beanClass) {
+        protected Map<Field, BeanIdentifier> getInjectableFields(final Class<?> beanClass) {
             return injectableFields;
         }
 
@@ -245,7 +246,7 @@ abstract class BeanWrapper {
 
         private final List<BeanIdentifier> constructorParams;
 
-        private final Map<BeanIdentifier, Field> injectableFields;
+        private final Map<Field, BeanIdentifier> injectableFields;
 
         private final Map<Method, List<BeanIdentifier>> injectableMethods;
 
@@ -284,12 +285,12 @@ abstract class BeanWrapper {
         }
 
         @Override
-        protected Map<BeanIdentifier, Field> getInjectableFields(Class<?> beanClass) {
+        protected Map<Field, BeanIdentifier> getInjectableFields(final Class<?> beanClass) {
             return injectableFields;
         }
 
         @Override
-        protected Map<Method, List<BeanIdentifier>> getInjectableMethods(Class<?> beanClass) {
+        protected Map<Method, List<BeanIdentifier>> getInjectableMethods(final Class<?> beanClass) {
             return injectableMethods;
         }
 

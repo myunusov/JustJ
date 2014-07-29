@@ -299,7 +299,6 @@ public class ContextTest {
     }
 
     @Test
-    @Ignore
     public void testInjectByFieldWithDuplicateFields() {
         root.put(Dummy14.class, Dummy14.class);
         final Dummy dummy = new Dummy();
@@ -384,6 +383,19 @@ public class ContextTest {
         assertEquals(dummy, bean.b);
         assertNull(bean.a);
     }
+
+
+    @Test
+    @Ignore
+    public void testInjectByMethodWithCircularDependencies() {
+        final Dummy27 dummy27 = new Dummy27();
+        final Dummy26 dummy26 = new Dummy26();
+        root.put(Dummy27.class, dummy27);
+        root.put(Dummy26.class, dummy26);
+        final Dummy26 bean = root.bean(Dummy26.class);
+        assertEquals(dummy27, bean.a);
+    }
+
 
 
 }
@@ -603,5 +615,38 @@ class Dummy25 extends Dummy24 {
     public void setB(Dummy b) {
         this.b = b;
     }
+
+}
+
+
+class Dummy26  {
+
+    Dummy27 a;
+
+    public Dummy26() {
+    }
+
+
+    @Inject
+    public void setA(Dummy27 a) {
+        this.a = a;
+    }
+
+
+}
+
+class Dummy27  {
+
+    Dummy26 a;
+
+    public Dummy27() {
+    }
+
+    @Inject
+    public void setA(Dummy26 a) {
+        this.a = a;
+    }
+
+
 
 }
