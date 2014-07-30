@@ -43,7 +43,7 @@ public class SingletonVerifyTest {
         verify.verify();
     }
 
-    @Test
+    @Test(expected = java.lang.AssertionError.class)
     public void testVerifyNull() throws Exception {
         final SingletonVerify verify = SingletonVerify.forInstance(() -> null);
         verify.verify();

@@ -53,7 +53,8 @@ public class SingletonVerify<T>{
      * @throws AssertionError If the contract is not met
      */
     public void verify() {
-        if (!supplier.get().equals(supplier.get())) {
+        final T origin = supplier.get();
+        if (origin == null || !origin.equals(supplier.get())) {
             throw new AssertionError("Instances of class is not same");
         }
     }
