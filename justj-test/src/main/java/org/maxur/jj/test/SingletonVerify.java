@@ -35,9 +35,11 @@ public class SingletonVerify<T>{
      * @param <T> The type of instance for which the immutable should be tested.
      *
      * @return  The instance of ImmutableVerifier.
-     *
      */
     public static <T> SingletonVerify forInstance(final Supplier<T> supplier) {
+        if (supplier == null) {
+            throw new IllegalArgumentException("Supplier must not be null");
+        }
         return new SingletonVerify<>(supplier);
     }
 
