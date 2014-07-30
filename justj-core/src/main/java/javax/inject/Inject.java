@@ -32,40 +32,40 @@ import static java.lang.annotation.ElementType.FIELD;
  * in superclasses are injected before those in subclasses. Ordering of
  * injection among fields and among methods in the same class is not specified.
  *
- * <p>Injectable constructors are annotated with {@code @Inject} and accept
+ * <p>&nbsp;</p>Injectable constructors are annotated with {@code @Inject} and accept
  * zero or more dependencies as arguments. {@code @Inject} can apply to at most
  * one constructor per class.
  *
- * <p><tt><blockquote style="padding-left: 2em; text-indent: -2em;">@Inject
+ * <p>&nbsp;</p><blockquote style="padding-left: 2em; text-indent: -2em;">@Inject
  *       <i>ConstructorModifiers<sub>opt</sub></i>
  *       <i>SimpleTypeName</i>(<i>FormalParameterList<sub>opt</sub></i>)
  *       <i>Throws<sub>opt</sub></i>
- *       <i>ConstructorBody</i></blockquote></tt>
+ *       <i>ConstructorBody</i></blockquote>
  *
- * <p>{@code @Inject} is optional for public, no-argument constructors when no
+ * <p>&nbsp;</p>{@code @Inject} is optional for public, no-argument constructors when no
  * other constructors are present. This enables injectors to invoke default
  * constructors.
  *
- * <p><tt><blockquote style="padding-left: 2em; text-indent: -2em;">
+ * <p>&nbsp;</p><blockquote style="padding-left: 2em; text-indent: -2em;">
  *       {@literal @}Inject<sub><i>opt</i></sub>
  *       <i>Annotations<sub>opt</sub></i>
  *       public
  *       <i>SimpleTypeName</i>()
  *       <i>Throws<sub>opt</sub></i>
- *       <i>ConstructorBody</i></blockquote></tt>
+ *       <i>ConstructorBody</i></blockquote>
  *
- * <p>Injectable fields:
+ * <p>&nbsp;</p>Injectable fields:
  * <ul>
  *   <li>are annotated with {@code @Inject}.
  *   <li>are not final.
  *   <li>may have any otherwise valid name.</li></ul>
  *
- * <p><tt><blockquote style="padding-left: 2em; text-indent: -2em;">@Inject
+ * <p>&nbsp;</p><blockquote style="padding-left: 2em; text-indent: -2em;">@Inject
  *       <i>FieldModifiers<sub>opt</sub></i>
  *       <i>Type</i>
- *       <i>VariableDeclarators</i>;</blockquote></tt>
+ *       <i>VariableDeclarators</i>;</blockquote>
  *
- * <p>Injectable methods:
+ * <p>&nbsp;</p>Injectable methods:
  * <ul>
  *   <li>are annotated with {@code @Inject}.</li>
  *   <li>are not abstract.</li>
@@ -74,18 +74,18 @@ import static java.lang.annotation.ElementType.FIELD;
  *   <li>may have any otherwise valid name.</li>
  *   <li>accept zero or more dependencies as arguments.</li></ul>
  *
- * <p><tt><blockquote style="padding-left: 2em; text-indent: -2em;">@Inject
+ * <p>&nbsp;</p><blockquote style="padding-left: 2em; text-indent: -2em;">@Inject
  *       <i>MethodModifiers<sub>opt</sub></i>
  *       <i>ResultType</i>
  *       <i>Identifier</i>(<i>FormalParameterList<sub>opt</sub></i>)
  *       <i>Throws<sub>opt</sub></i>
- *       <i>MethodBody</i></blockquote></tt>
+ *       <i>MethodBody</i></blockquote>
  *
- * <p>The injector ignores the result of an injected method, but
+ * <p>&nbsp;</p>The injector ignores the result of an injected method, but
  * non-{@code void} return types are allowed to support use of the method in
  * other contexts (builder-style method chaining, for example).
  *
- * <p>Examples:
+ * <p>&nbsp;</p>Examples:
  *
  * <pre>
  *   public class Car {
@@ -93,19 +93,19 @@ import static java.lang.annotation.ElementType.FIELD;
  *     &#064;Inject public Car(Engine engine) { ... }
  *
  *     // Injectable field
- *     &#064;Inject private Provider&lt;Seat> seatProvider;
+ *     &#064;Inject private Provider&lt;Seat&gt; seatProvider;
  *
  *     // Injectable package-private method
  *     &#064;Inject void install(Windshield windshield, Trunk trunk) { ... }
  *   }</pre>
  *
- * <p>A method annotated with {@code @Inject} that overrides another method
+ * <p>&nbsp;</p>A method annotated with {@code @Inject} that overrides another method
  * annotated with {@code @Inject} will only be injected once per injection
  * request per instance. A method with <i>no</i> {@code @Inject} annotation
  * that overrides a method annotated with {@code @Inject} will not be
  * injected.
  *
- * <p>Injection of members annotated with {@code @Inject} is required. While an
+ * <p>&nbsp;</p>Injection of members annotated with {@code @Inject} is required. While an
  * injectable member may use any accessibility modifier (including
  * <tt>private</tt>), platform or injector limitations (like security
  * restrictions or lack of reflection support) might preclude injection
@@ -113,7 +113,7 @@ import static java.lang.annotation.ElementType.FIELD;
  *
  * <h3>Qualifiers</h3>
  *
- * <p>A {@linkplain Qualifier qualifier} may annotate an injectable field
+ * <p>&nbsp;</p>A {@linkplain Qualifier qualifier} may annotate an injectable field
  * or parameter and, combined with the type, identify the implementation to
  * inject. Qualifiers are optional, and when used with {@code @Inject} in
  * injector-independent classes, no more than one qualifier should annotate a
@@ -121,19 +121,19 @@ import static java.lang.annotation.ElementType.FIELD;
  *
  * <pre>
  *   public class Car {
- *     &#064;Inject private <b>@Leather</b> Provider&lt;Seat> seatProvider;
+ *     &#064;Inject private <b>@Leather</b> Provider&lt;Seat&gt; seatProvider;
  *
  *     &#064;Inject void install(<b>@Tinted</b> Windshield windshield,
  *         <b>@Big</b> Trunk trunk) { ... }
  *   }</pre>
  *
- * <p>If one injectable method overrides another, the overriding method's
+ * <p>&nbsp;</p>If one injectable method overrides another, the overriding method's
  * parameters do not automatically inherit qualifiers from the overridden
  * method's parameters.
  *
  * <h3>Injectable Values</h3>
  *
- * <p>For a given type T and optional qualifier, an injector must be able to
+ * <p>&nbsp;</p>For a given type T and optional qualifier, an injector must be able to
  * inject a user-specified class that:
  *
  * <ol type="a">
@@ -141,13 +141,13 @@ import static java.lang.annotation.ElementType.FIELD;
  *   <li>has an injectable constructor.</li>
  * </ol>
  *
- * <p>For example, the user might use external configuration to pick an
+ * <p>&nbsp;</p>For example, the user might use external configuration to pick an
  * implementation of T. Beyond that, which values are injected depend upon the
  * injector implementation and its configuration.
  *
  * <h3>Circular Dependencies</h3>
  *
- * <p>Detecting and resolving circular dependencies is left as an exercise for
+ * <p>&nbsp;</p>Detecting and resolving circular dependencies is left as an exercise for
  * the injector implementation. Circular dependencies between two constructors
  * is an obvious problem, but you can also have a circular dependency between
  * injectable fields or methods:
@@ -160,13 +160,13 @@ import static java.lang.annotation.ElementType.FIELD;
  *     &#064;Inject A a;
  *   }</pre>
  *
- * <p>When constructing an instance of {@code A}, a naive injector
+ * <p>&nbsp;</p>When constructing an instance of {@code A}, a naive injector
  * implementation might go into an infinite loop constructing an instance of
  * {@code B} to set on {@code A}, a second instance of {@code A} to set on
  * {@code B}, a second instance of {@code B} to set on the second instance of
  * {@code A}, and so on.
  *
- * <p>A conservative injector might detect the circular dependency at build
+ * <p>&nbsp;</p>A conservative injector might detect the circular dependency at build
  * time and generate an error, at which point the programmer could break the
  * circular dependency by injecting {@link Provider Provider&lt;A>} or {@code
  * Provider<B>} instead of {@code A} or {@code B} respectively. Calling {@link

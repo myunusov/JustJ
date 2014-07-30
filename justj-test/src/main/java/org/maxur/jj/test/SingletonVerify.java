@@ -31,7 +31,11 @@ public class SingletonVerify<T>{
     /**
      * Factory method. For general use.
      *
-     * @param supplier The supplier for which the immutable should be tested.
+     * @param supplier The supplier of instance for which the immutable should be tested.
+     * @param <T> The type of instance for which the immutable should be tested.
+     *
+     * @return  The instance of ImmutableVerifier.
+     *
      */
     public static <T> SingletonVerify forInstance(final Supplier<T> supplier) {
         return new SingletonVerify<>(supplier);

@@ -16,8 +16,9 @@
 
 package javax.inject;
 
-import java.lang.annotation.Retention;
 import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
@@ -37,6 +38,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 public @interface Named {
 
-    /** The name. */
+    /**
+     * The name.
+     * @return The name.
+     */
     String value() default "";
 }

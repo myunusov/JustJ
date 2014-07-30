@@ -34,7 +34,7 @@ package javax.inject;
  *
  * <pre>
  *   class Car {
- *     &#064;Inject Car(Provider&lt;Seat> seatProvider) {
+ *     &#064;Inject Car(Provider&lt;Seat&gt; seatProvider) {
  *       Seat driver = seatProvider.get();
  *       Seat passenger = seatProvider.get();
  *       ...
@@ -45,6 +45,8 @@ public interface Provider<T> {
 
     /**
      * Provides a fully-constructed and injected instance of {@code T}.
+     *
+     * @return Fully-constructed and injected instance of {@code T}
      *
      * @throws RuntimeException if the injector encounters an error while
      *  providing an instance. For example, if an injectable member on

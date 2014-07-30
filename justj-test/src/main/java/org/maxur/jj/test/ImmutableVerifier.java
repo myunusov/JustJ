@@ -45,8 +45,11 @@ public class ImmutableVerifier<T> {
      * Factory method. For general use.
      *
      * @param instance The instance for which the immutable should be tested.
+     * @param <T> The type of instance for which the immutable should be tested.
+     *
+     * @return  The instance of ImmutableVerifier.
      */
-    public static <T> ImmutableVerifier forInstance(T instance) {
+    public static <T> ImmutableVerifier<T> forInstance(T instance) {
         return new ImmutableVerifier<>(instance);
     }
 
@@ -57,11 +60,14 @@ public class ImmutableVerifier<T> {
     /**
      * Adds superClass values.
      *
-     * @throws IllegalArgumentException If  superClass is not superclass of tested instance.
+     * @param superClass The superclass of testable instance.
+     *
+     * @return  The instance of ImmutableVerifier {@code this}, for easy method chaining.
+     *
+     * @throws IllegalArgumentException If superClass is not superclass of tested instance.
      */
-    public ImmutableVerifier<T> withSuperclass(final Class superClass) {
+    public ImmutableVerifier<T> withSuperclass(final Class<? super T> superClass) {
         this.superClass = superClass;
-        //noinspection unchecked
         if (!superClass.isAssignableFrom(instance.getClass())) {
             throw new IllegalArgumentException(format("Class '%s' must be superclass for '%s'",
                     superClass.getName(),
@@ -76,7 +82,8 @@ public class ImmutableVerifier<T> {
      * See {@link Warning} to see what warnings can be suppressed.
      *
      * @param warnings A list of warnings to suppress in {@code ImmutableVerifier}.
-     * @return {@code this}, for easy method chaining.
+     *
+     * @return The instance of ImmutableVerifier {@code this}, for easy method chaining.
      */
     public ImmutableVerifier<T> suppress(final Warning... warnings) {
         addAll(this.warningsToSuppress, warnings);
