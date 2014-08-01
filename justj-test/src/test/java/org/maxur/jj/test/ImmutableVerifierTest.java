@@ -17,6 +17,8 @@ package org.maxur.jj.test;
 
 import org.junit.Test;
 
+import java.util.Collection;
+
 import static org.junit.Assert.assertNotNull;
 import static org.maxur.jj.test.ImmutableVerifier.forClass;
 import static org.maxur.jj.test.ImmutableVerifier.forInstance;
@@ -67,6 +69,14 @@ public class ImmutableVerifierTest {
                 withSuperclass(Mutable.class).
                 verify();
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testVerifyWithInvalidSuperclass() throws Exception {
+        forClass(UnDirectChild.class).
+                withSuperclass((Class) Collection.class).
+                verify();
+    }
+
 
     @Test
     public void testVerifyNonFinalWithSuppress() throws Exception {

@@ -125,31 +125,28 @@ public class ImmutableVerifier<T> {
     }
 
     private void checkFields() {
-        final HashSet<Class> accumulator = new HashSet<>();
-        if (!checkFields(testableClass, accumulator)) {
-            throw new AssertionError("All fields defined in the class must be immutable");
-        }
+        checkFields(testableClass, new HashSet<>());
     }
 
-    private boolean checkFields(final Class type, final HashSet<Class> accumulator) {
+    private void checkFields(final Class type, final HashSet<Class> accumulator) {
         accumulator.add(type);
         for (Field field : type.getDeclaredFields()) {
             if (!Modifier.isFinal(field.getModifiers())) {
-                throw new AssertionError("All fields defined in the class must be final");
+                throw new AssertionError(format("All fields defined in the class '%s' must be final", type.getName()));
             } else {
                 final Class<?> fieldType = field.getType();
                 if (!warningsToSuppress.contains(IMMUTABLE_FIELDS) && !isValidFieldType(fieldType)) {
                     if (accumulator.contains(fieldType)) {
                         break;
                     }
-                    final boolean result = checkFields(fieldType, accumulator);
-                    if (!result) {
-                        return false;
+                    try {
+                        checkFields(fieldType, accumulator);
+                    } catch (AssertionError e) {
+                        throw new AssertionError("All fields defined in the class must be immutable", e);
                     }
                 }
             }
         }
-        return true;
     }
 
     private void checkIsFinal() {
