@@ -15,6 +15,8 @@
 
 package org.maxur.jj.test;
 
+import checkers.nullness.quals.NonNull;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
@@ -23,6 +25,7 @@ import java.util.HashSet;
 import static java.lang.String.format;
 import static java.util.Collections.addAll;
 import static org.maxur.jj.test.Warning.IMMUTABLE_FIELDS;
+import static org.maxur.jj.test.Warning.NON_FINAL_CLASS;
 
 /**
  * {@code ImmutableVerifier} can be used in unit tests to verify whether the
@@ -37,9 +40,24 @@ public class ImmutableVerifier<T> {
 
     private final Collection<Warning> warningsToSuppress = new HashSet<>();
 
-    private final T instance;
-
     private Class superClass;
+
+    private Class<T> testableClass;
+
+    /**
+     * Factory method. For general use.
+     *
+     * @param type The class for which the immutable should be tested.
+     * @param <T> The type of instance for which the immutable should be tested.
+     *
+     * @return  The instance of ImmutableVerifier.
+     */
+    public static <T> ImmutableVerifier<T> forClass(@NonNull Class<T> type) {
+        if (type == null) {
+            throw new IllegalArgumentException("Instance must not be null");
+        }
+        return new ImmutableVerifier<>(type);
+    }
 
     /**
      * Factory method. For general use.
@@ -49,12 +67,17 @@ public class ImmutableVerifier<T> {
      *
      * @return  The instance of ImmutableVerifier.
      */
-    public static <T> ImmutableVerifier<T> forInstance(T instance) {
-        return new ImmutableVerifier<>(instance);
+    public static <T> ImmutableVerifier<T> forInstance(@NonNull T instance) {
+        if (instance == null) {
+            throw new IllegalArgumentException("Instance must not be null");
+        }
+        //noinspection unchecked
+        return new ImmutableVerifier<>((Class<T>) instance.getClass());
     }
 
-    private ImmutableVerifier(T instance) {
-        this.instance = instance;
+
+    private ImmutableVerifier(Class<T> type) {
+        testableClass = type;
     }
 
     /**
@@ -68,10 +91,10 @@ public class ImmutableVerifier<T> {
      */
     public ImmutableVerifier<T> withSuperclass(final Class<? super T> superClass) {
         this.superClass = superClass;
-        if (!superClass.isAssignableFrom(instance.getClass())) {
+        if (!superClass.isAssignableFrom(testableClass)) {
             throw new IllegalArgumentException(format("Class '%s' must be superclass for '%s'",
                     superClass.getName(),
-                    instance.getClass().getName()
+                    testableClass.getName()
             ));
         }
         return this;
@@ -102,26 +125,44 @@ public class ImmutableVerifier<T> {
     }
 
     private void checkFields() {
-        final Class<?> objClass = instance.getClass();
-        for (Field objField : objClass.getDeclaredFields()) {
-            if (!Modifier.isFinal(objField.getModifiers())) {
-                throw new AssertionError("All fields defined in the class must be final");
-            } else if (warningsToSuppress.contains(IMMUTABLE_FIELDS) && !isValidFieldType(objField.getType())) {
-                throw new AssertionError("All fields defined in the class must be primitive types or String");
-            }
+        final HashSet<Class> accumulator = new HashSet<>();
+        if (!checkFields(testableClass, accumulator)) {
+            throw new AssertionError("All fields defined in the class must be immutable");
         }
     }
 
+    private boolean checkFields(final Class type, final HashSet<Class> accumulator) {
+        accumulator.add(type);
+        for (Field field : type.getDeclaredFields()) {
+            if (!Modifier.isFinal(field.getModifiers())) {
+                throw new AssertionError("All fields defined in the class must be final");
+            } else {
+                final Class<?> fieldType = field.getType();
+                if (!warningsToSuppress.contains(IMMUTABLE_FIELDS) && !isValidFieldType(fieldType)) {
+                    if (accumulator.contains(fieldType)) {
+                        break;
+                    }
+                    final boolean result = checkFields(fieldType, accumulator);
+                    if (!result) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
     private void checkIsFinal() {
-        final Class<?> objClass = instance.getClass();
-        if (!Modifier.isFinal(objClass.getModifiers())) {
+        if (warningsToSuppress.contains(NON_FINAL_CLASS)) {
+            return;
+        }
+        if (!Modifier.isFinal(testableClass.getModifiers())) {
             throw new AssertionError("Class must be final");
         }
     }
 
     private void checkDirectInherited() {
-        final Class<?> objClass = instance.getClass();
-        if (superClass != null && !superClass.equals(objClass.getSuperclass())) {
+        if (superClass != null && !superClass.equals(testableClass.getSuperclass())) {
             throw new AssertionError("Class of the object must be a direct child class of the required class");
         }
     }

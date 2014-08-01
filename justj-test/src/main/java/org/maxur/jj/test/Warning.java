@@ -24,5 +24,6 @@ package org.maxur.jj.test;
  * @see ImmutableVerifier#suppress(Warning...)
  */
 public enum Warning {
-    IMMUTABLE_FIELDS
+    IMMUTABLE_FIELDS,
+    NON_FINAL_CLASS
 }

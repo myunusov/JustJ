@@ -15,6 +15,8 @@
 
 package org.maxur.jj.test;
 
+import checkers.nullness.quals.NonNull;
+
 import java.util.function.Supplier;
 
 /**
@@ -36,7 +38,7 @@ public class SingletonVerify<T>{
      *
      * @return  The instance of ImmutableVerifier.
      */
-    public static <T> SingletonVerify forInstance(final Supplier<T> supplier) {
+    public static <T> SingletonVerify forInstance(@NonNull final Supplier<T> supplier) {
         if (supplier == null) {
             throw new IllegalArgumentException("Supplier must not be null");
         }
