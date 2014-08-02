@@ -20,6 +20,7 @@ import org.maxur.jj.core.config.base.Commander;
 import org.maxur.jj.core.domain.Command;
 import org.maxur.jj.core.domain.CommandMapper;
 
+import static java.lang.System.out;
 import static org.maxur.jj.core.config.base.BaseApplication.configBy;
 
 /**
@@ -27,7 +28,10 @@ import static org.maxur.jj.core.config.base.BaseApplication.configBy;
  * @version 1.0
  * @since <pre>7/18/2014</pre>
  */
-public class CLILauncher {
+public final class CLILauncher {
+
+    private CLILauncher() {
+    }
 
     public static void main(final String[] args) {
         configBy(TMConfig::new).runWith(args);
@@ -36,7 +40,7 @@ public class CLILauncher {
     public static class TMCommander extends Commander {
         @Override
         public Command commandBy(final String[] input) {
-            return command(() -> System.out.print("Hello World"));
+            return command(() -> out.print("Hello World"));
         }
     }
 

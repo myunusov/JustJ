@@ -135,19 +135,25 @@ public class ImmutableVerifier<T> {
             if (!Modifier.isFinal(field.getModifiers())) {
                 throw new AssertionError(format("All fields defined in the class '%s' must be final", type.getName()));
             } else {
-                final Class<?> fieldType = field.getType();
-                if (!warningsToSuppress.contains(IMMUTABLE_FIELDS) && !isValidFieldType(fieldType)) {
-                    if (accumulator.contains(fieldType)) {
-                        break;
-                    }
-                    try {
-                        checkFields(fieldType, accumulator);
-                    } catch (AssertionError e) {
-                        throw new AssertionError("All fields defined in the class must be immutable", e);
-                    }
+                if (checkField(field.getType(), accumulator)) {
+                    break;
                 }
             }
         }
+    }
+
+    private boolean checkField(final Class<?> fieldType, final Set<Class> accumulator) {
+        if (!warningsToSuppress.contains(IMMUTABLE_FIELDS) && !isValidFieldType(fieldType)) {
+            if (accumulator.contains(fieldType)) {
+                return true;
+            }
+            try {
+                checkFields(fieldType, accumulator);
+            } catch (AssertionError e) {
+                throw new AssertionError("All fields defined in the class must be immutable", e);
+            }
+        }
+        return false;
     }
 
     private void checkIsFinal() {

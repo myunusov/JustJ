@@ -21,6 +21,7 @@ import org.maxur.jj.core.domain.Command;
 import javax.inject.Inject;
 
 import static java.lang.String.format;
+import static java.lang.System.out;
 import static org.maxur.jj.core.context.Application.configBy;
 
 /**
@@ -43,7 +44,7 @@ public class HelloWorldInjector extends Command {
 
     @Override
     public void run() {
-        System.out.println(format("Hello %s", value));
+        out.println(format("Hello %s", value));
     }
 
 }

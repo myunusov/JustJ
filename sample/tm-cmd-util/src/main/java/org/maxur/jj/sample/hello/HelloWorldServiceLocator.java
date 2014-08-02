@@ -26,7 +26,10 @@ import static org.maxur.jj.core.context.Application.system;
  * @version 1.0
  * @since <pre>7/25/2014</pre>
  */
-public class HelloWorldServiceLocator {
+public final class HelloWorldServiceLocator {
+
+    private HelloWorldServiceLocator() {
+    }
 
     public static void main(String[] args) {
         system().runWith(

@@ -39,8 +39,6 @@ public class Context extends Entity {
 
     private final MetaData metaData;
 
-    private ChangeManager changeManager;
-
     Context() {
         this.parent = null;
         metaData = new BaseMetaData();
