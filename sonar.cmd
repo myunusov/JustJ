@@ -1,0 +1,1 @@
+mvn initialize sonar:sonar -PDEV -T1

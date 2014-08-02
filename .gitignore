@@ -5,11 +5,7 @@ tmp/
 target/
 logs/
 site/
-build/
 
 *.iml
 
-gradle/
-gradlew
-gradlew.bat
-
+*.license
