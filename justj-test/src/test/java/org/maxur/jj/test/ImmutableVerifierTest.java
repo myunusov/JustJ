@@ -97,7 +97,7 @@ public class ImmutableVerifierTest {
     }
 
     @Test(expected = AssertionError.class)
-    @Ignore
+    @Ignore                     // TODO It's Ignore by Clover requirements
     public void testAllFieldsMustBeImmutableWithNotAllFieldImmutable() throws Exception {
         forClass(NotAllFieldImmutable.class).verify();
     }
