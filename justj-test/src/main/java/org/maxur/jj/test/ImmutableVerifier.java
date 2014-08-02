@@ -21,6 +21,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 
 import static java.lang.String.format;
 import static java.util.Collections.addAll;
@@ -128,7 +129,7 @@ public class ImmutableVerifier<T> {
         checkFields(testableClass, new HashSet<>());
     }
 
-    private void checkFields(final Class type, final HashSet<Class> accumulator) {
+    private void checkFields(final Class type, final Set<Class> accumulator) {
         accumulator.add(type);
         for (Field field : type.getDeclaredFields()) {
             if (!Modifier.isFinal(field.getModifiers())) {
