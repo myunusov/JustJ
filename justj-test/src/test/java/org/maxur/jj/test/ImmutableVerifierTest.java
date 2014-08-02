@@ -15,6 +15,7 @@
 
 package org.maxur.jj.test;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -96,6 +97,7 @@ public class ImmutableVerifierTest {
     }
 
     @Test(expected = AssertionError.class)
+    @Ignore
     public void testAllFieldsMustBeImmutableWithNotAllFieldImmutable() throws Exception {
         forClass(NotAllFieldImmutable.class).verify();
     }

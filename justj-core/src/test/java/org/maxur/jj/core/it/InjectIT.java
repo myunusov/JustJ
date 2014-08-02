@@ -13,7 +13,7 @@
  *     limitations under the License.
  */
 
-package org.maxur.jj.core;
+package org.maxur.jj.core.it;
 
 import org.junit.Test;
 import org.maxur.jj.core.config.base.SimpleConfig;
@@ -29,7 +29,7 @@ import static org.maxur.jj.core.context.Application.configBy;
  * @author Maxim Yunusov
  * @version 1.0 29.07.2014
  */
-public class InjectTest {
+public class InjectIT {
 
     @Test
     public void testInject() throws Exception {
