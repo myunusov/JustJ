@@ -11,7 +11,9 @@
     <description>Top-level POM of JustJ Project</description>
 
     <scm>
-        <developerConnection>scm:git@github.com:myunusov/JustJ.git</developerConnection>
+        <connection>scm:git:git@github.com:myunusov/JustJ.git</connection>
+        <developerConnection>scm:git:git@github.com:myunusov/JustJ.git</developerConnection>
+        <url>https://github.com/myunusov/JustJ.git</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -123,7 +125,6 @@
             </activation>
             <properties>
                 <sonar.core.codeCoveragePlugin>clover</sonar.core.codeCoveragePlugin>
-                <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
                 <sonar.pitest.mode>ReuseReport</sonar.pitest.mode>
                 <sonar.clover.reportPath>${project.build.directory}/site/clover/clover.xml</sonar.clover.reportPath>
             </properties>
