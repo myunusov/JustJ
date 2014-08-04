@@ -127,7 +127,7 @@
             <properties>
                 <sonar.core.codeCoveragePlugin>clover</sonar.core.codeCoveragePlugin>
                 <sonar.pitest.mode>ReuseReport</sonar.pitest.mode>
-                <sonar.artifact.path>${project.build.directory}/assembly/target/justj-bin.zip</sonar.artifact.path>
+                <sonar.artifact.path>${basedir}/assembly/target/justj-bin.zip</sonar.artifact.path>
                 <sonar.clover.reportPath>${project.build.directory}/site/clover/clover.xml</sonar.clover.reportPath>
             </properties>
             <build>
