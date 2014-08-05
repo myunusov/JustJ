@@ -638,7 +638,7 @@
                     <ignoreIdentifiers>true</ignoreIdentifiers>
                     <sourceEncoding>${project.source.encoding}</sourceEncoding>
                     <rulesets>
-                        <ruleset>maxur-pmd.xml</ruleset>
+                        <ruleset>${project.root}/maxur-pmd.xml</ruleset>
                     </rulesets>
                     <excludes>
                         <exclude>**/*Advice.java</exclude>
@@ -652,7 +652,7 @@
                 <artifactId>findbugs-maven-plugin</artifactId>
                 <version>3.0.0</version>
                 <configuration>
-                    <includeFilterFile>maxur-findbugs.xml</includeFilterFile>
+                    <includeFilterFile>${project.root}/maxur-findbugs.xml</includeFilterFile>
                     <effort>Max</effort>
                     <xmlOutput>true</xmlOutput>
                 </configuration>

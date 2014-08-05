@@ -73,10 +73,6 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>org.jboss.tattletale</groupId>
-                <artifactId>tattletale-maven</artifactId>
-            </plugin>
         </plugins>
 
 
@@ -91,24 +87,79 @@
                 <tattletale.dist.classifier>bundle</tattletale.dist.classifier>
                 <tattletale.dist.type>zip</tattletale.dist.type>
                 <tattletale.dist.version>${project.version}</tattletale.dist.version>
+
+                <tattletale-source-directory>${project.build.directory}/tattletale-source</tattletale-source-directory>
+                <tattletale-destination-directory>${project.build.directory}/site/tattletale</tattletale-destination-directory>
             </properties>
             <build>
                 <plugins>
+                    <!-- tattletale is expecting a folder with jars in it, so I need to gather those together -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>2.1</version>
+                        <executions>
+                            <execution>
+                                <id>copy-dependency-jars-to-tattletale-source-directory</id>
+                                <phase>pre-site</phase>
+                                <goals>
+                                    <goal>copy-dependencies</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${tattletale-source-directory}</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- ... gather up the last jars -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>2.4.2</version>
+                        <executions>
+                            <execution>
+                                <id>copy-project-jar-and-java-rt-jar-to-tattletale-source-directory</id>
+                                <phase>pre-site</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${tattletale-source-directory}</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.build.directory}</directory>
+                                            <filtering>false</filtering>
+                                            <includes>
+                                                <include>${project.build.finalName}.jar</include>
+                                            </includes>
+                                        </resource>
+                                        <resource>
+                                            <directory>${java.home}/lib</directory>
+                                            <filtering>false</filtering>
+                                            <includes>
+                                                <include>rt.jar</include>
+                                            </includes>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
                     <plugin>
                         <groupId>org.jboss.tattletale</groupId>
                         <artifactId>tattletale-maven</artifactId>
                         <executions>
                             <execution>
-                                <id>tattletale</id>
-                                <phase>verify</phase>
+                                <id>run-tattletale-report</id>
+                                <!-- it is bound by default to "package" phase, which isn't what we want for reporting -->
+                                <phase>site</phase>
                                 <goals>
                                     <goal>report</goal>
                                 </goals>
                                 <configuration>
-                                    <source>
-                                        ${project.build.directory}/${project.build.finalName}-bin/${project.build.finalName}/felix/bundle
-                                    </source>
-                                    <destination>${project.build.directory}/tattletale/report</destination>
+                                    <source>${tattletale-source-directory}</source>
+                                    <destination>${tattletale-destination-directory}</destination>
                                     <reports>
                                         <report>classdependants</report>
                                         <report>classdependson</report>
@@ -136,6 +187,47 @@
                             </execution>
                         </executions>
                     </plugin>
+
+<!--                    <plugin>
+                        <groupId>org.jboss.tattletale</groupId>
+                        <artifactId>tattletale-maven</artifactId>
+                        <executions>
+                            <execution>
+                                <id>tattletale</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                                <configuration>
+                                    <source>${project.build.directory}/justj-bin/</source>
+                                    <destination>${project.build.directory}/site/tattletale</destination>
+                                    <reports>
+                                        <report>classdependants</report>
+                                        <report>classdependson</report>
+                                        <report>dependants</report>
+                                        <report>dependson</report>
+                                        <report>graphviz</report>
+                                        <report>transitivedependants</report>
+                                        <report>transitivedependson</report>
+                                        <report>circulardependency</report>
+                                        <report>classlocation</report>
+                                        <report>osgi</report>
+                                        <report>sealed</report>
+                                        <report>sign</report>
+                                        <report>eliminatejars</report>
+                                        <report>invalidversion</report>
+                                        <report>multiplejars</report>
+                                        <report>multiplejarspackage</report>
+                                        <report>multiplelocations</report>
+                                        <report>unusedjar</report>
+                                        <report>blacklisted</report>
+                                        <report>noversion</report>
+                                        <report>jar</report>
+                                    </reports>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>-->
                 </plugins>
             </build>
         </profile>
