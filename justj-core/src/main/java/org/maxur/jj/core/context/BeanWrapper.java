@@ -33,7 +33,7 @@ import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static org.maxur.jj.core.context.BeanReference.identifier;
+import static org.maxur.jj.core.context.BeanReference.referenceBy;
 
 /**
  * @author Maxim Yunusov
@@ -41,8 +41,8 @@ import static org.maxur.jj.core.context.BeanReference.identifier;
  */
 abstract class BeanWrapper {
 
-    public static <T> T inject(final Context context, final T bean) {
-        wrap(bean).injectFields(context, bean).injectMethods(context, bean);
+    public static <T> T inject(final MetaData metaData, final T bean) {
+        wrap(bean).injectFields(metaData, bean).injectMethods(metaData, bean);
         return bean;
     }
 
@@ -69,25 +69,26 @@ abstract class BeanWrapper {
 
     public abstract Class type();
 
-    public final <T> T bean(final Context context) {
-        final T bean = create(context);
-        injectFields(context, bean);
-        injectMethods(context, bean);
+    public final <T> T bean(final MetaData metaData) {
+        final T bean = create(metaData);
+        injectFields(metaData, bean);
+        injectMethods(metaData, bean);
         return bean;
     }
 
-    private <T> BeanWrapper injectFields(final Context context, final T bean) {
+    private <T> BeanWrapper injectFields(final MetaData metaData, final Object bean) {
         if (bean == null) {
             return this;
         }
         final Map<Field, BeanReference> fields = getInjectableFields(bean.getClass());
         for (Map.Entry<Field, BeanReference> entry : fields.entrySet()) { // XXX check and field value set should be separated
             final Field field = entry.getKey();
-            final BeanReference id = entry.getValue();
+            final BeanReference ref = entry.getValue();
             final Optional annotation = field.getDeclaredAnnotation(Optional.class);
-            final Object injectedBean = context.bean(id.getType());
+            final BeanWrapper wrapper = metaData.wrapper(ref);
+            final Object injectedBean = wrapper == null ? null : wrapper.bean(metaData);
             if (annotation == null) {
-                checkDependency(injectedBean, id.getType());
+                checkDependency(injectedBean, ref.getType());
             }
             field.setAccessible(true);
             try {
@@ -99,7 +100,7 @@ abstract class BeanWrapper {
         return this;
     }
 
-    private <T> BeanWrapper injectMethods(final Context context, final T bean) {
+    private <T> BeanWrapper injectMethods(final MetaData metaData, final Object bean) {
         if (bean == null) {
             return this;
         }
@@ -108,7 +109,7 @@ abstract class BeanWrapper {
             Method method = entry.getKey();
             try {
                 method.setAccessible(true);
-                method.invoke(bean, getParameters(context, entry.getValue()));
+                method.invoke(bean, getParameters(metaData, entry.getValue()));
             } catch (IllegalAccessException ignore) {
                 assert false : "Unreachable operation";
             } catch (InvocationTargetException | IllegalArgumentException e) {
@@ -121,7 +122,6 @@ abstract class BeanWrapper {
         }
         return this;
     }
-
 
     protected <T> T checkDependency(final T bean, final Class type) {
         if (bean == null) {
@@ -148,7 +148,7 @@ abstract class BeanWrapper {
     private List<BeanReference> makeParams(final Method method) {
         ///CLOVER:OFF
         return stream(method.getParameterTypes())
-                .map(BeanReference::identifier)
+                .map(BeanReference::referenceBy)
                 .collect(toList());
         ///CLOVER:ON
     }
@@ -156,17 +156,19 @@ abstract class BeanWrapper {
     protected final Map<Field, BeanReference> findInjectableFields(final Class<?> beanClass) {
         return stream(beanClass.getDeclaredFields())
                 .filter(f -> f.isAnnotationPresent(Inject.class))
-                .collect(toMap(f -> f, f -> identifier(f.getType())));
+                .collect(toMap(f -> f, f -> referenceBy(f.getType())));
     }
 
     @SuppressWarnings("unchecked")
-    protected abstract <T> T create(Context context);
+    protected abstract <T> T create(MetaData metaData);
 
-    protected Object[] getParameters(final Context context, final List<BeanReference> paramTypes) {
+    protected Object[] getParameters(final MetaData metaData, final List<BeanReference> paramTypes) {
         final Object[] parameters = new Object[paramTypes.size()];
         for (int i = 0; i < parameters.length; i++) {
             final Class type = paramTypes.get(i).getType();
-            parameters[i] = checkDependency(context.bean(type), type);
+            final BeanWrapper wrapper = metaData.wrapper(referenceBy(type));
+            final Object injectedBean = wrapper.bean(metaData);
+            parameters[i] = checkDependency(injectedBean, type);
         }
         return parameters;
     }
@@ -189,7 +191,7 @@ abstract class BeanWrapper {
 
         @Override
         @SuppressWarnings("unchecked")
-        protected <T> T create(final Context context) {
+        protected <T> T create(final MetaData metaData) {
             return (T) supplier.get();
         }
 
@@ -229,7 +231,7 @@ abstract class BeanWrapper {
 
         @Override
         @SuppressWarnings("unchecked")
-        protected <T> T create(Context context) {
+        protected <T> T create(MetaData metaData) {
             return (T) bean;
         }
 
@@ -283,7 +285,7 @@ abstract class BeanWrapper {
             return injectableConstructor == null ?
                     emptyList() :
                     Arrays.stream(injectableConstructor.getParameterTypes())
-                    .map(BeanReference::identifier)
+                    .map(BeanReference::referenceBy)
                     .collect(toList());
             ///CLOVER:ON
         }
@@ -305,12 +307,12 @@ abstract class BeanWrapper {
 
         @Override
         @SuppressWarnings("unchecked")
-        protected T create(final Context context) {
+        protected T create(final MetaData metaData) {
             try {
                 if (injectableConstructor == null) {
                     return clazz.newInstance();
                 } else {
-                    return injectableConstructor.newInstance(getParameters(context, constructorParams));
+                    return injectableConstructor.newInstance(getParameters(metaData, constructorParams));
                 }
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new JustJSystemException("Error instantiating", e);

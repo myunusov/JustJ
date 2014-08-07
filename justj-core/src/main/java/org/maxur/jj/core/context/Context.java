@@ -50,7 +50,7 @@ public class Context extends Entity {
     }
 
     public <T> T inject(final T bean) {
-        return BeanWrapper.inject(this, bean);
+        return BeanWrapper.inject(metaData, bean);
     }
 
     public <T> T bean(final Role role) {
@@ -58,7 +58,7 @@ public class Context extends Entity {
     }
 
     public <T> T bean(final Class<T> type) {
-        return bean(identifier(type));
+        return bean(BeanReference.referenceBy(type));
     }
 
     private <T> T bean(final BeanReference ref) {
@@ -67,7 +67,7 @@ public class Context extends Entity {
             return null;
         }
         try {
-            return wrapper.bean(this);
+            return wrapper.bean(metaData);
         } catch (Exception e) {
             throw new JustJSystemException(format("%s is not created", ref.toString()), e);
         }
@@ -86,15 +86,15 @@ public class Context extends Entity {
     }
 
     public void put(final Class type, final Supplier<?> supplier) {
-        metaData.put(() -> wrap(supplier), identifier(type));
+        metaData.put(() -> wrap(supplier), BeanReference.referenceBy(type));
     }
 
     public void put(final Class type, final Object bean) {
-        metaData.put(() -> wrap(bean), identifier(type));
+        metaData.put(() -> wrap(bean), BeanReference.referenceBy(type));
     }
 
     public void put(final Class type, final Class clazz) {
-        metaData.put(() -> wrap(clazz), identifier(type));
+        metaData.put(() -> wrap(clazz), BeanReference.referenceBy(type));
     }
 
     public Context parent() {

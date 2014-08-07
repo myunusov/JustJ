@@ -29,7 +29,7 @@ public abstract class BeanReference {
         return new RoleReference(role);
     }
 
-    public static BeanReference identifier(final Class type) {
+    public static BeanReference referenceBy(final Class type) {
         return new TypeReference(type);
     }
 
