@@ -56,7 +56,7 @@ public class ContextTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testBindRoleToNullSupplier() throws Exception {
-        root.put(Role.ANY, (Supplier) null);
+        root.put(Role.ANY, (Supplier<Object>) null);
     }
 
     @Test
@@ -310,13 +310,22 @@ public class ContextTest {
     }
 
     @Test
-    public void testInjectByFieldWithFinalModifier() {
+    public void testInjectByFieldWithPrivateFinalModifier() {
         root.put(Dummy15.class, Dummy15.class);
         final Dummy dummy = new Dummy();
         root.put(Dummy.class, dummy);
         final Dummy15 dummy15 = root.bean(Dummy15.class);
-        assertEquals(dummy, dummy15.a);
+        assertEquals(dummy, dummy15.getA());
     }
+
+    @Test
+    public void testInjectByFieldWithStaticModifier() {
+        final Dummy dummy = new Dummy();
+        root.put(Dummy.class, dummy);
+        root.inject(new Dummy31());
+        assertEquals(dummy, Dummy31.a);
+    }
+
 
     // InjectByMethod
 
@@ -375,22 +384,40 @@ public class ContextTest {
     }
 
 
+
+    // A method with no @Inject annotation that overrides a method annotated with @Inject will not be injected.
     @Test()
-    public void testInjectByMethodWithOverride() {
+    public void testInjectByMethodWithOverrideWithoutInject() {
         root.put(Dummy25.class, Dummy25.class);
         final Dummy dummy = new Dummy();
         root.put(Dummy.class, dummy);
         final Dummy25 bean = root.bean(Dummy25.class);
-        assertEquals(dummy, bean.b);
         assertNull(bean.a);
     }
 
-    @Test(expected = JustJSystemException.class)
-    public void testInjectByMethodWithThrowsException() {
-        root.put(Dummy28.class, Dummy28.class);
-        root.bean(Dummy28.class);
+    //A method annotated with @Inject that overrides another method annotated with @Inject will
+    // only be injected once per injection request per instance
+    @Test()
+    public void testInjectByMethodWithOverrideWithInject() {
+        root.put(Dummy25.class, Dummy25.class);
+        final Dummy dummy = new Dummy();
+        root.put(Dummy.class, dummy);
+        final Dummy25 bean = root.bean(Dummy25.class);
+        assertEquals(1, bean.count);
+        assertEquals(dummy, bean.b);
+
     }
 
+    @Test()
+    @Ignore
+    public void testGetBySuperType() {
+        final Dummy25 dummy25 = new Dummy25();
+        root.put(Dummy25.class, dummy25);
+        final Dummy dummy = new Dummy();
+        root.put(Dummy.class, dummy);
+        final Dummy24 bean = root.bean(Dummy24.class);
+        assertEquals(bean, dummy25);
+    }
 
     @Test
     @Ignore
@@ -401,6 +428,41 @@ public class ContextTest {
         root.put(Dummy26.class, dummy26);
         final Dummy26 bean = root.bean(Dummy26.class);
         assertEquals(dummy27, bean.a);
+    }
+
+    @Test(expected = JustJSystemException.class)
+    public void testInjectByMethodWithThrowsException() {
+        root.put(Dummy28.class, Dummy28.class);
+        root.bean(Dummy28.class);
+    }
+
+    @Test
+    public void testInjectByMethodWithPrivateModifier() {
+        root.put(Dummy29.class, Dummy29.class);
+        final Dummy dummy = new Dummy();
+        root.put(Dummy.class, dummy);
+        final Dummy29 bean = root.bean(Dummy29.class);
+        assertEquals(dummy, bean.a);
+    }
+
+    @Test
+    public void testInjectByMethodWithStaticModifier() {
+        final Dummy dummy = new Dummy();
+        root.put(Dummy.class, dummy);
+        root.inject(new Dummy30());
+        assertEquals(dummy, Dummy30.a);
+    }
+
+    @Test
+    public void testInjectWithSuperTypeMethod() {
+        final Dummy dummy = new Dummy();
+        root.put(Dummy.class, dummy);
+        root.put(Dummy33.class, Dummy33.class);
+        final Dummy33 bean = root.bean(Dummy33.class);
+        assertEquals(dummy, bean.a);
+        assertEquals(dummy, bean.b);
+        assertEquals(dummy, bean.c);
+        assertEquals(dummy, bean.d);
     }
 
 }
@@ -511,10 +573,14 @@ class Dummy14 {
 
 class Dummy15 {
     @Inject
-    final Dummy a;
+    private final Dummy a;
 
     public Dummy15() {
         this.a = null;
+    }
+
+    public Dummy getA() {
+        return a;
     }
 }
 
@@ -583,6 +649,7 @@ class Dummy24 {
 
     Dummy a;
     Dummy b;
+    int   count;
 
     public Dummy24() {
     }
@@ -594,7 +661,8 @@ class Dummy24 {
 
     @Inject
     public void setB(Dummy b) {
-        this.b = b;
+        this.b = null;
+        count++;
     }
 
 }
@@ -605,6 +673,7 @@ class Dummy25 extends Dummy24 {
     Dummy b;
 
     public Dummy25() {
+        count = 0;
     }
 
     @Override
@@ -616,6 +685,7 @@ class Dummy25 extends Dummy24 {
     @Override
     public void setB(Dummy b) {
         this.b = b;
+        count++;
     }
 
 }
@@ -656,5 +726,59 @@ class Dummy28  {
     @Inject
     public void setA() {
         throw new RuntimeException();
+    }
+}
+
+class Dummy29  {
+    Dummy a;
+    public Dummy29() {
+    }
+    @Inject
+    private void setA(Dummy a) {
+        this.a = a;
+    }
+}
+
+class Dummy30  {
+
+    static Dummy a;
+
+    public Dummy30() {
+    }
+    @Inject
+    public static void setA(Dummy a) {
+        Dummy30.a = a;
+    }
+}
+
+class Dummy31  {
+    @Inject
+    static Dummy a;
+
+    public Dummy31() {
+    }
+}
+
+class Dummy32  {
+    @Inject
+    Dummy a;
+    Dummy b;
+    public Dummy32() {
+    }
+    @Inject
+    public void setB(Dummy b) {
+        this.b = b;
+    }
+}
+
+class Dummy33 extends Dummy32  {
+    @Inject
+    Dummy c;
+    Dummy d;
+    public Dummy33() {
+    }
+    @Inject
+    public void setD(Dummy d) {
+        this.d = d;
     }
 }

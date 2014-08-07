@@ -65,7 +65,8 @@ public class Context extends Entity implements Function<BeanReference, BeanWrapp
     }
 
     private <T> T bean(final BeanReference ref) {
-        final BeanWrapper wrapper = apply(ref);
+        //noinspection unchecked
+        final BeanWrapper<T> wrapper = apply(ref);
         if (wrapper == null)  {
             return null;
         }
@@ -76,8 +77,8 @@ public class Context extends Entity implements Function<BeanReference, BeanWrapp
         }
     }
 
-    public void put(final Role role, final Supplier<?> supplier) {
-        put(() -> wrap(supplier), identifier(role));
+    public <T> void put(final Role<T> role, final Supplier<T> supplier) {
+        put(() -> wrap(supplier, role.getSuitableType()), identifier(role));
     }
 
     public void put(final Role role, final Object bean) {
@@ -88,8 +89,8 @@ public class Context extends Entity implements Function<BeanReference, BeanWrapp
         put(() -> wrap(clazz), identifier(role));
     }
 
-    public void put(final Class type, final Supplier<?> supplier) {
-        put(() -> wrap(supplier), BeanReference.referenceBy(type));
+    public <T> void put(final Class<T> type, final Supplier<T> supplier) {
+        put(() -> wrap(supplier, type), BeanReference.referenceBy(type));
     }
 
     public void put(final Class type, final Object bean) {
@@ -102,9 +103,9 @@ public class Context extends Entity implements Function<BeanReference, BeanWrapp
 
     private void put(final Supplier<BeanWrapper> supplier, final BeanReference ref) {
         checkDuplicate(ref);
-        final BeanWrapper wrap = supplier.get();
-        checkType(ref, wrap);
-        beans.put(ref, wrap);
+        final BeanWrapper wrapper = supplier.get();
+        wrapper.checkType(ref);
+        beans.put(ref, wrapper);
     }
 
     public Optional<Context> parent() {
@@ -113,16 +114,6 @@ public class Context extends Entity implements Function<BeanReference, BeanWrapp
 
     public Context root() {
         return parent.isPresent() ? parent.get().root() : this;
-    }
-
-    private void checkType(BeanReference id, BeanWrapper wrap) {
-        if (!wrap.suitableTo(id.getType())) {
-            throw new IllegalArgumentException(format(
-                    "The type '%s' is not suitable to %s",
-                    wrap.type().getName(),
-                    id.toString()
-            ));
-        }
     }
 
     private void checkDuplicate(final BeanReference ref) {

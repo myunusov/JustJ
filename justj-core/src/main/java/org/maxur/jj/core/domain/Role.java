@@ -19,24 +19,24 @@ package org.maxur.jj.core.domain;
  * @author Maxim Yunusov
  * @version 1.0 18.07.2014
  */
-public class Role extends Entity {
+public class Role<T> extends Entity {
 
-    private final Class suitableType;
+    private final Class<T> suitableType;
 
     private final String name;
 
-    public static final Role ANY = new Role("Anything", Object.class) {
+    public static final Role<Object> ANY = new Role<Object>("Anything", Object.class) {
         @Override
         public boolean suitableTo(Class type) {
             return true;
         }
     };
 
-    public static Role role(final String name, final Class suitableType) {
-        return new Role(name, suitableType);
+    public static <O> Role<O> role(final String name, final Class<O> suitableType) {
+        return new Role<>(name, suitableType);
     }
 
-    private Role(final String name, final Class suitableType) {
+    private Role(final String name, final Class<T> suitableType) {
         this.suitableType = suitableType;
         this.name = name;
     }
@@ -46,7 +46,7 @@ public class Role extends Entity {
         return suitableType.isAssignableFrom(type);
     }
 
-    public Class getSuitableType() {
+    public Class<T> getSuitableType() {
         return suitableType;
     }
 

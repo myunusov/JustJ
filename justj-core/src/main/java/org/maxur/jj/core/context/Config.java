@@ -47,15 +47,15 @@ public abstract class Config extends Entity {
         //  Hook
     }
 
-    public Binder bind(final Role role) {
-        return new RoleBinder(context, role);
+    public <T> Binder<T> bind(final Role<T> role) {
+        return new RoleBinder<>(context, role);
     }
 
-    public Binder bind(Class type) {
-        return new TypeBinder(context, type);
+    public <T> Binder<T> bind(Class<T> type) {
+        return new TypeBinder<>(context, type);
     }
 
-    public abstract static class Binder {
+    public abstract static class Binder<T> {
 
         protected final Context context;
 
@@ -63,23 +63,23 @@ public abstract class Config extends Entity {
             this.context = context;
         }
 
-        public abstract void to(Supplier<?> supplier);
+        public abstract void to(Supplier<T> supplier);
 
         public abstract void to(Object bean);
 
         public abstract void to(Class type);
     }
 
-    private static class RoleBinder extends Binder {
+    private static class RoleBinder<T> extends Binder<T> {
 
-        private final Role role;
+        private final Role<T> role;
 
-        public RoleBinder(final Context context, final Role role) {
+        public RoleBinder(final Context context, final Role<T> role) {
             super(context);
             this.role = role;
         }
 
-        public void to(final Supplier<?> supplier) {
+        public void to(final Supplier<T> supplier) {
             context.put(role, supplier);
         }
 
@@ -93,16 +93,16 @@ public abstract class Config extends Entity {
         }
     }
 
-    private static class TypeBinder extends Binder {
+    private static class TypeBinder<T> extends Binder<T> {
 
-        private final Class type;
+        private final Class<T> type;
 
-        public TypeBinder(final Context context, final Class type) {
+        public TypeBinder(final Context context, final Class<T> type) {
             super(context);
             this.type = type;
         }
 
-        public void to(final Supplier<?> supplier) {
+        public void to(final Supplier<T> supplier) {
             context.put(type, supplier);
         }
 

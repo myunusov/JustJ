@@ -32,7 +32,7 @@ import static org.maxur.jj.core.domain.Role.role;
  */
 public abstract class Application {
 
-    public static final Role APPLICATION = role("Application", Application.class);
+    public static final Role<Application> APPLICATION = role("Application", Application.class);
 
     private static final ThreadLocal<Context> CONTEXT_HOLDER = new ThreadLocal<>();
 

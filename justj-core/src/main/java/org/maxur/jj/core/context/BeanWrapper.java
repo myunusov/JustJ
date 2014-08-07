@@ -23,9 +23,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -33,32 +33,43 @@ import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 import static org.maxur.jj.core.context.BeanReference.referenceBy;
 
 /**
  * @author Maxim Yunusov
  * @version 1.0 20.07.2014
  */
-abstract class BeanWrapper {
+abstract class BeanWrapper<T> {
+
+    private final List<FieldMetaData> injectableFields;
+
+    private final List<MethodMetaData> injectableMethods;
+
+    private final Class<T> type;
+
+    protected BeanWrapper(final Class<T> clazz) {
+        type = clazz;
+        injectableFields = findInjectableFields(clazz);
+        injectableMethods = findInjectableMethods(clazz);
+    }
 
     public static <T> T inject(final Function<BeanReference, BeanWrapper> context, final T bean) {
         wrap(bean).injectFields(context, bean).injectMethods(context, bean);
         return bean;
     }
 
-    public static BeanWrapper wrap(final Supplier<?> supplier) {
+    public static <T> BeanWrapper wrap(final Supplier<T> supplier, final Class<T> clazz) {
         if (supplier == null) {
             throw new IllegalArgumentException("Been must not be null");
         }
-        return new SupplierBeanWrapper(supplier);
+        return new SupplierBeanWrapper<>(supplier, clazz);
     }
 
-    public static BeanWrapper wrap(final Object bean) {
+    public static <O> BeanWrapper wrap(final O bean) {
         if (bean == null) {
             throw new IllegalArgumentException("Been must not be null");
         }
-        return new ObjectBeanWrapper(bean);
+        return new ObjectBeanWrapper<>(bean);
     }
 
     public static <T> BeanWrapper wrap(final Class<T> clazz) {
@@ -68,23 +79,20 @@ abstract class BeanWrapper {
         return new ClassBeanWrapper<>(clazz);
     }
 
-    public abstract Class type();
-
-    public final <T> T bean(final Function<BeanReference, BeanWrapper>  context) {
+    public final T bean(final Function<BeanReference, BeanWrapper>  context) {
         final T bean = create(context);
         injectFields(context, bean);
         injectMethods(context, bean);
         return bean;
     }
 
-    private <T> BeanWrapper injectFields(final Function<BeanReference, BeanWrapper>  context, final Object bean) {
+    private BeanWrapper injectFields(final Function<BeanReference, BeanWrapper> context, final Object bean) {
         if (bean == null) {
             return this;
         }
-        final Map<Field, BeanReference> fields = getInjectableFields(bean.getClass());
-        for (Map.Entry<Field, BeanReference> entry : fields.entrySet()) { // XXX check and field value set should be separated
-            final Field field = entry.getKey();
-            final BeanReference ref = entry.getValue();
+        for (FieldMetaData data : injectableFields) { // XXX check and field value set should be separated
+            final Field field = data.getField();
+            final BeanReference ref = data.getReference();
             final Optional annotation = field.getDeclaredAnnotation(Optional.class);
             final BeanWrapper wrapper = context.apply(ref);
             final Object injectedBean = wrapper == null ? null : wrapper.bean(context);
@@ -101,22 +109,21 @@ abstract class BeanWrapper {
         return this;
     }
 
-    private <T> BeanWrapper injectMethods(final Function<BeanReference, BeanWrapper> context, final Object bean) {
+    private BeanWrapper injectMethods(final Function<BeanReference, BeanWrapper> context, final Object bean) {
         if (bean == null) {
             return this;
         }
-        final Map<Method, List<BeanReference>> methods = getInjectableMethods(bean.getClass());
-        for (Map.Entry<Method, List<BeanReference>> entry : methods.entrySet()) { // XXX check and field value set should be separated
-            Method method = entry.getKey();
+        for (MethodMetaData data : injectableMethods) { // XXX check and field value set should be separated
+            Method method = data.getMethod();
             try {
                 method.setAccessible(true);
-                method.invoke(bean, getParameters(context, entry.getValue()));
+                method.invoke(bean, getParameters(context, data.getReferences()));
             } catch (IllegalAccessException ignore) {
                 assert false : "Unreachable operation";
             } catch (InvocationTargetException | IllegalArgumentException e) {
                 throw new JustJSystemException(format(
                         "Error calling Injectable Method '%s.%s'",
-                        type().getName(),
+                        this.type.getName(),
                         method.getName()
                 ), e);
             }
@@ -124,7 +131,7 @@ abstract class BeanWrapper {
         return this;
     }
 
-    protected <T> T checkDependency(final T bean, final Class type) {
+    protected <O> O checkDependency(final O bean, final Class type) {
         if (bean == null) {
             throw new JustJSystemException("Bean of type '%s' is not found.\n" +
                     "It should be added to context.", type.getName());
@@ -132,118 +139,101 @@ abstract class BeanWrapper {
         return bean;
     }
 
-    protected Map<Method, List<BeanReference>> getInjectableMethods(Class<?> beanClass) {
-        return findInjectableMethods(beanClass);
+    protected List<MethodMetaData> findInjectableMethods(final Class beanClass) {
+        final List<Class> parents = new ArrayList<>();
+        collectParents(parents, beanClass);
+        return parents.stream()
+                .flatMap(c -> stream(c.getDeclaredMethods()))
+                    .filter(m -> m.isAnnotationPresent(Inject.class))
+                    .map(MethodMetaData::new)
+                    .collect(toList()) ;
     }
 
-    protected Map<Field, BeanReference> getInjectableFields(Class<?> beanClass) {
-        return findInjectableFields(beanClass);
-    }
+    protected final List<FieldMetaData> findInjectableFields(final Class<?> beanClass) {
+        final List<Class> parents = new ArrayList<>();
+        collectParents(parents, beanClass);
 
-    protected Map<Method, List<BeanReference>> findInjectableMethods(final Class beanClass) {
-        return stream(beanClass.getDeclaredMethods())
-                .filter(m -> m.isAnnotationPresent(Inject.class))
-                .collect(toMap((Method m) -> m, this::makeParams));
-    }
-
-    private List<BeanReference> makeParams(final Method method) {
-        ///CLOVER:OFF
-        return stream(method.getParameterTypes())
-                .map(BeanReference::referenceBy)
-                .collect(toList());
-        ///CLOVER:ON
-    }
-
-    protected final Map<Field, BeanReference> findInjectableFields(final Class<?> beanClass) {
-        return stream(beanClass.getDeclaredFields())
+        return  parents.stream()
+                .flatMap(c -> stream(c.getDeclaredFields()))
                 .filter(f -> f.isAnnotationPresent(Inject.class))
-                .collect(toMap(f -> f, f -> referenceBy(f.getType())));
+                .map(FieldMetaData::new)
+                .collect(toList());
+    }
+
+    private void collectParents(final List<Class> parents, final Class beanClass) {
+        parents.add(beanClass);
+        final Class parent = beanClass.getSuperclass();
+        if (parent != null) {
+            collectParents(parents, parent);
+        }
     }
 
     @SuppressWarnings("unchecked")
-    protected abstract <T> T create(final Function<BeanReference, BeanWrapper> context);
+    protected abstract T create(final Function<BeanReference, BeanWrapper> context);
 
     protected Object[] getParameters(final Function<BeanReference, BeanWrapper> context, final List<BeanReference> paramTypes) {
         final Object[] parameters = new Object[paramTypes.size()];
         for (int i = 0; i < parameters.length; i++) {
             final Class type = paramTypes.get(i).getType();
             final BeanWrapper wrapper = context.apply(referenceBy(type));
-            final Object injectedBean = wrapper.bean(context);
+            final Object injectedBean = wrapper == null ? null : wrapper.bean(context);
             parameters[i] = checkDependency(injectedBean, type);
         }
         return parameters;
     }
 
-    protected abstract boolean suitableTo(final Class type);
+    void checkType(final BeanReference id) {
+        //noinspection unchecked
+        if (!id.getType().isAssignableFrom(this.type)) {
+            throw new IllegalArgumentException(format(
+                    "The type '%s' is not suitable to %s",
+                    this.type.getName(),
+                    id.toString()
+            ));
+        }
+    }
 
+    private static class SupplierBeanWrapper<T> extends BeanWrapper<T> {
 
+        private final Supplier<T> supplier;
+        private final Class<T> clazz;
 
-    private static class SupplierBeanWrapper extends BeanWrapper {
-
-        private final Supplier<?> supplier;
-
-        public SupplierBeanWrapper(final Supplier<?> supplier) {
+        public SupplierBeanWrapper(final Supplier<T> supplier, final Class<T> clazz) {
+            super(clazz);
             this.supplier = supplier;
+            this.clazz = clazz;
         }
 
-        public Class type() {
-            return Object.class;  // TODO
+        public Class<T> type() {
+            return clazz;
         }
 
         @Override
         @SuppressWarnings("unchecked")
-        protected <T> T create(final Function<BeanReference, BeanWrapper> context) {
-            return (T) supplier.get();
-        }
-
-        @Override
-        protected boolean suitableTo(final Class type) {
-            return true;    // TODO
+        protected T create(final Function<BeanReference, BeanWrapper> context) {
+            return supplier.get();
         }
     }
 
-    private static class ObjectBeanWrapper extends BeanWrapper {
+    private static class ObjectBeanWrapper<T> extends BeanWrapper<T> {
 
-        private final Object bean;
+        private final T bean;
 
-        private final Map<Field, BeanReference> injectableFields;
-        private final Map<Method, List<BeanReference>> injectableMethods;
-
-        public ObjectBeanWrapper(final Object bean) {
-            this.bean = bean;
-            injectableFields = findInjectableFields(bean.getClass());
-            injectableMethods = findInjectableMethods(bean.getClass());
-        }
-
-        @Override
-        protected Map<Field, BeanReference> getInjectableFields(final Class<?> beanClass) {
-            return injectableFields;
-        }
-
-        @Override
-        protected Map<Method, List<BeanReference>> getInjectableMethods(Class<?> beanClass) {
-            return injectableMethods;
-        }
-
-        @Override
-        public Class type() {
-            return bean.getClass();
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        protected <T> T create(Function<BeanReference, BeanWrapper>  context) {
-            return (T) bean;
-        }
-
-        @Override
-        protected boolean suitableTo(Class type) {
+        public ObjectBeanWrapper(final T bean) {
             //noinspection unchecked
-            return type.isAssignableFrom(type());
+            super((Class<T>) bean.getClass());
+            this.bean = bean;
         }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        protected T create(Function<BeanReference, BeanWrapper>  context) {
+            return bean;
+        }
+
     }
 
-    private static class ClassBeanWrapper<T> extends BeanWrapper {
+    private static class ClassBeanWrapper<T> extends BeanWrapper<T> {
 
         private final Class<T> clazz;
 
@@ -251,18 +241,12 @@ abstract class BeanWrapper {
 
         private final List<BeanReference> constructorParams;
 
-        private final Map<Field, BeanReference> injectableFields;
-
-        private final Map<Method, List<BeanReference>> injectableMethods;
-
         public ClassBeanWrapper(final Class<T> clazz) {
-            super();
+            super(clazz);
             this.clazz = clazz;
 
             injectableConstructor = findInjectableConstructor(clazz);
             constructorParams = findInjectableConstructorParams();
-            injectableFields = findInjectableFields(clazz);
-            injectableMethods = findInjectableMethods(clazz);
         }
 
         private Constructor<T> findInjectableConstructor(Class<T> clazz) {
@@ -292,38 +276,66 @@ abstract class BeanWrapper {
         }
 
         @Override
-        protected Map<Field, BeanReference> getInjectableFields(final Class<?> beanClass) {
-            return injectableFields;
-        }
-
-        @Override
-        protected Map<Method, List<BeanReference>> getInjectableMethods(final Class<?> beanClass) {
-            return injectableMethods;
-        }
-
-        @Override
-        public Class type() {
-            return clazz;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        protected <T> T create(final Function<BeanReference, BeanWrapper> context) {
+        protected T create(final Function<BeanReference, BeanWrapper> context) {
             try {
                 if (injectableConstructor == null) {
-                    return (T) clazz.newInstance();
+                    return clazz.newInstance();
                 } else {
-                    return (T) injectableConstructor.newInstance(getParameters(context, constructorParams));
+                    return injectableConstructor.newInstance(getParameters(context, constructorParams));
                 }
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new JustJSystemException("Error instantiating", e);
             }
         }
 
-        @Override
-        protected boolean suitableTo(final Class type) {
-            //noinspection unchecked
-            return type.isAssignableFrom(type());
+    }
+
+    private class FieldMetaData {
+
+        private final Field field;
+
+        private final BeanReference reference;
+
+        private FieldMetaData(final Field field) {
+            this.field = field;
+            this.reference = referenceBy(field.getType());
         }
+
+        public Field getField() {
+            return field;
+        }
+
+        public BeanReference getReference() {
+            return reference;
+        }
+    }
+
+    private class MethodMetaData {
+
+        private final Method method;
+
+        private final List<BeanReference> references;
+
+        private MethodMetaData(final Method method) {
+            this.method = method;
+            this.references = makeParams(method);
+        }
+
+        private List<BeanReference> makeParams(final Method method) {
+            ///CLOVER:OFF
+            return stream(method.getParameterTypes())
+                    .map(BeanReference::referenceBy)
+                    .collect(toList());
+            ///CLOVER:ON
+        }
+
+        public Method getMethod() {
+            return method;
+        }
+
+        public List<BeanReference> getReferences() {
+            return references;
+        }
+
     }
 }
