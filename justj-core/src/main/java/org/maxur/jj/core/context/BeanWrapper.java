@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
@@ -41,8 +42,8 @@ import static org.maxur.jj.core.context.BeanReference.referenceBy;
  */
 abstract class BeanWrapper {
 
-    public static <T> T inject(final MetaData metaData, final T bean) {
-        wrap(bean).injectFields(metaData, bean).injectMethods(metaData, bean);
+    public static <T> T inject(final Function<BeanReference, BeanWrapper> context, final T bean) {
+        wrap(bean).injectFields(context, bean).injectMethods(context, bean);
         return bean;
     }
 
@@ -69,14 +70,14 @@ abstract class BeanWrapper {
 
     public abstract Class type();
 
-    public final <T> T bean(final MetaData metaData) {
-        final T bean = create(metaData);
-        injectFields(metaData, bean);
-        injectMethods(metaData, bean);
+    public final <T> T bean(final Function<BeanReference, BeanWrapper>  context) {
+        final T bean = create(context);
+        injectFields(context, bean);
+        injectMethods(context, bean);
         return bean;
     }
 
-    private <T> BeanWrapper injectFields(final MetaData metaData, final Object bean) {
+    private <T> BeanWrapper injectFields(final Function<BeanReference, BeanWrapper>  context, final Object bean) {
         if (bean == null) {
             return this;
         }
@@ -85,8 +86,8 @@ abstract class BeanWrapper {
             final Field field = entry.getKey();
             final BeanReference ref = entry.getValue();
             final Optional annotation = field.getDeclaredAnnotation(Optional.class);
-            final BeanWrapper wrapper = metaData.wrapper(ref);
-            final Object injectedBean = wrapper == null ? null : wrapper.bean(metaData);
+            final BeanWrapper wrapper = context.apply(ref);
+            final Object injectedBean = wrapper == null ? null : wrapper.bean(context);
             if (annotation == null) {
                 checkDependency(injectedBean, ref.getType());
             }
@@ -100,7 +101,7 @@ abstract class BeanWrapper {
         return this;
     }
 
-    private <T> BeanWrapper injectMethods(final MetaData metaData, final Object bean) {
+    private <T> BeanWrapper injectMethods(final Function<BeanReference, BeanWrapper> context, final Object bean) {
         if (bean == null) {
             return this;
         }
@@ -109,7 +110,7 @@ abstract class BeanWrapper {
             Method method = entry.getKey();
             try {
                 method.setAccessible(true);
-                method.invoke(bean, getParameters(metaData, entry.getValue()));
+                method.invoke(bean, getParameters(context, entry.getValue()));
             } catch (IllegalAccessException ignore) {
                 assert false : "Unreachable operation";
             } catch (InvocationTargetException | IllegalArgumentException e) {
@@ -160,14 +161,14 @@ abstract class BeanWrapper {
     }
 
     @SuppressWarnings("unchecked")
-    protected abstract <T> T create(MetaData metaData);
+    protected abstract <T> T create(final Function<BeanReference, BeanWrapper> context);
 
-    protected Object[] getParameters(final MetaData metaData, final List<BeanReference> paramTypes) {
+    protected Object[] getParameters(final Function<BeanReference, BeanWrapper> context, final List<BeanReference> paramTypes) {
         final Object[] parameters = new Object[paramTypes.size()];
         for (int i = 0; i < parameters.length; i++) {
             final Class type = paramTypes.get(i).getType();
-            final BeanWrapper wrapper = metaData.wrapper(referenceBy(type));
-            final Object injectedBean = wrapper.bean(metaData);
+            final BeanWrapper wrapper = context.apply(referenceBy(type));
+            final Object injectedBean = wrapper.bean(context);
             parameters[i] = checkDependency(injectedBean, type);
         }
         return parameters;
@@ -191,7 +192,7 @@ abstract class BeanWrapper {
 
         @Override
         @SuppressWarnings("unchecked")
-        protected <T> T create(final MetaData metaData) {
+        protected <T> T create(final Function<BeanReference, BeanWrapper> context) {
             return (T) supplier.get();
         }
 
@@ -231,7 +232,7 @@ abstract class BeanWrapper {
 
         @Override
         @SuppressWarnings("unchecked")
-        protected <T> T create(MetaData metaData) {
+        protected <T> T create(Function<BeanReference, BeanWrapper>  context) {
             return (T) bean;
         }
 
@@ -307,12 +308,12 @@ abstract class BeanWrapper {
 
         @Override
         @SuppressWarnings("unchecked")
-        protected T create(final MetaData metaData) {
+        protected <T> T create(final Function<BeanReference, BeanWrapper> context) {
             try {
                 if (injectableConstructor == null) {
-                    return clazz.newInstance();
+                    return (T) clazz.newInstance();
                 } else {
-                    return injectableConstructor.newInstance(getParameters(metaData, constructorParams));
+                    return (T) injectableConstructor.newInstance(getParameters(context, constructorParams));
                 }
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new JustJSystemException("Error instantiating", e);

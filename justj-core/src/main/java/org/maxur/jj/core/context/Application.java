@@ -53,7 +53,11 @@ public abstract class Application {
     }
 
     public static void closeContext() {
-        CONTEXT_HOLDER.set(currentContext().parent());
+        if (currentContext().parent().isPresent()) {
+            CONTEXT_HOLDER.set(currentContext().parent().get());
+        } else {
+            CONTEXT_HOLDER.set(null);
+        }
     }
 
     public static Application configBy(final Supplier<? extends Config> supplier)  {

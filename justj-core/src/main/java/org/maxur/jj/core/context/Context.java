@@ -19,9 +19,14 @@ import org.maxur.jj.core.domain.Entity;
 import org.maxur.jj.core.domain.JustJSystemException;
 import org.maxur.jj.core.domain.Role;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
+import static java.util.Optional.empty;
 import static org.maxur.jj.core.context.BeanReference.identifier;
 import static org.maxur.jj.core.context.BeanWrapper.wrap;
 
@@ -33,24 +38,22 @@ import static org.maxur.jj.core.context.BeanWrapper.wrap;
  * @version 1.0
  * @since <pre>7/18/2014</pre>
  */
-public class Context extends Entity {
+public class Context extends Entity implements Function<BeanReference, BeanWrapper> {
 
-    private final Context parent;
+    private final Optional<Context> parent;
 
-    private final MetaData metaData;
+    private final Map<BeanReference, BeanWrapper> beans = new HashMap<>();
 
     Context() {
-        this.parent = null;
-        metaData = new BaseMetaData();
+        this.parent = empty();
     }
 
     Context(final Context parent) {
-        this.parent = parent;
-        metaData = new BaseMetaData((BaseMetaData) parent.metaData);
+        this.parent = Optional.of(parent);
     }
 
     public <T> T inject(final T bean) {
-        return BeanWrapper.inject(metaData, bean);
+        return BeanWrapper.inject(this, bean);
     }
 
     public <T> T bean(final Role role) {
@@ -62,47 +65,78 @@ public class Context extends Entity {
     }
 
     private <T> T bean(final BeanReference ref) {
-        final BeanWrapper wrapper = metaData.wrapper(ref);
+        final BeanWrapper wrapper = apply(ref);
         if (wrapper == null)  {
             return null;
         }
         try {
-            return wrapper.bean(metaData);
+            return wrapper.bean(this);
         } catch (Exception e) {
             throw new JustJSystemException(format("%s is not created", ref.toString()), e);
         }
     }
 
     public void put(final Role role, final Supplier<?> supplier) {
-        metaData.put(() -> wrap(supplier), identifier(role));
+        put(() -> wrap(supplier), identifier(role));
     }
 
     public void put(final Role role, final Object bean) {
-        metaData.put(() -> wrap(bean), identifier(role));
+        put(() -> wrap(bean), identifier(role));
     }
 
     public void put(final Role role, final Class clazz) {
-        metaData.put(() -> wrap(clazz), identifier(role));
+        put(() -> wrap(clazz), identifier(role));
     }
 
     public void put(final Class type, final Supplier<?> supplier) {
-        metaData.put(() -> wrap(supplier), BeanReference.referenceBy(type));
+        put(() -> wrap(supplier), BeanReference.referenceBy(type));
     }
 
     public void put(final Class type, final Object bean) {
-        metaData.put(() -> wrap(bean), BeanReference.referenceBy(type));
+        put(() -> wrap(bean), BeanReference.referenceBy(type));
     }
 
     public void put(final Class type, final Class clazz) {
-        metaData.put(() -> wrap(clazz), BeanReference.referenceBy(type));
+        put(() -> wrap(clazz), BeanReference.referenceBy(type));
     }
 
-    public Context parent() {
+    private void put(final Supplier<BeanWrapper> supplier, final BeanReference ref) {
+        checkDuplicate(ref);
+        final BeanWrapper wrap = supplier.get();
+        checkType(ref, wrap);
+        beans.put(ref, wrap);
+    }
+
+    public Optional<Context> parent() {
         return parent;
     }
 
     public Context root() {
-        return parent == null ?  this : parent.root();
+        return parent.isPresent() ? parent.get().root() : this;
     }
 
+    private void checkType(BeanReference id, BeanWrapper wrap) {
+        if (!wrap.suitableTo(id.getType())) {
+            throw new IllegalArgumentException(format(
+                    "The type '%s' is not suitable to %s",
+                    wrap.type().getName(),
+                    id.toString()
+            ));
+        }
+    }
+
+    private void checkDuplicate(final BeanReference ref) {
+        if (apply(ref) != null) {
+            throw new JustJSystemException("%s is already exists", ref.toString());
+        }
+    }
+
+    @Override
+    public BeanWrapper apply(final BeanReference ref) {
+        final BeanWrapper wrapper = beans.get(ref);
+        if (wrapper == null && parent.isPresent()) {
+            return parent.get().apply(ref);
+        }
+        return wrapper;
+    }
 }

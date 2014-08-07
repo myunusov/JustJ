@@ -160,7 +160,7 @@ public class ContextTest {
 
     @Test
     public void testGetParent() throws Exception {
-        assertEquals(root, child.parent());
+        assertEquals(root, child.parent().get());
     }
 
 
@@ -403,15 +403,10 @@ public class ContextTest {
         assertEquals(dummy27, bean.a);
     }
 
-
-
 }
-
 
 class Dummy {
 }
-
-
 
 class Dummy2 {
     final Dummy dummy;

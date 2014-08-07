@@ -119,7 +119,7 @@ public class ApplicationTest {
     public void testBranchContext() throws Exception {
         final Context root = currentContext();
         final Context context = branchContext();
-        assertEquals(root, context.parent());
+        assertEquals(root, context.parent().get());
         Application.closeContext();
     }
 
