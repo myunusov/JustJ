@@ -13,7 +13,7 @@
  *     limitations under the License.
  */
 
-package org.maxur.jj.core.context;
+package org.maxur.jj.core.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

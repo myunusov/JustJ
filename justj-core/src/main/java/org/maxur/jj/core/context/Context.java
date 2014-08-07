@@ -22,7 +22,7 @@ import org.maxur.jj.core.domain.Role;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
-import static org.maxur.jj.core.context.BeanIdentifier.identifier;
+import static org.maxur.jj.core.context.BeanReference.identifier;
 import static org.maxur.jj.core.context.BeanWrapper.wrap;
 
 /**
@@ -61,15 +61,15 @@ public class Context extends Entity {
         return bean(identifier(type));
     }
 
-    private <T> T bean(final BeanIdentifier id) {
-        final BeanWrapper wrapper = metaData.wrapper(id);
+    private <T> T bean(final BeanReference ref) {
+        final BeanWrapper wrapper = metaData.wrapper(ref);
         if (wrapper == null)  {
             return null;
         }
         try {
             return wrapper.bean(this);
         } catch (Exception e) {
-            throw new JustJSystemException(format("%s is not created", id.toString()), e);
+            throw new JustJSystemException(format("%s is not created", ref.toString()), e);
         }
     }
 

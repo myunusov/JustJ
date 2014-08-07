@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.maxur.jj.core.annotation.Optional;
 import org.maxur.jj.core.domain.JustJSystemException;
 import org.maxur.jj.core.domain.Role;
 import org.mockito.Spy;

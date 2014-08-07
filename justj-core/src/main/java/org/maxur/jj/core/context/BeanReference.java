@@ -23,23 +23,23 @@ import static java.lang.String.format;
  * @author Maxim Yunusov
  * @version 1.0 20.07.2014
  */
-public abstract class BeanIdentifier {
+public abstract class BeanReference {
 
-    public static BeanIdentifier identifier(final Role role) {
-        return new RoleIdentifier(role);
+    public static BeanReference identifier(final Role role) {
+        return new RoleReference(role);
     }
 
-    public static BeanIdentifier identifier(final Class type) {
-        return new TypeIdentifier(type);
+    public static BeanReference identifier(final Class type) {
+        return new TypeReference(type);
     }
 
     public abstract Class getType();
 
-    static final class RoleIdentifier extends BeanIdentifier {
+    static final class RoleReference extends BeanReference {
 
         private final Role role;
 
-        public RoleIdentifier(final Role role) {
+        public RoleReference(final Role role) {
             this.role = role;
         }
 
@@ -56,8 +56,8 @@ public abstract class BeanIdentifier {
         @Override
         public boolean equals(Object o) {
             return this == o ||
-                    o instanceof RoleIdentifier &&
-                            role.equals(((RoleIdentifier) o).role);
+                    o instanceof RoleReference &&
+                            role.equals(((RoleReference) o).role);
         }
 
         @Override
@@ -66,11 +66,11 @@ public abstract class BeanIdentifier {
         }
     }
 
-    static final class TypeIdentifier extends BeanIdentifier {
+    static final class TypeReference extends BeanReference {
 
         private final Class type;
 
-        public TypeIdentifier(final Class type) {
+        public TypeReference(final Class type) {
             this.type = type;
         }
 
@@ -87,8 +87,8 @@ public abstract class BeanIdentifier {
         @Override
         public boolean equals(Object o) {
             return this == o ||
-                    o instanceof TypeIdentifier &&
-                            type.equals(((TypeIdentifier) o).type);
+                    o instanceof TypeReference &&
+                            type.equals(((TypeReference) o).type);
         }
 
         @Override

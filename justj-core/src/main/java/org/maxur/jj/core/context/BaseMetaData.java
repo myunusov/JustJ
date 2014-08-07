@@ -17,11 +17,11 @@ package org.maxur.jj.core.context;
 
 import org.maxur.jj.core.domain.JustJSystemException;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
+import static java.util.Optional.empty;
 
 /**
  * @author Maxim Yunusov
@@ -29,56 +29,49 @@ import static java.lang.String.format;
  */
 public class BaseMetaData implements MetaData {
 
-    private final BaseMetaData parent;
+    private final Optional<MetaData> parent;
 
-    private final Map<BeanIdentifier, BeanWrapper> beans = new HashMap<>();
+    private final Map<BeanReference, BeanWrapper> beans = new HashMap<>();
 
     public BaseMetaData() {
-        this.parent = null;
+        this.parent = empty();
     }
 
     public BaseMetaData(final BaseMetaData parent) {
-        this.parent = parent;
+        this.parent = Optional.of(parent);
     }
 
     @Override
-    public BeanWrapper wrapper(final BeanIdentifier id) {
-        final BeanWrapper wrapper = findBeanWrapper(id);
-        if (wrapper == null) {
-            return null;
+    public BeanWrapper wrapper(final BeanReference ref) {
+        final BeanWrapper wrapper = beans.get(ref);
+        if (wrapper == null && parent.isPresent()) {
+            return parent.get().wrapper(ref);
         }
         return wrapper;
     }
 
     @Override
-    public void put(final Supplier<BeanWrapper> supplier, final BeanIdentifier id) {
-        checkDuplicate(id);
+    public void put(final Supplier<BeanWrapper> supplier, final BeanReference ref) {
+        checkDuplicate(ref);
         final BeanWrapper wrap = supplier.get();
-        if (wrap.suitableTo(id.getType())) {
-            beans.put(id, wrap);
-            return;
-        }
-        final String message = format(
-                "The type '%s' is not suitable to %s",
-                wrap.type().getName(),
-                id.toString()
-        );
-        throw new IllegalArgumentException(message);
+        checkType(ref, wrap);
+        beans.put(ref, wrap);
     }
 
-    protected BeanWrapper findBeanWrapper(final BeanIdentifier id) {
-        final BeanWrapper wrapper = beans.get(id);
-        if (wrapper == null && parent != null) {
-            return parent.findBeanWrapper(id);
-        }
-        return wrapper;
-    }
-
-    private void checkDuplicate(final BeanIdentifier id) {
-        if (findBeanWrapper(id) != null) {
-            throw new JustJSystemException("%s is already exists", id.toString());
+    public void checkType(BeanReference id, BeanWrapper wrap) {
+        if (!wrap.suitableTo(id.getType())) {
+            throw new IllegalArgumentException(format(
+                    "The type '%s' is not suitable to %s",
+                    wrap.type().getName(),
+                    id.toString()
+            ));
         }
     }
 
+    private void checkDuplicate(final BeanReference ref) {
+        if (wrapper(ref) != null) {
+            throw new JustJSystemException("%s is already exists", ref.toString());
+        }
+    }
 
 }

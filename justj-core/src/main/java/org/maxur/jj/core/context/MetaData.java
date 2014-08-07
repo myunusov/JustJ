@@ -23,8 +23,8 @@ import java.util.function.Supplier;
  */
 public interface MetaData {
 
-    BeanWrapper wrapper(BeanIdentifier id);
+    BeanWrapper wrapper(BeanReference id);
 
-    void put(Supplier<BeanWrapper> supplier, BeanIdentifier id);
+    void put(Supplier<BeanWrapper> supplier, BeanReference ref);
 
 }

@@ -15,6 +15,7 @@
 
 package org.maxur.jj.core.context;
 
+import org.maxur.jj.core.annotation.Optional;
 import org.maxur.jj.core.domain.JustJSystemException;
 
 import javax.inject.Inject;
@@ -32,7 +33,7 @@ import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static org.maxur.jj.core.context.BeanIdentifier.identifier;
+import static org.maxur.jj.core.context.BeanReference.identifier;
 
 /**
  * @author Maxim Yunusov
@@ -79,10 +80,10 @@ abstract class BeanWrapper {
         if (bean == null) {
             return this;
         }
-        final Map<Field, BeanIdentifier> fields = getInjectableFields(bean.getClass());
-        for (Map.Entry<Field, BeanIdentifier> entry : fields.entrySet()) { // XXX check and field value set should be separated
+        final Map<Field, BeanReference> fields = getInjectableFields(bean.getClass());
+        for (Map.Entry<Field, BeanReference> entry : fields.entrySet()) { // XXX check and field value set should be separated
             final Field field = entry.getKey();
-            final BeanIdentifier id = entry.getValue();
+            final BeanReference id = entry.getValue();
             final Optional annotation = field.getDeclaredAnnotation(Optional.class);
             final Object injectedBean = context.bean(id.getType());
             if (annotation == null) {
@@ -102,8 +103,8 @@ abstract class BeanWrapper {
         if (bean == null) {
             return this;
         }
-        final Map<Method, List<BeanIdentifier>> methods = getInjectableMethods(bean.getClass());
-        for (Map.Entry<Method, List<BeanIdentifier>> entry : methods.entrySet()) { // XXX check and field value set should be separated
+        final Map<Method, List<BeanReference>> methods = getInjectableMethods(bean.getClass());
+        for (Map.Entry<Method, List<BeanReference>> entry : methods.entrySet()) { // XXX check and field value set should be separated
             Method method = entry.getKey();
             try {
                 method.setAccessible(true);
@@ -130,29 +131,29 @@ abstract class BeanWrapper {
         return bean;
     }
 
-    protected Map<Method, List<BeanIdentifier>> getInjectableMethods(Class<?> beanClass) {
+    protected Map<Method, List<BeanReference>> getInjectableMethods(Class<?> beanClass) {
         return findInjectableMethods(beanClass);
     }
 
-    protected Map<Field, BeanIdentifier> getInjectableFields(Class<?> beanClass) {
+    protected Map<Field, BeanReference> getInjectableFields(Class<?> beanClass) {
         return findInjectableFields(beanClass);
     }
 
-    protected Map<Method, List<BeanIdentifier>> findInjectableMethods(final Class beanClass) {
+    protected Map<Method, List<BeanReference>> findInjectableMethods(final Class beanClass) {
         return stream(beanClass.getDeclaredMethods())
                 .filter(m -> m.isAnnotationPresent(Inject.class))
                 .collect(toMap((Method m) -> m, this::makeParams));
     }
 
-    private List<BeanIdentifier> makeParams(final Method method) {
+    private List<BeanReference> makeParams(final Method method) {
         ///CLOVER:OFF
         return stream(method.getParameterTypes())
-                .map(BeanIdentifier::identifier)
+                .map(BeanReference::identifier)
                 .collect(toList());
         ///CLOVER:ON
     }
 
-    protected final Map<Field, BeanIdentifier> findInjectableFields(final Class<?> beanClass) {
+    protected final Map<Field, BeanReference> findInjectableFields(final Class<?> beanClass) {
         return stream(beanClass.getDeclaredFields())
                 .filter(f -> f.isAnnotationPresent(Inject.class))
                 .collect(toMap(f -> f, f -> identifier(f.getType())));
@@ -161,7 +162,7 @@ abstract class BeanWrapper {
     @SuppressWarnings("unchecked")
     protected abstract <T> T create(Context context);
 
-    protected Object[] getParameters(final Context context, final List<BeanIdentifier> paramTypes) {
+    protected Object[] getParameters(final Context context, final List<BeanReference> paramTypes) {
         final Object[] parameters = new Object[paramTypes.size()];
         for (int i = 0; i < parameters.length; i++) {
             final Class type = paramTypes.get(i).getType();
@@ -202,8 +203,8 @@ abstract class BeanWrapper {
 
         private final Object bean;
 
-        private final Map<Field, BeanIdentifier> injectableFields;
-        private final Map<Method, List<BeanIdentifier>> injectableMethods;
+        private final Map<Field, BeanReference> injectableFields;
+        private final Map<Method, List<BeanReference>> injectableMethods;
 
         public ObjectBeanWrapper(final Object bean) {
             this.bean = bean;
@@ -212,12 +213,12 @@ abstract class BeanWrapper {
         }
 
         @Override
-        protected Map<Field, BeanIdentifier> getInjectableFields(final Class<?> beanClass) {
+        protected Map<Field, BeanReference> getInjectableFields(final Class<?> beanClass) {
             return injectableFields;
         }
 
         @Override
-        protected Map<Method, List<BeanIdentifier>> getInjectableMethods(Class<?> beanClass) {
+        protected Map<Method, List<BeanReference>> getInjectableMethods(Class<?> beanClass) {
             return injectableMethods;
         }
 
@@ -245,11 +246,11 @@ abstract class BeanWrapper {
 
         private final Constructor<T> injectableConstructor;
 
-        private final List<BeanIdentifier> constructorParams;
+        private final List<BeanReference> constructorParams;
 
-        private final Map<Field, BeanIdentifier> injectableFields;
+        private final Map<Field, BeanReference> injectableFields;
 
-        private final Map<Method, List<BeanIdentifier>> injectableMethods;
+        private final Map<Method, List<BeanReference>> injectableMethods;
 
         public ClassBeanWrapper(final Class<T> clazz) {
             super();
@@ -277,23 +278,23 @@ abstract class BeanWrapper {
             return constructors.isEmpty() ? null : constructors.get(0);
         }
 
-        private List<BeanIdentifier> findInjectableConstructorParams() {
+        private List<BeanReference> findInjectableConstructorParams() {
             ///CLOVER:OFF
             return injectableConstructor == null ?
                     emptyList() :
                     Arrays.stream(injectableConstructor.getParameterTypes())
-                    .map(BeanIdentifier::identifier)
+                    .map(BeanReference::identifier)
                     .collect(toList());
             ///CLOVER:ON
         }
 
         @Override
-        protected Map<Field, BeanIdentifier> getInjectableFields(final Class<?> beanClass) {
+        protected Map<Field, BeanReference> getInjectableFields(final Class<?> beanClass) {
             return injectableFields;
         }
 
         @Override
-        protected Map<Method, List<BeanIdentifier>> getInjectableMethods(final Class<?> beanClass) {
+        protected Map<Method, List<BeanReference>> getInjectableMethods(final Class<?> beanClass) {
             return injectableMethods;
         }
 
