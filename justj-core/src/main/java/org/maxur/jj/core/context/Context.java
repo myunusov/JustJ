@@ -69,7 +69,7 @@ public class Context extends Entity {
         try {
             return wrapper.bean(this);
         } catch (Exception e) {
-            throw new JustJSystemException(format("Bean '%s' is not created", id.getName()), e);
+            throw new JustJSystemException(format("%s is not created", id.toString()), e);
         }
     }
 

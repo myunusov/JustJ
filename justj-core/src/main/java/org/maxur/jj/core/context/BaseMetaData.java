@@ -61,7 +61,7 @@ public class BaseMetaData implements MetaData {
         final String message = format(
                 "The type '%s' is not suitable to %s",
                 wrap.type().getName(),
-                id.getName()
+                id.toString()
         );
         throw new IllegalArgumentException(message);
     }
@@ -76,7 +76,7 @@ public class BaseMetaData implements MetaData {
 
     private void checkDuplicate(final BeanIdentifier id) {
         if (findBeanWrapper(id) != null) {
-            throw new JustJSystemException("Bean with %s is exist already", id.getName());
+            throw new JustJSystemException("%s is already exists", id.toString());
         }
     }
 

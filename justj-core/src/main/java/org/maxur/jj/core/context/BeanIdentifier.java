@@ -33,8 +33,6 @@ public abstract class BeanIdentifier {
         return new TypeIdentifier(type);
     }
 
-    public abstract String getName();
-
     public abstract Class getType();
 
     static final class RoleIdentifier extends BeanIdentifier {
@@ -51,8 +49,8 @@ public abstract class BeanIdentifier {
         }
 
         @Override
-        public String getName() {
-            return format("Role '%s'", role);
+        public String toString() {
+            return format("Bean of '%s' role", role);
         }
 
         @Override
@@ -82,8 +80,8 @@ public abstract class BeanIdentifier {
         }
 
         @Override
-        public String getName() {
-            return format("Type '%s'", type.getName());
+        public String toString() {
+            return format("Bean of '%s' type", type.getName());
         }
 
         @Override
