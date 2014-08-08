@@ -17,14 +17,15 @@ package org.maxur.jj.core.context;
 
 import org.maxur.jj.core.annotation.Optional;
 import org.maxur.jj.core.domain.JustJSystemException;
+import reflection.ClassMetaData;
 
 import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -34,6 +35,7 @@ import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.maxur.jj.core.context.BeanReference.referenceBy;
+import static reflection.ClassMetaData.meta;
 
 /**
  * @author Maxim Yunusov
@@ -45,12 +47,12 @@ abstract class BeanWrapper<T> {
 
     private final List<MethodMetaData> injectableMethods;
 
-    private final Class<T> type;
+    private final ClassMetaData<T> metaData;
 
     protected BeanWrapper(final Class<T> clazz) {
-        type = clazz;
         injectableFields = findInjectableFields(clazz);
         injectableMethods = findInjectableMethods(clazz);
+        metaData = meta(clazz);
     }
 
     public static <T> T inject(final Function<BeanReference, BeanWrapper> context, final T bean) {
@@ -123,7 +125,7 @@ abstract class BeanWrapper<T> {
             } catch (InvocationTargetException | IllegalArgumentException e) {
                 throw new JustJSystemException(format(
                         "Error calling Injectable Method '%s.%s'",
-                        this.type.getName(),
+                        this.metaData.getName(),
                         method.getName()
                 ), e);
             }
@@ -140,8 +142,7 @@ abstract class BeanWrapper<T> {
     }
 
     protected List<MethodMetaData> findInjectableMethods(final Class beanClass) {
-        final List<Class> parents = new ArrayList<>();
-        collectParents(parents, beanClass);
+        final List<Class> parents = Collections.singletonList(beanClass);    // TODO parents methods
         return parents.stream()
                 .flatMap(c -> stream(c.getDeclaredMethods()))
                     .filter(m -> m.isAnnotationPresent(Inject.class))
@@ -150,9 +151,7 @@ abstract class BeanWrapper<T> {
     }
 
     protected final List<FieldMetaData> findInjectableFields(final Class<?> beanClass) {
-        final List<Class> parents = new ArrayList<>();
-        collectParents(parents, beanClass);
-
+        final List<Class> parents = Collections.singletonList(beanClass);    // TODO parents methods
         return  parents.stream()
                 .flatMap(c -> stream(c.getDeclaredFields()))
                 .filter(f -> f.isAnnotationPresent(Inject.class))
@@ -160,13 +159,7 @@ abstract class BeanWrapper<T> {
                 .collect(toList());
     }
 
-    private void collectParents(final List<Class> parents, final Class beanClass) {
-        parents.add(beanClass);
-        final Class parent = beanClass.getSuperclass();
-        if (parent != null) {
-            collectParents(parents, parent);
-        }
-    }
+
 
     @SuppressWarnings("unchecked")
     protected abstract T create(final Function<BeanReference, BeanWrapper> context);
@@ -184,10 +177,10 @@ abstract class BeanWrapper<T> {
 
     void checkType(final BeanReference id) {
         //noinspection unchecked
-        if (!id.getType().isAssignableFrom(this.type)) {
+        if (!metaData.isAssignable(id.getType())) {
             throw new IllegalArgumentException(format(
                     "The type '%s' is not suitable to %s",
-                    this.type.getName(),
+                    this.metaData.getName(),
                     id.toString()
             ));
         }

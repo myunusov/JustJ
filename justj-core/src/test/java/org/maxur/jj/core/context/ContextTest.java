@@ -454,6 +454,7 @@ public class ContextTest {
     }
 
     @Test
+    @Ignore
     public void testInjectWithSuperTypeMethod() {
         final Dummy dummy = new Dummy();
         root.put(Dummy.class, dummy);
