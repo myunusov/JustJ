@@ -74,6 +74,10 @@ public abstract class MemberDescriptor<T> {
         return Modifier.isProtected(member.getModifiers());
     }
 
+    public boolean isFinal() {
+        return Modifier.isFinal(member.getModifiers());
+    }
+
     public boolean isDefault() {
         final int modifiers = member.getModifiers();
         return !Modifier.isPublic(modifiers) &&

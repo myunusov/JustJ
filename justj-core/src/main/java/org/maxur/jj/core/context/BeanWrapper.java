@@ -137,6 +137,7 @@ abstract class BeanWrapper<T> {
         ///CLOVER:OFF
         return  fields.stream()
                 .filter(f -> f.isAnnotationPresent(Inject.class))
+                .filter(f -> !f.isFinal())
                 .map(FieldMetaDataWrapper::new)
                 .collect(toList());
         ///CLOVER:ON

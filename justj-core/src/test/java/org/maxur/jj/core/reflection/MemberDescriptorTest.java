@@ -61,6 +61,8 @@ public class MemberDescriptorTest {
         assertTrue(c2.isProtected());
         assertTrue(d2.isPublic());
 
+        assertTrue(b1.isFinal());
+        assertTrue(b2.isFinal());
 
     }
 }
@@ -68,13 +70,13 @@ public class MemberDescriptorTest {
 class Dummy5  {
 
     private int a1;
-    int b1;
+    final int b1 = 0;
     protected int c1;
     public int d1;
 
     private void a2() {
     }
-    void b2() {
+    final void b2() {
     }
     protected void c2() {
     }

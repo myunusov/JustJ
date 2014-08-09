@@ -69,11 +69,12 @@ public class MethodDescriptor<T> extends MemberDescriptor<T> {
     }
 
     public boolean overridesFor(final MethodDescriptor method) {
-        return method != null &&
-                method.isInheritable() &&
-                isAccessible(method) &&
-                sameName(method) &&
-                sameParams(method);
+        if (method == null) {
+            throw new IllegalArgumentException(
+                    "Parameter 'method' of 'MethodDescriptor.overridesFor()' function must not be null"
+            );
+        }
+        return method.isInheritable() && isAccessible(method) && sameName(method) && sameParams(method);
     }
 
     private boolean isAccessible(final MethodDescriptor method) {

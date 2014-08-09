@@ -310,12 +310,22 @@ public class ContextTest {
     }
 
     @Test
-    public void testInjectByFieldWithPrivateFinalModifier() {
+    public void testInjectByFieldWithPrivateModifier() {
         root.put(Dummy15.class, Dummy15.class);
         final Dummy dummy = new Dummy();
         root.put(Dummy.class, dummy);
         final Dummy15 dummy15 = root.bean(Dummy15.class);
         assertEquals(dummy, dummy15.getA());
+    }
+
+    //are not final.
+    @Test
+    public void testInjectByMethodWithFinalModifier() {
+        root.put(Dummy34.class, Dummy34.class);
+        final Dummy dummy = new Dummy();
+        root.put(Dummy.class, dummy);
+        final Dummy34 bean = root.bean(Dummy34.class);
+        assertNull(bean.a);
     }
 
     @Test
@@ -583,7 +593,7 @@ class Dummy14 {
 
 class Dummy15 {
     @Inject
-    private final Dummy a;
+    private Dummy a;
 
     public Dummy15() {
         this.a = null;
@@ -824,4 +834,13 @@ class Dummy33 extends Dummy32  {
         this.g = g;
     }
 
+}
+
+class Dummy34  {
+    @Inject
+    final Dummy a;
+
+    public Dummy34() {
+        a = null;
+    }
 }
