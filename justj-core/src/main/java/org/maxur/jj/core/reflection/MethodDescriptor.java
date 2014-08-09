@@ -18,6 +18,7 @@ package org.maxur.jj.core.reflection;
 import checkers.nullness.quals.NonNull;
 import org.maxur.jj.core.domain.JustJSystemException;
 
+import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -104,6 +105,21 @@ public class MethodDescriptor<T> extends MemberDescriptor<T> {
     @Override
     public boolean isAnnotationPresent(final Class<? extends Annotation> annotationClass) {
         return getMethod().isAnnotationPresent(annotationClass);
+    }
+
+    /**
+     * Injectable methods:
+     * are annotated with @Inject.
+     * are not abstract.
+     * do not declare type parameters of their own. // ?
+     * may return a result
+     * may have any otherwise valid name.
+     * accept zero or more dependencies as arguments.
+     * @return true if method is injectable
+     */
+    @Override
+    public boolean isInjectable() {
+        return isAnnotationPresent(Inject.class);
     }
 
     public void invoke(final Object bean, final Object... parameters) {

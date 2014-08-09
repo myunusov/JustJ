@@ -426,7 +426,13 @@ public class ContextTest {
 
     }
 
+    /**
+     * For a given type T and optional qualifier, an injector must be able to inject a user-specified class that:
+     * is assignment compatible with T and
+     * has an injectable constructor.
+     */
     @Test()
+    //      see also https://groups.google.com/forum/#!topic/google-guice/O9QLbRivqOw
     @Ignore
     public void testGetBySuperType() {
         final Dummy25 dummy25 = new Dummy25();

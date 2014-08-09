@@ -126,7 +126,7 @@ abstract class BeanWrapper<T> {
         final List<MethodDescriptor> methods = meta(beanClass).methods();
         ///CLOVER:OFF
         return methods.stream()
-                .filter(m -> m.isAnnotationPresent(Inject.class))
+                .filter(MethodDescriptor::isInjectable)
                 .map(MethodMetaDataWrapper::new)
                 .collect(toList()) ;
         ///CLOVER:ON
@@ -136,8 +136,7 @@ abstract class BeanWrapper<T> {
         final List<FieldDescriptor> fields = meta(beanClass).fields();
         ///CLOVER:OFF
         return  fields.stream()
-                .filter(f -> f.isAnnotationPresent(Inject.class))
-                .filter(f -> !f.isFinal())
+                .filter(FieldDescriptor::isInjectable)
                 .map(FieldMetaDataWrapper::new)
                 .collect(toList());
         ///CLOVER:ON

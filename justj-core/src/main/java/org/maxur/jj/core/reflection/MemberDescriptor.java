@@ -95,6 +95,8 @@ public abstract class MemberDescriptor<T> {
 
     public abstract boolean isAnnotationPresent(Class<? extends Annotation> annotationClass);
 
+    public abstract boolean isInjectable();
+
     public abstract Class getType();
 
     @Override
@@ -113,5 +115,4 @@ public abstract class MemberDescriptor<T> {
     public final int hashCode() {
         return member.hashCode();
     }
-
 }

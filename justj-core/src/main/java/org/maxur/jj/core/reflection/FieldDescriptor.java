@@ -17,6 +17,7 @@ package org.maxur.jj.core.reflection;
 
 import checkers.nullness.quals.NonNull;
 
+import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
@@ -70,6 +71,19 @@ public class FieldDescriptor<T> extends MemberDescriptor<T> {
     @Override
     public boolean isAnnotationPresent(final Class<? extends Annotation> annotationClass) {
         return getField().isAnnotationPresent(annotationClass);
+    }
+
+    /**
+     * Injectable fields:
+     * are annotated with @Inject.
+     * are not final.
+     * may have any otherwise valid name.
+     *
+     * @return true if field is injectable
+     */
+    @Override
+    public boolean isInjectable() {
+        return !isFinal() && isAnnotationPresent(Inject.class);
     }
 
     public void setValue(Object bean, Object value) {
