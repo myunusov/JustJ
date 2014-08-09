@@ -16,11 +16,13 @@
 package org.maxur.jj.core.reflection;
 
 import checkers.nullness.quals.NonNull;
+import org.maxur.jj.core.domain.JustJSystemException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
+import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 
@@ -50,7 +52,23 @@ public final class ClassDescriptor<T> {
         return collectParents(beanClass);
     }
 
-    public List<MethodDescriptor> methods() {
+    public List<ConstructorDescriptor> constructors() {    // TODO Replace by function  return stream
+
+        final List<ConstructorDescriptor> allMethods = new ArrayList<>();
+        ///CLOVER:OFF
+        parents().forEach(d ->
+                        allMethods.addAll(
+                                stream(d.beanClass.getDeclaredConstructors())
+                                        .map(method -> ConstructorDescriptor.meta(method, this))
+                                        .collect(toList())
+                        )
+        );
+        ///CLOVER:ON
+        return allMethods.stream()
+                .collect(toList());
+    }
+
+    public List<MethodDescriptor> methods() {      // TODO Replace by function  return stream
         final List<MethodDescriptor> allMethods = new ArrayList<>();
         ///CLOVER:OFF
         parents().forEach(d ->
@@ -66,7 +84,7 @@ public final class ClassDescriptor<T> {
                 .collect(toList());
     }
 
-    public List<FieldDescriptor> fields() {
+    public List<FieldDescriptor> fields() {        // TODO Replace by function  return stream
         final List<FieldDescriptor> allFields = new ArrayList<>();
         ///CLOVER:OFF
         parents().forEach(d ->
@@ -140,4 +158,12 @@ public final class ClassDescriptor<T> {
         return beanClass == otherClass;
     }
 
+    public T newInstance() {
+        try {
+            return beanClass.newInstance() ;
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new JustJSystemException(format("Error instantiating class '%s'", getName()), e);
+        }
+
+    }
 }

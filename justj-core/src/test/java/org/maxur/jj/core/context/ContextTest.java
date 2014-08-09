@@ -20,13 +20,39 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.maxur.jj.core.annotation.Optional;
+import org.maxur.jj.core.context.dummy.Dummy;
+import org.maxur.jj.core.context.dummy.Dummy10;
+import org.maxur.jj.core.context.dummy.Dummy11;
+import org.maxur.jj.core.context.dummy.Dummy12;
+import org.maxur.jj.core.context.dummy.Dummy13;
+import org.maxur.jj.core.context.dummy.Dummy14;
+import org.maxur.jj.core.context.dummy.Dummy15;
+import org.maxur.jj.core.context.dummy.Dummy2;
+import org.maxur.jj.core.context.dummy.Dummy20;
+import org.maxur.jj.core.context.dummy.Dummy21;
+import org.maxur.jj.core.context.dummy.Dummy22;
+import org.maxur.jj.core.context.dummy.Dummy23;
+import org.maxur.jj.core.context.dummy.Dummy24;
+import org.maxur.jj.core.context.dummy.Dummy25;
+import org.maxur.jj.core.context.dummy.Dummy26;
+import org.maxur.jj.core.context.dummy.Dummy27;
+import org.maxur.jj.core.context.dummy.Dummy28;
+import org.maxur.jj.core.context.dummy.Dummy29;
+import org.maxur.jj.core.context.dummy.Dummy3;
+import org.maxur.jj.core.context.dummy.Dummy30;
+import org.maxur.jj.core.context.dummy.Dummy31;
+import org.maxur.jj.core.context.dummy.Dummy33;
+import org.maxur.jj.core.context.dummy.Dummy34;
+import org.maxur.jj.core.context.dummy.Dummy4;
+import org.maxur.jj.core.context.dummy.Dummy5;
+import org.maxur.jj.core.context.dummy.Dummy6;
+import org.maxur.jj.core.context.dummy.Dummy7;
+import org.maxur.jj.core.context.dummy.Dummy8;
 import org.maxur.jj.core.domain.JustJSystemException;
 import org.maxur.jj.core.domain.Role;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.inject.Inject;
 import java.util.function.Supplier;
 
 import static junit.framework.TestCase.assertNull;
@@ -493,360 +519,4 @@ public class ContextTest {
 
 }
 
-class Dummy {
-}
 
-class Dummy2 {
-    final Dummy dummy;
-    @Inject
-    public Dummy2(Dummy dummy) {
-        this.dummy = dummy;
-    }
-}
-
-class Dummy3 {
-    final Dummy dummy;
-    @Inject
-    public Dummy3(Dummy dummy) {
-        this.dummy = dummy;
-    }
-    @Inject
-    public Dummy3(Dummy dummy, String value) {
-        this.dummy = dummy;
-    }
-}
-
-class Dummy4 {
-    private Dummy4() {
-    }
-}
-
-class Dummy5 {
-    final Dummy dummy;
-    final String value;
-    @Inject
-    public Dummy5(Dummy dummy, String value) {
-        this.dummy = dummy;
-        this.value = value;
-    }
-}
-
-abstract class Dummy6 {
-    final Dummy dummy;
-    @Inject
-    private Dummy6(Dummy dummy) {
-        this.dummy = dummy;
-    }
-}
-
-class Dummy7 {
-    final Dummy8 dummy;
-    @Inject
-    private Dummy7(Dummy8 dummy) {
-        this.dummy = dummy;
-    }
-}
-class Dummy8 {
-    final Dummy7 dummy;
-    @Inject
-    private Dummy8(Dummy7 dummy) {
-        this.dummy = dummy;
-    }
-}
-
-
-class Dummy10 {
-    @Inject
-    Dummy a;
-    Dummy b;
-    public Dummy10() {
-    }
-}
-
-
-class Dummy11 {
-    @Inject
-    Dummy12 dummy;
-    public Dummy11() {
-    }
-}
-
-class Dummy12 {
-    @Inject
-    Dummy11 dummy;
-    public Dummy12() {
-    }
-}
-
-class Dummy13 {
-    @Inject
-    Dummy a;
-    @Inject
-    @Optional
-    Dummy2 b;
-    public Dummy13() {
-    }
-}
-
-class Dummy14 {
-    @Inject
-    Dummy a;
-    @Inject
-    Dummy b;
-    public Dummy14() {
-    }
-}
-
-class Dummy15 {
-    @Inject
-    private Dummy a;
-
-    public Dummy15() {
-        this.a = null;
-    }
-
-    public Dummy getA() {
-        return a;
-    }
-}
-
-class Dummy20 {
-
-    Dummy a;
-
-    public Dummy20() {
-    }
-
-    @Inject
-    public void makeA() {
-        this.a = new Dummy();
-    }
-
-}
-
-class Dummy21 {
-
-    Dummy a;
-
-    public Dummy21() {
-    }
-
-    @Inject
-    public void setA(Dummy a) {
-        this.a = a;
-    }
-
-}
-
-class Dummy22 {
-
-    Dummy a;
-    Dummy b;
-
-    public Dummy22() {
-    }
-
-    @Inject
-    public void init(Dummy a, Dummy b) {
-        this.a = a;
-        this.b = b;
-    }
-
-}
-
-class Dummy23 {
-
-    Dummy a;
-    Dummy2 b;
-
-    public Dummy23() {
-    }
-
-    @Inject
-    public void init(Dummy a, Dummy2 b) {
-        this.a = a;
-        this.b = b;
-    }
-
-}
-
-
-class Dummy24 {
-
-    Dummy a;
-    Dummy b;
-    int   count;
-
-    public Dummy24() {
-    }
-
-    @Inject
-    public void setA(Dummy a) {
-        this.a = a;
-    }
-
-    @Inject
-    public void setB(Dummy b) {
-        this.b = null;
-        count++;
-    }
-
-}
-
-class Dummy25 extends Dummy24 {
-
-    Dummy a;
-    Dummy b;
-
-    public Dummy25() {
-        count = 0;
-    }
-
-    @Override
-    public void setA(Dummy a) {
-        this.a = a;
-    }
-
-    @Inject
-    @Override
-    public void setB(Dummy b) {
-        this.b = b;
-        count++;
-    }
-
-}
-
-
-class Dummy26  {
-
-    Dummy27 a;
-
-    public Dummy26() {
-    }
-
-
-    @Inject
-    public void setA(Dummy27 a) {
-        this.a = a;
-    }
-
-
-}
-
-class Dummy27  {
-
-    Dummy26 a;
-
-    public Dummy27() {
-    }
-
-    @Inject
-    public void setA(Dummy26 a) {
-        this.a = a;
-    }
-}
-
-class Dummy28  {
-    public Dummy28() {
-    }
-    @Inject
-    public void setA() {
-        throw new RuntimeException();
-    }
-}
-
-class Dummy29  {
-    Dummy a;
-    public Dummy29() {
-    }
-    @Inject
-    private void setA(Dummy a) {
-        this.a = a;
-    }
-}
-
-class Dummy30  {
-
-    static Dummy a;
-
-    public Dummy30() {
-    }
-    @Inject
-    public static void setA(Dummy a) {
-        Dummy30.a = a;
-    }
-}
-
-class Dummy31  {
-    @Inject
-    static Dummy a;
-
-    public Dummy31() {
-    }
-}
-
-class Dummy32  {
-    @Inject
-    Dummy a;
-    Dummy b;
-    Dummy e;
-    Dummy f;
-    Dummy g;
-
-    int count = 0;
-
-    public Dummy32() {
-    }
-    @Inject
-    public void setB(Dummy b) {
-        this.b = b;
-    }
-    @Inject
-    public void setE(Dummy e) {
-        this.e = e;
-    }
-    @Inject
-    public void setF(Dummy f) {
-        this.f = f;
-        count++;
-    }
-
-    public void setG(Dummy g) {
-        this.g = g;
-    }
-
-}
-
-class Dummy33 extends Dummy32  {
-    @Inject
-    Dummy c;
-    Dummy d;
-    public Dummy33() {
-    }
-    @Inject
-    public void setD(Dummy d) {
-        this.d = d;
-    }
-    public void setE(Dummy e) {
-        this.e = e;
-    }
-    @Inject
-    public void setF(Dummy f) {
-        this.f = f;
-        count++;
-    }
-    @Inject
-    public void setG(Dummy g) {
-        this.g = g;
-    }
-
-}
-
-class Dummy34  {
-    @Inject
-    final Dummy a;
-
-    public Dummy34() {
-        a = null;
-    }
-}

@@ -18,20 +18,17 @@ package org.maxur.jj.core.context;
 import org.maxur.jj.core.annotation.Optional;
 import org.maxur.jj.core.domain.JustJSystemException;
 import org.maxur.jj.core.reflection.ClassDescriptor;
+import org.maxur.jj.core.reflection.ConstructorDescriptor;
 import org.maxur.jj.core.reflection.FieldDescriptor;
 import org.maxur.jj.core.reflection.MethodDescriptor;
 
-import javax.inject.Inject;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.maxur.jj.core.context.BeanReference.referenceBy;
 import static org.maxur.jj.core.reflection.ClassDescriptor.meta;
@@ -42,13 +39,16 @@ import static org.maxur.jj.core.reflection.ClassDescriptor.meta;
  */
 abstract class BeanWrapper<T> {
 
-    private final List<FieldMetaDataWrapper> injectableFields;
+    private final List<FieldBinder> injectableFields;
 
-    private final List<MethodMetaDataWrapper> injectableMethods;
+    private final List<MethodBinder> injectableMethods;
+
+    private final List<ConstructorBinder> injectableConstructor;
 
     private final ClassDescriptor<T> metaData;
 
     protected BeanWrapper(final Class<T> clazz) {
+        injectableConstructor = findInjectableConstructor(clazz);
         injectableFields = findInjectableFields(clazz);
         injectableMethods = findInjectableMethods(clazz);
         metaData = meta(clazz);
@@ -80,11 +80,64 @@ abstract class BeanWrapper<T> {
         return new ClassBeanWrapper<>(clazz);
     }
 
-    public final T bean(final Function<BeanReference, BeanWrapper>  context) {
+    public final T bean(final Function<BeanReference, BeanWrapper> context) {
+
+        // TODO
+        //  1. Get Dependencies
+        //       Stream.of(this).flatMap(b -> b.dependencies(context).stream());
+        //  2. Create all instances (with proxy if required)
+        //  3. Inject all fields
+        //  4. Inject all methods
         final T bean = create(context);
         injectFields(context, bean);
         injectMethods(context, bean);
         return bean;
+    }
+
+/*    private Map<BeanWrapper, Object> dependencies(final Function<BeanReference, BeanWrapper> context) {
+        return this.injectableFields.stream().map(FieldBinder::getReference)
+                .map(context::apply)
+                .collect(toMap(wrapper -> wrapper, wrapper -> wrapper.create(context)));
+    }*/
+
+
+    protected  List<ConstructorBinder> findInjectableConstructor(final Class<T> clazz) {
+        return Collections.emptyList();
+    }
+
+    protected final List<MethodBinder> findInjectableMethods(final Class<?> beanClass) {
+        ///CLOVER:OFF
+        return meta(beanClass).methods().stream()
+                .filter(MethodDescriptor::isInjectable)
+                .map(MethodBinder::new)
+                .collect(toList());
+        ///CLOVER:ON
+    }
+
+    protected final List<FieldBinder> findInjectableFields(final Class<?> beanClass) {
+        ///CLOVER:OFF
+        return meta(beanClass).fields().stream()
+                .filter(FieldDescriptor::isInjectable)
+                .map(FieldBinder::new)
+                .collect(toList());
+        ///CLOVER:ON
+    }
+
+    /**
+     * Inject is optional for public, no-argument constructors when no other constructors are present.
+     * This enables injectors to invoke default constructors.
+     *
+     * @param context IoC context function
+     * @return Instance of Bean
+     */
+    @SuppressWarnings("unchecked")
+    protected T create(final Function<BeanReference, BeanWrapper> context) {
+        // XXX check and field value set should be separated
+        if (injectableConstructor.isEmpty()) {
+            return getMetaData().newInstance();
+        } else {
+            return (T) injectableConstructor.get(0).newInstance(context);
+        }
     }
 
     private BeanWrapper injectFields(final Function<BeanReference, BeanWrapper> context, final Object bean) {
@@ -92,13 +145,8 @@ abstract class BeanWrapper<T> {
             return this;
         }
         // XXX check and field value set should be separated
-        for (FieldMetaDataWrapper data : injectableFields) {
-            final BeanReference ref = data.getReference();
-            final Object injectedBean = getValue(context, ref);
-            if (data.isMandatory()) {
-                checkDependency(injectedBean, ref.getType());
-            }
-            data.setValue(bean, injectedBean);
+        for (FieldBinder data : injectableFields) {
+            data.setValue(bean, context);
         }
         return this;
     }
@@ -107,55 +155,11 @@ abstract class BeanWrapper<T> {
         if (bean == null) {
             return this;
         }
-        for (MethodMetaDataWrapper data : injectableMethods) {
+        for (MethodBinder data : injectableMethods) {
             // XXX check and field value set should be separated
-            data.invoke(bean, getParameters(context, data.getReferences()));
+            data.invoke(bean, context);
         }
         return this;
-    }
-
-    protected <O> O checkDependency(final O bean, final Class type) {
-        if (bean == null) {
-            throw new JustJSystemException("Bean of type '%s' is not found.\n" +
-                    "It should be added to context.", type.getName());
-        }
-        return bean;
-    }
-
-    protected final List<MethodMetaDataWrapper> findInjectableMethods(final Class<?> beanClass) {
-        ///CLOVER:OFF
-        return meta(beanClass).methods().stream()
-                .filter(MethodDescriptor::isInjectable)
-                .map(MethodMetaDataWrapper::new)
-                .collect(toList()) ;
-        ///CLOVER:ON
-    }
-
-    protected final List<FieldMetaDataWrapper> findInjectableFields(final Class<?> beanClass) {
-        ///CLOVER:OFF
-        return  meta(beanClass).fields().stream()
-                .filter(FieldDescriptor::isInjectable)
-                .map(FieldMetaDataWrapper::new)
-                .collect(toList());
-        ///CLOVER:ON
-    }
-
-    @SuppressWarnings("unchecked")
-    protected abstract T create(final Function<BeanReference, BeanWrapper> context);
-
-    protected Object[] getParameters(final Function<BeanReference, BeanWrapper> context, final List<BeanReference> paramTypes) {
-        final Object[] parameters = new Object[paramTypes.size()];
-        for (int i = 0; i < parameters.length; i++) {
-            final Class type = paramTypes.get(i).getType();
-            final Object injectedBean = getValue(context, referenceBy(type));
-            parameters[i] = checkDependency(injectedBean, type);
-        }
-        return parameters;
-    }
-
-    private Object getValue(final Function<BeanReference, BeanWrapper> context, final BeanReference ref) {
-        final BeanWrapper wrapper = context.apply(ref);
-        return wrapper == null ? null : wrapper.bean(context);
     }
 
     void checkType(final BeanReference id) {
@@ -169,6 +173,15 @@ abstract class BeanWrapper<T> {
         }
     }
 
+    @Override
+    public String toString() {
+        return format("Bean '%s'", metaData.getName());
+    }
+
+    public ClassDescriptor<T> getMetaData() {
+        return metaData;
+    }
+
     private static class SupplierBeanWrapper<T> extends BeanWrapper<T> {
 
         private final Supplier<T> supplier;
@@ -178,8 +191,7 @@ abstract class BeanWrapper<T> {
             this.supplier = supplier;
         }
 
-        @Override
-        @SuppressWarnings("unchecked")
+
         protected T create(final Function<BeanReference, BeanWrapper> context) {
             return supplier.get();
         }
@@ -194,122 +206,114 @@ abstract class BeanWrapper<T> {
             super((Class<T>) bean.getClass());
             this.bean = bean;
         }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        protected T create(Function<BeanReference, BeanWrapper>  context) {
+        protected T create(final Function<BeanReference, BeanWrapper> context) {
             return bean;
         }
-
     }
 
     private static class ClassBeanWrapper<T> extends BeanWrapper<T> {
 
-        private final Class<T> clazz;
-
-        private final Constructor<T> injectableConstructor;
-
-        private final List<BeanReference> constructorParams;
-
         public ClassBeanWrapper(final Class<T> clazz) {
             super(clazz);
-            this.clazz = clazz;
-
-            injectableConstructor = findInjectableConstructor(clazz);
-            constructorParams = findInjectableConstructorParams();
         }
 
-        private Constructor<T> findInjectableConstructor(Class<T> clazz) {
-            //noinspection unchecked
-            final Constructor<T>[] declaredConstructors = (Constructor<T>[]) clazz.getDeclaredConstructors();
-            final List<Constructor<T>> constructors = stream(declaredConstructors)
-                    .filter(c -> stream(c.getDeclaredAnnotations())
-                                    .anyMatch(a -> Inject.class.equals(a.annotationType()))
-                    ).collect(toList());
-            if (constructors.size() > 1) {
-                throw new JustJSystemException("Class %s has %d Injectable constructors," +
-                        " but according to JSR-330 @Inject can apply to at most one constructor per class.",
-                        clazz.getName(), constructors.size());
-
-            }
-            return constructors.isEmpty() ? null : constructors.get(0);
-        }
-
-        private List<BeanReference> findInjectableConstructorParams() {
+        protected List<ConstructorBinder> findInjectableConstructor(Class<T> beanClass) {
             ///CLOVER:OFF
-            return injectableConstructor == null ?
-                    emptyList() :
-                    Arrays.stream(injectableConstructor.getParameterTypes())
-                    .map(BeanReference::referenceBy)
+            final List<ConstructorBinder> result = meta(beanClass).constructors().stream()
+                    .filter(ConstructorDescriptor::isInjectable)
+                    .map(ConstructorBinder::new)
                     .collect(toList());
             ///CLOVER:ON
-        }
-
-        @Override
-        protected T create(final Function<BeanReference, BeanWrapper> context) {
-            try {
-                if (injectableConstructor == null) {
-                    return clazz.newInstance();
-                } else {
-                    return injectableConstructor.newInstance(getParameters(context, constructorParams));
-                }
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                throw new JustJSystemException("Error instantiating", e);
+            if (result.size() > 1) {
+                throw new JustJSystemException("Class %s has %d Injectable constructors," +
+                        " but according to JSR-330 @Inject can apply to at most one constructor per class.",
+                        beanClass.getName(), result.size());
             }
+            return result;
         }
 
     }
 
-    private class FieldMetaDataWrapper {
+    private static abstract class MemberBinder {
+
+        protected final List<BeanReference> references;
+
+        protected MemberBinder(final List<BeanReference> references) {
+            this.references = references;
+        }
+
+        protected Object[] getParameters(final Function<BeanReference, BeanWrapper> context) {
+            return references.stream()
+                    .map(ref -> getValue(context, ref))
+                    .collect(toList()).toArray();
+        }
+
+        protected Object getValue(final Function<BeanReference, BeanWrapper> context, final BeanReference ref) {
+            final BeanWrapper wrapper = context.apply(ref);
+            if (isMandatory() && wrapper == null) {
+                throw new JustJSystemException("Bean of type '%s' is not found.\n" +
+                        "It should be added to context.", ref.getType().getName());
+            }
+            return wrapper == null ? null : wrapper.bean(context);
+        }
+
+        public boolean isMandatory() {
+            return true;
+        }
+    }
+
+    private static class ConstructorBinder extends MemberBinder {
+
+        private ConstructorDescriptor constructor;
+
+        private ConstructorBinder(final ConstructorDescriptor constructor) {
+            ///CLOVER:OFF
+            super(stream(constructor.getParameterTypes())
+                    .map(BeanReference::referenceBy)
+                    .collect(toList()));
+            ///CLOVER:ON
+            this.constructor = constructor;
+        }
+
+        public Object newInstance(final Function<BeanReference, BeanWrapper> context) {
+            return constructor.newInstance(getParameters(context));
+        }
+    }
+
+    private static class FieldBinder extends MemberBinder {
 
         private final FieldDescriptor field;
 
-        private final BeanReference reference;
-
-        private FieldMetaDataWrapper(final FieldDescriptor field) {
+        private FieldBinder(final FieldDescriptor field) {
+            super(Collections.singletonList(referenceBy(field.getType())));
             this.field = field;
-            this.reference = referenceBy(field.getType());
         }
 
-        public BeanReference getReference() {
-            return reference;
-        }
-
+        @Override
         public boolean isMandatory() {
             return !field.isAnnotationPresent(Optional.class);
         }
 
-        public void setValue(final Object bean, final Object value) {
-            field.setValue(bean, value);
+        public void setValue(final Object bean, final Function<BeanReference, BeanWrapper> context) {
+            field.setValue(bean, getParameters(context)[0]);
         }
-
     }
 
-    private class MethodMetaDataWrapper {
+    private static class MethodBinder extends MemberBinder {
 
         private final MethodDescriptor method;
 
-        private final List<BeanReference> references;
-
-        private MethodMetaDataWrapper(final MethodDescriptor method) {
-            this.method = method;
-            this.references = makeParams(method.getParameterTypes());
-        }
-
-        private List<BeanReference> makeParams(Class<?>[] parameterTypes) {
+        private MethodBinder(final MethodDescriptor method) {
             ///CLOVER:OFF
-            return stream(parameterTypes)
+            super(stream(method.getParameterTypes())
                     .map(BeanReference::referenceBy)
-                    .collect(toList());
+                    .collect(toList()));
             ///CLOVER:ON
+            this.method = method;
         }
 
-        public List<BeanReference> getReferences() {
-            return references;
-        }
-
-        public void invoke(final Object bean, final Object[] parameters) {
-            method.invoke(bean, parameters);
+        public void invoke(final Object bean, final Function<BeanReference, BeanWrapper> context) {
+            method.invoke(bean, getParameters(context));
         }
 
     }
