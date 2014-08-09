@@ -326,6 +326,17 @@ public class ContextTest {
         assertEquals(dummy, Dummy31.a);
     }
 
+    @Test
+    @Ignore
+    public void testInjectByFieldWithSuperTypeMethod() {
+        final Dummy dummy = new Dummy();
+        root.put(Dummy.class, dummy);
+        root.put(Dummy33.class, Dummy33.class);
+        final Dummy33 bean = root.bean(Dummy33.class);
+        assertEquals(dummy, bean.a);
+        assertEquals(dummy, bean.c);
+    }
+
 
     // InjectByMethod
 
@@ -454,16 +465,17 @@ public class ContextTest {
     }
 
     @Test
-    @Ignore
-    public void testInjectWithSuperTypeMethod() {
+    public void testInjectByMethodWithSuperTypeMethod() {
         final Dummy dummy = new Dummy();
         root.put(Dummy.class, dummy);
         root.put(Dummy33.class, Dummy33.class);
         final Dummy33 bean = root.bean(Dummy33.class);
-        assertEquals(dummy, bean.a);
         assertEquals(dummy, bean.b);
-        assertEquals(dummy, bean.c);
         assertEquals(dummy, bean.d);
+        assertNull(bean.e);
+        assertEquals(dummy, bean.f);
+        assertEquals(dummy, bean.g);
+        assertEquals(1, bean.count);
     }
 
 }
@@ -764,12 +776,32 @@ class Dummy32  {
     @Inject
     Dummy a;
     Dummy b;
+    Dummy e;
+    Dummy f;
+    Dummy g;
+
+    int count = 0;
+
     public Dummy32() {
     }
     @Inject
     public void setB(Dummy b) {
         this.b = b;
     }
+    @Inject
+    public void setE(Dummy e) {
+        this.e = e;
+    }
+    @Inject
+    public void setF(Dummy f) {
+        this.f = f;
+        count++;
+    }
+
+    public void setG(Dummy g) {
+        this.g = g;
+    }
+
 }
 
 class Dummy33 extends Dummy32  {
@@ -782,4 +814,17 @@ class Dummy33 extends Dummy32  {
     public void setD(Dummy d) {
         this.d = d;
     }
+    public void setE(Dummy e) {
+        this.e = e;
+    }
+    @Inject
+    public void setF(Dummy f) {
+        this.f = f;
+        count++;
+    }
+    @Inject
+    public void setG(Dummy g) {
+        this.g = g;
+    }
+
 }

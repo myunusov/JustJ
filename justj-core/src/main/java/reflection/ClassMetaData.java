@@ -17,6 +17,7 @@ package reflection;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
@@ -30,13 +31,12 @@ public final class ClassMetaData<T> {
 
     private final Class<T> beanClass;
 
+    private ClassMetaData(final Class<T> beanClass) {
+        this.beanClass = beanClass;
+    }
 
     public static <T> ClassMetaData<T> meta(final Class<T> beanClass) {
         return new ClassMetaData<>(beanClass);
-    }
-
-    private ClassMetaData(final Class<T> beanClass) {
-        this.beanClass = beanClass;
     }
 
     public List<ClassMetaData> parents()  {
@@ -44,16 +44,33 @@ public final class ClassMetaData<T> {
     }
 
     public List<MethodMetaData> methods() {
-        final List<MethodMetaData> result = new ArrayList<>();
+        final List<MethodMetaData> allMethods = new ArrayList<>();
         parents().forEach(d ->
-                result.addAll(
+                allMethods.addAll(
                         stream(d.beanClass.getDeclaredMethods())
-                        .map(MethodMetaData::new)
-                        .collect(toList())
+                                .map((method) -> MethodMetaData.meta(method, this))
+                                .collect(toList())
                 )
         );
-        return result;
+        return allMethods.stream()
+                .filter(isNotOverridden(allMethods))
+                .collect(toList());
     }
+
+    private Predicate<? super MethodMetaData> isNotOverridden(final List<MethodMetaData> methods) {
+        return method -> {
+            if (!method.isInheritable()) {
+                return true;
+            }
+            for (MethodMetaData metaData : methods) {
+                if (metaData.overridesFor(method)) {
+                    return false;
+                }
+            }
+            return true;
+        };
+    }
+
 
     private List<ClassMetaData> collectParents(final Class beanClass) {
         final Class parent = beanClass.getSuperclass();
@@ -90,4 +107,20 @@ public final class ClassMetaData<T> {
     public int hashCode() {
         return beanClass != null ? beanClass.hashCode() : 0;
     }
+
+    public int getHierarchyLevelFor(final Class<? super T> type) {
+        final List<ClassMetaData> parents = parents();
+        for (int i = 0; i < parents.size(); i++) {
+            //noinspection unchecked
+            if (parents.get(i).is(type)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private boolean is(final Class<?> declaringClass) {
+        return beanClass == declaringClass;
+    }
+
 }

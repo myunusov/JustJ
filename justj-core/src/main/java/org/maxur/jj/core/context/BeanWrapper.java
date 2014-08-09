@@ -18,12 +18,12 @@ package org.maxur.jj.core.context;
 import org.maxur.jj.core.annotation.Optional;
 import org.maxur.jj.core.domain.JustJSystemException;
 import reflection.ClassMetaData;
+import reflection.MethodMetaData;
 
 import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -45,7 +45,7 @@ abstract class BeanWrapper<T> {
 
     private final List<FieldMetaData> injectableFields;
 
-    private final List<MethodMetaData> injectableMethods;
+    private final List<MethodMetaDataWrapper> injectableMethods;
 
     private final ClassMetaData<T> metaData;
 
@@ -92,7 +92,8 @@ abstract class BeanWrapper<T> {
         if (bean == null) {
             return this;
         }
-        for (FieldMetaData data : injectableFields) { // XXX check and field value set should be separated
+        for (FieldMetaData data : injectableFields) {
+        // XXX check and field value set should be separated
             final Field field = data.getField();
             final BeanReference ref = data.getReference();
             final Optional annotation = field.getDeclaredAnnotation(Optional.class);
@@ -105,7 +106,7 @@ abstract class BeanWrapper<T> {
             try {
                 field.set(bean, injectedBean);
             } catch (IllegalAccessException ignore) {
-                assert false : "Unreachable operation";
+                throw new IllegalStateException("Unreachable operation", ignore);
             }
         }
         return this;
@@ -115,20 +116,9 @@ abstract class BeanWrapper<T> {
         if (bean == null) {
             return this;
         }
-        for (MethodMetaData data : injectableMethods) { // XXX check and field value set should be separated
-            Method method = data.getMethod();
-            try {
-                method.setAccessible(true);
-                method.invoke(bean, getParameters(context, data.getReferences()));
-            } catch (IllegalAccessException ignore) {
-                assert false : "Unreachable operation";
-            } catch (InvocationTargetException | IllegalArgumentException e) {
-                throw new JustJSystemException(format(
-                        "Error calling Injectable Method '%s.%s'",
-                        this.metaData.getName(),
-                        method.getName()
-                ), e);
-            }
+        for (MethodMetaDataWrapper data : injectableMethods) {
+            // XXX check and field value set should be separated
+            data.invoke(bean, getParameters(context, data.getReferences()));
         }
         return this;
     }
@@ -141,13 +131,13 @@ abstract class BeanWrapper<T> {
         return bean;
     }
 
-    protected List<MethodMetaData> findInjectableMethods(final Class beanClass) {
-        final List<Class> parents = Collections.singletonList(beanClass);    // TODO parents methods
-        return parents.stream()
-                .flatMap(c -> stream(c.getDeclaredMethods()))
-                    .filter(m -> m.isAnnotationPresent(Inject.class))
-                    .map(MethodMetaData::new)
-                    .collect(toList()) ;
+    protected List<MethodMetaDataWrapper> findInjectableMethods(final Class beanClass) {
+        //noinspection unchecked
+        final List<MethodMetaData> methods = meta(beanClass).methods();
+        return methods.stream()
+                .filter(m -> m.isAnnotationPresent(Inject.class))
+                .map(MethodMetaDataWrapper::new)
+                .collect(toList()) ;
     }
 
     protected final List<FieldMetaData> findInjectableFields(final Class<?> beanClass) {
@@ -303,31 +293,31 @@ abstract class BeanWrapper<T> {
         }
     }
 
-    private class MethodMetaData {
+    private class MethodMetaDataWrapper {
 
-        private final Method method;
+        private final MethodMetaData method;
 
         private final List<BeanReference> references;
 
-        private MethodMetaData(final Method method) {
+        private MethodMetaDataWrapper(final MethodMetaData method) {
             this.method = method;
-            this.references = makeParams(method);
+            this.references = makeParams(method.getParameterTypes());
         }
 
-        private List<BeanReference> makeParams(final Method method) {
+        private List<BeanReference> makeParams(Class<?>[] parameterTypes) {
             ///CLOVER:OFF
-            return stream(method.getParameterTypes())
+            return stream(parameterTypes)
                     .map(BeanReference::referenceBy)
                     .collect(toList());
             ///CLOVER:ON
         }
 
-        public Method getMethod() {
-            return method;
-        }
-
         public List<BeanReference> getReferences() {
             return references;
+        }
+
+        public void invoke(final Object bean, final Object[] parameters) {
+            method.invoke(bean, parameters);
         }
 
     }
