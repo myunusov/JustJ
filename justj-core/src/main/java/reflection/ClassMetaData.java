@@ -45,6 +45,7 @@ public final class ClassMetaData<T> {
 
     public List<MethodMetaData> methods() {
         final List<MethodMetaData> allMethods = new ArrayList<>();
+        ///CLOVER:OFF
         parents().forEach(d ->
                 allMethods.addAll(
                         stream(d.beanClass.getDeclaredMethods())
@@ -52,10 +53,26 @@ public final class ClassMetaData<T> {
                                 .collect(toList())
                 )
         );
+        ///CLOVER:ON
         return allMethods.stream()
                 .filter(isNotOverridden(allMethods))
                 .collect(toList());
     }
+
+    public List<FieldMetaData> fields() {
+        final List<FieldMetaData> allFields = new ArrayList<>();
+        ///CLOVER:OFF
+        parents().forEach(d ->
+                        allFields.addAll(
+                                stream(d.beanClass.getDeclaredFields())
+                                        .map((method) -> FieldMetaData.meta(method, this))
+                                        .collect(toList())
+                        )
+        );
+        ///CLOVER:ON
+        return allFields;
+    }
+
 
     private Predicate<? super MethodMetaData> isNotOverridden(final List<MethodMetaData> methods) {
         return method -> {

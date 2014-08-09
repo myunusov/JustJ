@@ -18,14 +18,13 @@ package org.maxur.jj.core.context;
 import org.maxur.jj.core.annotation.Optional;
 import org.maxur.jj.core.domain.JustJSystemException;
 import reflection.ClassMetaData;
+import reflection.FieldMetaData;
 import reflection.MethodMetaData;
 
 import javax.inject.Inject;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -43,7 +42,7 @@ import static reflection.ClassMetaData.meta;
  */
 abstract class BeanWrapper<T> {
 
-    private final List<FieldMetaData> injectableFields;
+    private final List<FieldMetaDataWrapper> injectableFields;
 
     private final List<MethodMetaDataWrapper> injectableMethods;
 
@@ -92,22 +91,14 @@ abstract class BeanWrapper<T> {
         if (bean == null) {
             return this;
         }
-        for (FieldMetaData data : injectableFields) {
         // XXX check and field value set should be separated
-            final Field field = data.getField();
+        for (FieldMetaDataWrapper data : injectableFields) {
             final BeanReference ref = data.getReference();
-            final Optional annotation = field.getDeclaredAnnotation(Optional.class);
-            final BeanWrapper wrapper = context.apply(ref);
-            final Object injectedBean = wrapper == null ? null : wrapper.bean(context);
-            if (annotation == null) {
+            final Object injectedBean = getValue(context, ref);
+            if (data.isMandatory()) {
                 checkDependency(injectedBean, ref.getType());
             }
-            field.setAccessible(true);
-            try {
-                field.set(bean, injectedBean);
-            } catch (IllegalAccessException ignore) {
-                throw new IllegalStateException("Unreachable operation", ignore);
-            }
+            data.setValue(bean, injectedBean);
         }
         return this;
     }
@@ -132,23 +123,24 @@ abstract class BeanWrapper<T> {
     }
 
     protected List<MethodMetaDataWrapper> findInjectableMethods(final Class beanClass) {
-        //noinspection unchecked
         final List<MethodMetaData> methods = meta(beanClass).methods();
+        ///CLOVER:OFF
         return methods.stream()
                 .filter(m -> m.isAnnotationPresent(Inject.class))
                 .map(MethodMetaDataWrapper::new)
                 .collect(toList()) ;
+        ///CLOVER:ON
     }
 
-    protected final List<FieldMetaData> findInjectableFields(final Class<?> beanClass) {
-        final List<Class> parents = Collections.singletonList(beanClass);    // TODO parents methods
-        return  parents.stream()
-                .flatMap(c -> stream(c.getDeclaredFields()))
+    protected final List<FieldMetaDataWrapper> findInjectableFields(final Class<?> beanClass) {
+        final List<FieldMetaData> fields = meta(beanClass).fields();
+        ///CLOVER:OFF
+        return  fields.stream()
                 .filter(f -> f.isAnnotationPresent(Inject.class))
-                .map(FieldMetaData::new)
+                .map(FieldMetaDataWrapper::new)
                 .collect(toList());
+        ///CLOVER:ON
     }
-
 
 
     @SuppressWarnings("unchecked")
@@ -158,11 +150,15 @@ abstract class BeanWrapper<T> {
         final Object[] parameters = new Object[paramTypes.size()];
         for (int i = 0; i < parameters.length; i++) {
             final Class type = paramTypes.get(i).getType();
-            final BeanWrapper wrapper = context.apply(referenceBy(type));
-            final Object injectedBean = wrapper == null ? null : wrapper.bean(context);
+            final Object injectedBean = getValue(context, referenceBy(type));
             parameters[i] = checkDependency(injectedBean, type);
         }
         return parameters;
+    }
+
+    private Object getValue(final Function<BeanReference, BeanWrapper> context, final BeanReference ref) {
+        final BeanWrapper wrapper = context.apply(ref);
+        return wrapper == null ? null : wrapper.bean(context);
     }
 
     void checkType(final BeanReference id) {
@@ -185,10 +181,6 @@ abstract class BeanWrapper<T> {
             super(clazz);
             this.supplier = supplier;
             this.clazz = clazz;
-        }
-
-        public Class<T> type() {
-            return clazz;
         }
 
         @Override
@@ -273,24 +265,29 @@ abstract class BeanWrapper<T> {
 
     }
 
-    private class FieldMetaData {
+    private class FieldMetaDataWrapper {
 
-        private final Field field;
+        private final FieldMetaData field;
 
         private final BeanReference reference;
 
-        private FieldMetaData(final Field field) {
+        private FieldMetaDataWrapper(final FieldMetaData field) {
             this.field = field;
             this.reference = referenceBy(field.getType());
-        }
-
-        public Field getField() {
-            return field;
         }
 
         public BeanReference getReference() {
             return reference;
         }
+
+        public boolean isMandatory() {
+            return !field.isAnnotationPresent(Optional.class);
+        }
+
+        public void setValue(final Object bean, final Object value) {
+            field.setValue(bean, value);
+        }
+
     }
 
     private class MethodMetaDataWrapper {

@@ -20,7 +20,6 @@ import org.maxur.jj.core.domain.JustJSystemException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 
 import static java.lang.String.format;
 
@@ -29,19 +28,18 @@ import static java.lang.String.format;
  * @version 1.0
  * @since <pre>8/8/2014</pre>
  */
-public class MethodMetaData<T> extends MetaData {
-
-    private final Method method;
-
-    private final Class<T> declaringClass;
+public class MethodMetaData<T> extends MemberMetaData<T> {
 
     private final int hierarchyLevel;
 
-    private final boolean isInheritable;
+    private MethodMetaData(final Method method, final int hierarchyLevel) {
+        super(method);
+        this.hierarchyLevel = hierarchyLevel;
+    }
 
     public static <T> MethodMetaData<T> meta(final Method method, final ClassMetaData<? extends T> classMetaData) {
         //noinspection unchecked
-        Class<T> declaringClass = (Class<T>) method.getDeclaringClass();
+        final Class<T> declaringClass = (Class<T>) method.getDeclaringClass();
         final int level = classMetaData.getHierarchyLevelFor(declaringClass);
         if (level == -1) {
             throw new IllegalArgumentException(format("Class %s has not method %s",
@@ -49,26 +47,11 @@ public class MethodMetaData<T> extends MetaData {
                     method.getName())
             );
         }
-        return new MethodMetaData<>(method, declaringClass, level);
-    }
-
-    private MethodMetaData(final Method method, final Class<T> declaringClass, final int hierarchyLevel) {
-        this.method = method;
-        this.declaringClass = declaringClass;
-        this.hierarchyLevel = hierarchyLevel;
-        this.isInheritable = isInheritable(method);
-    }
-
-    public Class<?> getDeclaringClass() {
-        return declaringClass;
+        return new MethodMetaData<>(method, level);
     }
 
     public int getHierarchyLevel() {
         return hierarchyLevel;
-    }
-
-    public boolean isInheritable() {
-        return isInheritable;
     }
 
     public boolean overridesFor(final MethodMetaData method) {
@@ -76,10 +59,6 @@ public class MethodMetaData<T> extends MetaData {
                 isAccessible(method) &&
                 sameName(method) &&
                 sameParams(method);
-    }
-
-    private boolean sameName(MethodMetaData method) {
-        return getName().equals(method.getName());
     }
 
     private boolean isAccessible(final MethodMetaData method) {
@@ -103,53 +82,35 @@ public class MethodMetaData<T> extends MetaData {
     }
 
     public Class[] getParameterTypes() {
-        return this.method.getParameterTypes();
+        return this.getMethod().getParameterTypes();
     }
 
-    public Package getPackage() {
-        return declaringClass.getPackage();
-    }
-
-    public String getName() {
-        return method.getName();
-    }
-
+    @Override
     public boolean isAnnotationPresent(final Class<? extends Annotation> annotationClass) {
-        return method.isAnnotationPresent(annotationClass);
-    }
-
-    public boolean isPublic() {
-        return Modifier.isPublic(method.getModifiers());
-    }
-
-    public boolean isPrivate() {
-        return Modifier.isPrivate(method.getModifiers());
-    }
-
-    public boolean isProtected() {
-        return Modifier.isProtected(method.getModifiers());
-    }
-
-    public boolean isDefault() {
-        final int modifiers = method.getModifiers();
-        return !Modifier.isPublic(modifiers) &&
-                !Modifier.isProtected(modifiers) &&
-                !Modifier.isPrivate(modifiers);
+        return getMethod().isAnnotationPresent(annotationClass);
     }
 
     public void invoke(final Object bean, final Object[] parameters) {
         try {
-            method.setAccessible(true);
-            method.invoke(bean, parameters);
+            getMethod().setAccessible(true);
+            getMethod().invoke(bean, parameters);
         } catch (IllegalAccessException ignore) {
             throw new IllegalStateException("Unreachable operation", ignore);
         } catch (InvocationTargetException | IllegalArgumentException e) {
             throw new JustJSystemException(format(
                     "Unable to execute method '%s.%s'",
-                    declaringClass.getName(),
-                    method.getName()
+                    getDeclaringClass().getName(),
+                    getMethod().getName()
             ), e);
         }
     }
 
+    public Method getMethod() {
+        return (Method) getMember();
+    }
+
+    @Override
+    public Class getType() {
+        return getMethod().getReturnType();
+    }
 }

@@ -327,7 +327,6 @@ public class ContextTest {
     }
 
     @Test
-    @Ignore
     public void testInjectByFieldWithSuperTypeMethod() {
         final Dummy dummy = new Dummy();
         root.put(Dummy.class, dummy);
@@ -393,8 +392,6 @@ public class ContextTest {
         root.put(Dummy21.class, Dummy21.class);
         root.bean(Dummy21.class);
     }
-
-
 
     // A method with no @Inject annotation that overrides a method annotated with @Inject will not be injected.
     @Test()
