@@ -122,10 +122,9 @@ abstract class BeanWrapper<T> {
         return bean;
     }
 
-    protected List<MethodMetaDataWrapper> findInjectableMethods(final Class beanClass) {
-        final List<MethodDescriptor> methods = meta(beanClass).methods();
+    protected final List<MethodMetaDataWrapper> findInjectableMethods(final Class<?> beanClass) {
         ///CLOVER:OFF
-        return methods.stream()
+        return meta(beanClass).methods().stream()
                 .filter(MethodDescriptor::isInjectable)
                 .map(MethodMetaDataWrapper::new)
                 .collect(toList()) ;
@@ -133,15 +132,13 @@ abstract class BeanWrapper<T> {
     }
 
     protected final List<FieldMetaDataWrapper> findInjectableFields(final Class<?> beanClass) {
-        final List<FieldDescriptor> fields = meta(beanClass).fields();
         ///CLOVER:OFF
-        return  fields.stream()
+        return  meta(beanClass).fields().stream()
                 .filter(FieldDescriptor::isInjectable)
                 .map(FieldMetaDataWrapper::new)
                 .collect(toList());
         ///CLOVER:ON
     }
-
 
     @SuppressWarnings("unchecked")
     protected abstract T create(final Function<BeanReference, BeanWrapper> context);
@@ -175,12 +172,10 @@ abstract class BeanWrapper<T> {
     private static class SupplierBeanWrapper<T> extends BeanWrapper<T> {
 
         private final Supplier<T> supplier;
-        private final Class<T> clazz;
 
         public SupplierBeanWrapper(final Supplier<T> supplier, final Class<T> clazz) {
             super(clazz);
             this.supplier = supplier;
-            this.clazz = clazz;
         }
 
         @Override
