@@ -13,7 +13,7 @@
  *    limitations under the License.
  */
 
-package reflection;
+package org.maxur.jj.core.reflection;
 
 /**
  * @author Maxim Yunusov

@@ -13,7 +13,9 @@
  *    limitations under the License.
  */
 
-package reflection;
+package org.maxur.jj.core.reflection;
+
+import checkers.nullness.quals.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,29 +29,34 @@ import static java.util.stream.Collectors.toList;
  * @version 1.0
  * @since <pre>8/8/2014</pre>
  */
-public final class ClassMetaData<T> {
+public final class ClassDescriptor<T> {
 
     private final Class<T> beanClass;
 
-    private ClassMetaData(final Class<T> beanClass) {
+    private ClassDescriptor(final Class<T> beanClass) {
         this.beanClass = beanClass;
     }
 
-    public static <T> ClassMetaData<T> meta(final Class<T> beanClass) {
-        return new ClassMetaData<>(beanClass);
+    public static <T> ClassDescriptor<T> meta(@NonNull final Class<T> beanClass) {
+        if (beanClass == null) {
+            throw new IllegalArgumentException(
+                    "Parameter 'beanClass' of 'ClassMetaData.meta()' function must not be null"
+            );
+        }
+        return new ClassDescriptor<>(beanClass);
     }
 
-    public List<ClassMetaData> parents()  {
+    public List<ClassDescriptor> parents()  {
         return collectParents(beanClass);
     }
 
-    public List<MethodMetaData> methods() {
-        final List<MethodMetaData> allMethods = new ArrayList<>();
+    public List<MethodDescriptor> methods() {
+        final List<MethodDescriptor> allMethods = new ArrayList<>();
         ///CLOVER:OFF
         parents().forEach(d ->
                 allMethods.addAll(
                         stream(d.beanClass.getDeclaredMethods())
-                                .map((method) -> MethodMetaData.meta(method, this))
+                                .map(method -> MethodDescriptor.meta(method, this))
                                 .collect(toList())
                 )
         );
@@ -59,13 +66,13 @@ public final class ClassMetaData<T> {
                 .collect(toList());
     }
 
-    public List<FieldMetaData> fields() {
-        final List<FieldMetaData> allFields = new ArrayList<>();
+    public List<FieldDescriptor> fields() {
+        final List<FieldDescriptor> allFields = new ArrayList<>();
         ///CLOVER:OFF
         parents().forEach(d ->
                         allFields.addAll(
                                 stream(d.beanClass.getDeclaredFields())
-                                        .map((method) -> FieldMetaData.meta(method, this))
+                                        .map(method -> FieldDescriptor.meta(method, this))
                                         .collect(toList())
                         )
         );
@@ -74,12 +81,9 @@ public final class ClassMetaData<T> {
     }
 
 
-    private Predicate<? super MethodMetaData> isNotOverridden(final List<MethodMetaData> methods) {
+    private Predicate<MethodDescriptor> isNotOverridden(final List<MethodDescriptor> methods) {
         return method -> {
-            if (!method.isInheritable()) {
-                return true;
-            }
-            for (MethodMetaData metaData : methods) {
+            for (MethodDescriptor metaData : methods) {
                 if (metaData.overridesFor(method)) {
                     return false;
                 }
@@ -88,10 +92,9 @@ public final class ClassMetaData<T> {
         };
     }
 
-
-    private List<ClassMetaData> collectParents(final Class beanClass) {
+    private List<ClassDescriptor> collectParents(final Class beanClass) {
         final Class parent = beanClass.getSuperclass();
-        final List<ClassMetaData> result  = parent == null ? new ArrayList<>() : collectParents(parent);
+        final List<ClassDescriptor> result  = parent == null ? new ArrayList<>() : collectParents(parent);
         result.add(meta(beanClass));
         return result;
     }
@@ -110,23 +113,20 @@ public final class ClassMetaData<T> {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ClassMetaData)) {
+        if (!(o instanceof ClassDescriptor)) {
             return false;
         }
-
-        final ClassMetaData that = (ClassMetaData) o;
-
-        return !(beanClass != null ? !beanClass.equals(that.beanClass) : that.beanClass != null);
-
+        final ClassDescriptor that = (ClassDescriptor) o;
+        return beanClass.equals(that.beanClass);
     }
 
     @Override
     public int hashCode() {
-        return beanClass != null ? beanClass.hashCode() : 0;
+        return beanClass.hashCode();
     }
 
     public int getHierarchyLevelFor(final Class<? super T> type) {
-        final List<ClassMetaData> parents = parents();
+        final List<ClassDescriptor> parents = parents();
         for (int i = 0; i < parents.size(); i++) {
             //noinspection unchecked
             if (parents.get(i).is(type)) {
@@ -136,8 +136,8 @@ public final class ClassMetaData<T> {
         return -1;
     }
 
-    private boolean is(final Class<?> declaringClass) {
-        return beanClass == declaringClass;
+    private boolean is(final Class<?> otherClass) {
+        return beanClass == otherClass;
     }
 
 }

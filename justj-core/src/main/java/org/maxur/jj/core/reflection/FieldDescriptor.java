@@ -13,7 +13,9 @@
  *     limitations under the License.
  */
 
-package reflection;
+package org.maxur.jj.core.reflection;
+
+import checkers.nullness.quals.NonNull;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -24,23 +26,36 @@ import static java.lang.String.format;
  * @author Maxim Yunusov
  * @version 1.0 09.08.2014
  */
-public class FieldMetaData <T> extends MemberMetaData<T> {
+public class FieldDescriptor<T> extends MemberDescriptor<T> {
 
-    private FieldMetaData(final Field field, final Class<T> declaringClass) {
+    private FieldDescriptor(final Field field, final Class<T> declaringClass) {
         super(field);
     }
 
-    public static <T> FieldMetaData<T> meta(final Field field, final ClassMetaData<? extends T> classMetaData) {
+    public static <T> FieldDescriptor<T> meta(
+            @NonNull final Field field,
+            @NonNull final ClassDescriptor<? extends T> classDescriptor
+    ) {
+        if (classDescriptor == null) {
+            throw new IllegalArgumentException(
+                    "Parameter 'classDescriptor' of 'FieldDescriptor.meta()' function must not be null"
+            );
+        }
+        if (field == null) {
+            throw new IllegalArgumentException(
+                    "Parameter 'field' of 'FieldDescriptor.meta()' function must not be null"
+            );
+        }
         //noinspection unchecked
         Class<T> declaringClass = (Class<T>) field.getDeclaringClass();
-        final int level = classMetaData.getHierarchyLevelFor(declaringClass);
+        final int level = classDescriptor.getHierarchyLevelFor(declaringClass);
         if (level == -1) {
             throw new IllegalArgumentException(format("Class %s has not field %s",
-                    classMetaData.getName(),
+                    classDescriptor.getName(),
                     field.getName())
             );
         }
-        return new FieldMetaData<>(field, declaringClass);
+        return new FieldDescriptor<>(field, declaringClass);
     }
 
     public Field getField() {

@@ -13,7 +13,7 @@
  *     limitations under the License.
  */
 
-package reflection;
+package org.maxur.jj.core.reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Member;
@@ -23,7 +23,7 @@ import java.lang.reflect.Modifier;
  * @author Maxim Yunusov
  * @version 1.0 09.08.2014
  */
-public abstract class MemberMetaData<T> {
+public abstract class MemberDescriptor<T> {
 
     private final Member member;
 
@@ -32,7 +32,7 @@ public abstract class MemberMetaData<T> {
     private final boolean isInheritable;
 
 
-    public MemberMetaData(final Member member) {
+    public MemberDescriptor(final Member member) {
         this.member = member;
         //noinspection unchecked
         this.declaringClass = (Class<T>) member.getDeclaringClass();
@@ -50,7 +50,7 @@ public abstract class MemberMetaData<T> {
                 !Modifier.isPrivate(modifiers);
     }
 
-    public Class<?> getDeclaringClass() {
+    public Class getDeclaringClass() {
         return declaringClass;
     }
 
@@ -85,11 +85,29 @@ public abstract class MemberMetaData<T> {
         return member;
     }
 
-    protected boolean sameName(final MemberMetaData method) {
+    protected boolean sameName(final MemberDescriptor method) {
         return getName().equals(method.getName());
     }
 
     public abstract boolean isAnnotationPresent(Class<? extends Annotation> annotationClass);
 
     public abstract Class getType();
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof MemberDescriptor)) {
+            return false;
+        }
+        final MemberDescriptor that = (MemberDescriptor) o;
+        return member.equals(that.member);
+    }
+
+    @Override
+    public final int hashCode() {
+        return member.hashCode();
+    }
+
 }

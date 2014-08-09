@@ -13,8 +13,9 @@
  *    limitations under the License.
  */
 
-package reflection;
+package org.maxur.jj.core.reflection;
 
+import checkers.nullness.quals.NonNull;
 import org.maxur.jj.core.domain.JustJSystemException;
 
 import java.lang.annotation.Annotation;
@@ -28,45 +29,59 @@ import static java.lang.String.format;
  * @version 1.0
  * @since <pre>8/8/2014</pre>
  */
-public class MethodMetaData<T> extends MemberMetaData<T> {
+public class MethodDescriptor<T> extends MemberDescriptor<T> {
 
     private final int hierarchyLevel;
 
-    private MethodMetaData(final Method method, final int hierarchyLevel) {
+    private MethodDescriptor(final Method method, final int hierarchyLevel) {
         super(method);
         this.hierarchyLevel = hierarchyLevel;
     }
 
-    public static <T> MethodMetaData<T> meta(final Method method, final ClassMetaData<? extends T> classMetaData) {
+    public static <T> MethodDescriptor<T> meta(
+            @NonNull final Method method,
+            final @NonNull ClassDescriptor<? extends T> classDescriptor
+    ) {
+        if (classDescriptor == null) {
+            throw new IllegalArgumentException(
+                    "Parameter 'classDescriptor' of 'MethodDescriptor.meta()' function must not be null"
+            );
+        }
+        if (method == null) {
+            throw new IllegalArgumentException(
+                    "Parameter 'method' of 'MethodDescriptor.meta()' function must not be null"
+            );
+        }
         //noinspection unchecked
         final Class<T> declaringClass = (Class<T>) method.getDeclaringClass();
-        final int level = classMetaData.getHierarchyLevelFor(declaringClass);
+        final int level = classDescriptor.getHierarchyLevelFor(declaringClass);
         if (level == -1) {
             throw new IllegalArgumentException(format("Class %s has not method %s",
-                    classMetaData.getName(),
+                    classDescriptor.getName(),
                     method.getName())
             );
         }
-        return new MethodMetaData<>(method, level);
+        return new MethodDescriptor<>(method, level);
     }
 
     public int getHierarchyLevel() {
         return hierarchyLevel;
     }
 
-    public boolean overridesFor(final MethodMetaData method) {
+    public boolean overridesFor(final MethodDescriptor method) {
         return method != null &&
+                method.isInheritable() &&
                 isAccessible(method) &&
                 sameName(method) &&
                 sameParams(method);
     }
 
-    private boolean isAccessible(final MethodMetaData method) {
+    private boolean isAccessible(final MethodDescriptor method) {
         return getHierarchyLevel() > method.getHierarchyLevel() &&
                 !(method.isDefault() && !getPackage().equals(method.getPackage()));
     }
 
-    private boolean sameParams(final MethodMetaData method) {
+    private boolean sameParams(final MethodDescriptor method) {
         final Class[] types1 = getParameterTypes();
         final Class[] types2 = method.getParameterTypes();
         if (types1.length != types2.length) {
@@ -74,7 +89,7 @@ public class MethodMetaData<T> extends MemberMetaData<T> {
         }
         for (int i = 0; i < types1.length; i++) {
             //noinspection unchecked
-            if (!types2[i].isAssignableFrom(types1[i])) {
+            if (types2[i] != types1[i]) {
                  return false;
             }
         }
@@ -90,7 +105,7 @@ public class MethodMetaData<T> extends MemberMetaData<T> {
         return getMethod().isAnnotationPresent(annotationClass);
     }
 
-    public void invoke(final Object bean, final Object[] parameters) {
+    public void invoke(final Object bean, final Object... parameters) {
         try {
             getMethod().setAccessible(true);
             getMethod().invoke(bean, parameters);

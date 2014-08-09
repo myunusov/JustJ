@@ -16,7 +16,7 @@
 package org.maxur.jj.core.context;
 
 import org.maxur.jj.core.domain.Role;
-import reflection.Dependency;
+import org.maxur.jj.core.reflection.Dependency;
 
 import static java.lang.String.format;
 

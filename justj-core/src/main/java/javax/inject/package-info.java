@@ -143,7 +143,7 @@
  *
  * <p>Injector implementations can take many forms. An injector could
  * configure itself using XML, annotations, a DSL (domain-specific language),
- * or even plain Java code. An injector could rely on reflection or code
+ * or even plain Java code. An injector could rely on org.maxur.jj.core.reflection or code
  * generation. An injector that uses compile-time code generation may not even
  * have its own run time representation. Other injectors may not be able to
  * generate code at all, neither at compile nor run time. A "container", for

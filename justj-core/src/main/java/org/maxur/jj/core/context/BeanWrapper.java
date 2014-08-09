@@ -17,9 +17,9 @@ package org.maxur.jj.core.context;
 
 import org.maxur.jj.core.annotation.Optional;
 import org.maxur.jj.core.domain.JustJSystemException;
-import reflection.ClassMetaData;
-import reflection.FieldMetaData;
-import reflection.MethodMetaData;
+import org.maxur.jj.core.reflection.ClassDescriptor;
+import org.maxur.jj.core.reflection.FieldDescriptor;
+import org.maxur.jj.core.reflection.MethodDescriptor;
 
 import javax.inject.Inject;
 import java.lang.reflect.Constructor;
@@ -34,7 +34,7 @@ import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.maxur.jj.core.context.BeanReference.referenceBy;
-import static reflection.ClassMetaData.meta;
+import static org.maxur.jj.core.reflection.ClassDescriptor.meta;
 
 /**
  * @author Maxim Yunusov
@@ -46,7 +46,7 @@ abstract class BeanWrapper<T> {
 
     private final List<MethodMetaDataWrapper> injectableMethods;
 
-    private final ClassMetaData<T> metaData;
+    private final ClassDescriptor<T> metaData;
 
     protected BeanWrapper(final Class<T> clazz) {
         injectableFields = findInjectableFields(clazz);
@@ -123,7 +123,7 @@ abstract class BeanWrapper<T> {
     }
 
     protected List<MethodMetaDataWrapper> findInjectableMethods(final Class beanClass) {
-        final List<MethodMetaData> methods = meta(beanClass).methods();
+        final List<MethodDescriptor> methods = meta(beanClass).methods();
         ///CLOVER:OFF
         return methods.stream()
                 .filter(m -> m.isAnnotationPresent(Inject.class))
@@ -133,7 +133,7 @@ abstract class BeanWrapper<T> {
     }
 
     protected final List<FieldMetaDataWrapper> findInjectableFields(final Class<?> beanClass) {
-        final List<FieldMetaData> fields = meta(beanClass).fields();
+        final List<FieldDescriptor> fields = meta(beanClass).fields();
         ///CLOVER:OFF
         return  fields.stream()
                 .filter(f -> f.isAnnotationPresent(Inject.class))
@@ -267,11 +267,11 @@ abstract class BeanWrapper<T> {
 
     private class FieldMetaDataWrapper {
 
-        private final FieldMetaData field;
+        private final FieldDescriptor field;
 
         private final BeanReference reference;
 
-        private FieldMetaDataWrapper(final FieldMetaData field) {
+        private FieldMetaDataWrapper(final FieldDescriptor field) {
             this.field = field;
             this.reference = referenceBy(field.getType());
         }
@@ -292,11 +292,11 @@ abstract class BeanWrapper<T> {
 
     private class MethodMetaDataWrapper {
 
-        private final MethodMetaData method;
+        private final MethodDescriptor method;
 
         private final List<BeanReference> references;
 
-        private MethodMetaDataWrapper(final MethodMetaData method) {
+        private MethodMetaDataWrapper(final MethodDescriptor method) {
             this.method = method;
             this.references = makeParams(method.getParameterTypes());
         }
