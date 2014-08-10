@@ -22,16 +22,13 @@ import org.maxur.jj.core.reflection.FieldDescriptor;
 import org.maxur.jj.core.reflection.MethodDescriptor;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static org.maxur.jj.core.context.BeanReference.referenceBy;
 import static org.maxur.jj.core.reflection.ClassDescriptor.meta;
 
 /**
@@ -49,7 +46,8 @@ abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
     private final ClassDescriptor<T> metaData;
 
     protected BaseBeanWrapper(final Class<T> clazz) {
-        metaData = meta(clazz);                             // XXX Flyweight with IoC
+        // XXX Flyweight with IoC
+        metaData = meta(clazz);
         injectableConstructor = findInjectableConstructor();
         injectableFields = findInjectableFields();
         injectableMethods = findInjectableMethods();
