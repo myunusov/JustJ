@@ -28,6 +28,7 @@ import java.util.function.Supplier;
 import static java.lang.String.format;
 import static java.util.Optional.empty;
 import static org.maxur.jj.core.context.BeanReference.identifier;
+import static org.maxur.jj.core.context.BeanWrapper.nullWrapper;
 import static org.maxur.jj.core.context.BeanWrapper.wrap;
 
 /**
@@ -103,8 +104,7 @@ public class Context extends Entity implements Function<BeanReference, BeanWrapp
 
     private void put(final Supplier<BeanWrapper> supplier, final BeanReference ref) {
         checkDuplicate(ref);
-        final BeanWrapper wrapper = supplier.get();
-        wrapper.checkType(ref);
+        final BeanWrapper wrapper = supplier.get().checkType(ref);
         beans.put(ref, wrapper);
     }
 
@@ -117,7 +117,7 @@ public class Context extends Entity implements Function<BeanReference, BeanWrapp
     }
 
     private void checkDuplicate(final BeanReference ref) {
-        if (apply(ref) != null) {
+        if (apply(ref).isPresent()) {
             throw new JustJSystemException("%s is already exists", ref.toString());
         }
     }
@@ -125,9 +125,12 @@ public class Context extends Entity implements Function<BeanReference, BeanWrapp
     @Override
     public BeanWrapper apply(final BeanReference ref) {
         final BeanWrapper wrapper = beans.get(ref);
-        if (wrapper == null && parent.isPresent()) {
+        if (wrapper != null) {
+            return wrapper;
+        }
+        if (parent.isPresent()) {
             return parent.get().apply(ref);
         }
-        return wrapper;
+        return nullWrapper();
     }
 }

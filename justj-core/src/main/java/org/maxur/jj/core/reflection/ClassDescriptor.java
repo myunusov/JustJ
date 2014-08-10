@@ -121,6 +121,10 @@ public final class ClassDescriptor<T> {
         return this.beanClass.getName();
     }
 
+    public Class<T> getType() {
+        return this.beanClass;
+    }
+
     public boolean isAssignable(final Class type) {
         //noinspection unchecked
         return type.isAssignableFrom(this.beanClass);
