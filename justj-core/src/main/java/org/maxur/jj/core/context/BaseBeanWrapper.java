@@ -41,11 +41,11 @@ import static org.maxur.jj.core.reflection.ClassDescriptor.meta;
  */
 abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
 
-    private final List<MemberBinder.FieldBinder> injectableFields;
+    private final List<MemberBinder> injectableFields;
 
-    private final List<MemberBinder.MethodBinder> injectableMethods;
+    private final List<MemberBinder> injectableMethods;
 
-    private final List<MemberBinder.ConstructorBinder> injectableConstructor;
+    private final List<MemberBinder> injectableConstructor;
 
     private final ClassDescriptor<T> metaData;
 
@@ -115,28 +115,28 @@ abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
         return bean;
     }
 
-    protected List<MemberBinder.ConstructorBinder> findInjectableConstructor() {
+    protected List<MemberBinder> findInjectableConstructor() {
         return emptyList();
     }
 
-    protected final List<MemberBinder.MethodBinder> findInjectableMethods() {
+    protected final List<MemberBinder> findInjectableMethods() {
         ///CLOVER:OFF
         return metaData
                 .methods()
                 .stream()
                 .filter(MethodDescriptor::isInjectable)
-                .map(MemberBinder.MethodBinder::new)
+                .map(MemberBinder::binder)
                 .collect(toList());
         ///CLOVER:ON
     }
 
-    protected final List<MemberBinder.FieldBinder> findInjectableFields() {
+    protected final List<MemberBinder> findInjectableFields() {
         ///CLOVER:OFF
         return metaData
                 .fields()
                 .stream()
                 .filter(FieldDescriptor::isInjectable)
-                .map(MemberBinder.FieldBinder::new)
+                .map(MemberBinder::binder)
                 .collect(toList());
         ///CLOVER:ON
     }
@@ -163,7 +163,7 @@ abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
             return this;
         }
         // XXX check and field value set should be separated
-        for (MemberBinder.FieldBinder data : injectableFields) {
+        for (MemberBinder data : injectableFields) {
             data.setValue(bean, context);
         }
         return this;
@@ -173,7 +173,7 @@ abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
         if (bean == null) {
             return this;
         }
-        for (MemberBinder.MethodBinder data : injectableMethods) {
+        for (MemberBinder data : injectableMethods) {
             // XXX check and field value set should be separated
             data.invoke(bean, context);
         }
@@ -222,19 +222,19 @@ abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
             super(clazz);
         }
 
-        protected List<MemberBinder.ConstructorBinder> findInjectableConstructor() {
+        protected List<MemberBinder> findInjectableConstructor() {
             ///CLOVER:OFF
-            final List<MemberBinder.ConstructorBinder> result = metaData()
+            final List<MemberBinder> result = metaData()
                     .constructors()
                     .stream()
                     .filter(ConstructorDescriptor::isInjectable)
-                    .map(MemberBinder.ConstructorBinder::new)
+                    .map(MemberBinder::binder)
                     .collect(toList());
             ///CLOVER:ON
             return checkUnique(result);
         }
 
-        private List<MemberBinder.ConstructorBinder> checkUnique(final List<MemberBinder.ConstructorBinder> constructors) {
+        private List<MemberBinder> checkUnique(final List<MemberBinder> constructors) {
             if (constructors.size() > 1) {
                 throw new JustJSystemException("Class %s has %d Injectable constructors," +
                         " but according to JSR-330 @Inject can apply to at most one constructor per class.",

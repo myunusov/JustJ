@@ -77,11 +77,36 @@ public abstract class MemberBinder {
         return accumulator;
     }
 
+    public static MethodBinder binder(final MethodDescriptor descriptor) {
+        return new MethodBinder(descriptor);
+    }
+
+    public static FieldBinder binder(final FieldDescriptor descriptor) {
+        return new FieldBinder(descriptor);
+    }
+
+    public static ConstructorBinder binder(final ConstructorDescriptor descriptor) {
+        return new ConstructorBinder(descriptor);
+    }
+
+    public void setValue(final Object bean, final Function<BeanReference, BeanWrapper> context) {
+        throw new UnsupportedOperationException();
+    }
+
+    public void invoke(final Object bean, final Function<BeanReference, BeanWrapper> context) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Object newInstance(final Function<BeanReference, BeanWrapper> context) {
+        throw new UnsupportedOperationException();
+    }
+
+
     static class ConstructorBinder extends MemberBinder {
 
         private ConstructorDescriptor constructor;
 
-        ConstructorBinder(final ConstructorDescriptor constructor) {
+        private ConstructorBinder(final ConstructorDescriptor constructor) {
             ///CLOVER:OFF
             super(stream(constructor.getParameterTypes())
                     .map(BeanReference::referenceBy)
@@ -99,7 +124,7 @@ public abstract class MemberBinder {
 
         private final FieldDescriptor field;
 
-        FieldBinder(final FieldDescriptor field) {
+        private FieldBinder(final FieldDescriptor field) {
             super(Collections.singletonList(referenceBy(field.getType())));
             this.field = field;
         }
@@ -118,7 +143,7 @@ public abstract class MemberBinder {
 
         private final MethodDescriptor method;
 
-        MethodBinder(final MethodDescriptor method) {
+        private MethodBinder(final MethodDescriptor method) {
             ///CLOVER:OFF
             super(stream(method.getParameterTypes())
                     .map(BeanReference::referenceBy)
