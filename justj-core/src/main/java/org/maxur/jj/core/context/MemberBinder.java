@@ -23,7 +23,6 @@ import org.maxur.jj.core.reflection.MethodDescriptor;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 import static java.util.Arrays.stream;
@@ -60,21 +59,6 @@ public abstract class MemberBinder {
 
     public boolean isMandatory() {
         return true;
-    }
-
-    public Map<BeanReference, BeanWrapper> dependencies(
-            final Function<BeanReference, BeanWrapper> context,
-            final Map<BeanReference, BeanWrapper> accumulator
-    ) {
-        for (BeanReference ref : references) {
-            if (accumulator.get(ref) != null) {
-                continue;
-            }
-            final BeanWrapper<?> wrapper = context.apply(ref);
-            accumulator.put(ref, wrapper);
-            accumulator.putAll(wrapper.dependencies(context, accumulator));
-        }
-        return accumulator;
     }
 
     public static MethodBinder binder(final MethodDescriptor descriptor) {

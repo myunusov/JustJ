@@ -21,12 +21,11 @@ import org.maxur.jj.core.reflection.ConstructorDescriptor;
 import org.maxur.jj.core.reflection.FieldDescriptor;
 import org.maxur.jj.core.reflection.MethodDescriptor;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -81,32 +80,21 @@ abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
 
     @Override
     public T bean(final Function<BeanReference, BeanWrapper> context) {
-        // TODO
-        //  1. Get Dependencies
-        Stream.of(this).flatMap(b -> b.dependencies(context, new HashMap<>()).entrySet().stream())
-                .forEach(System.out::println);
 
+        //  1. Get Dependencies
         //  2. Create all instances (with proxy if required)
         //  3. Inject all fields
         //  4. Inject all methods
-        final T bean = create(context);
-        injectFields(bean, context)
-        .injectMethods(bean, context);
-        return bean;
-    }
 
-    @Override
-    public Map<BeanReference, BeanWrapper> dependencies(
-            final Function<BeanReference, BeanWrapper> context,
-            final Map<BeanReference, BeanWrapper> accumulator
-    ) {
-        // self
-        accumulator.put(referenceBy(metaData.getType()), this);
-        return Stream.of(injectableConstructor, injectableFields, injectableMethods)
-                .flatMap(list -> list.stream())
-                .flatMap(members -> members.dependencies(context, accumulator).entrySet().stream())
-                .distinct()
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        final Optional<T> result = create(context);
+        if (result.isPresent()) {
+            final T bean = result.get();
+            injectFields(bean, context)
+                    .injectMethods(bean, context);
+            return bean;
+        } else {
+            return null;
+        }
     }
 
     T inject(final T bean, final Function<BeanReference, BeanWrapper> context) {
@@ -141,20 +129,12 @@ abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
         ///CLOVER:ON
     }
 
-    /**
-     * Inject is optional for public, no-argument constructors when no other constructors are present.
-     * This enables injectors to invoke default constructors.
-     *
-     * @param context IoC context function
-     * @return Instance of Bean
-     */
-    @SuppressWarnings("unchecked")
-    protected T create(final Function<BeanReference, BeanWrapper> context) {
-        // XXX check and field value set should be separated
+
+    protected Optional<MemberBinder> constructor() {
         if (injectableConstructor.isEmpty()) {
-            return metaData().newInstance();
+            return Optional.empty();
         } else {
-            return (T) injectableConstructor.get(0).newInstance(context);
+            return Optional.of(injectableConstructor.get(0)) ;
         }
     }
 
@@ -196,8 +176,9 @@ abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
             super(clazz);
             this.supplier = supplier;
         }
-        protected T create(final Function<BeanReference, BeanWrapper> context) {
-            return supplier.get();
+        @Override
+        public Optional<T> create(final Function<BeanReference, BeanWrapper> context) {
+            return Optional.ofNullable(supplier.get());
         }
     }
 
@@ -211,8 +192,9 @@ abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
             this.bean = bean;
         }
 
-        protected T create(final Function<BeanReference, BeanWrapper> context) {
-            return bean;
+        @Override
+        public Optional<T> create(final Function<BeanReference, BeanWrapper> context) {
+            return Optional.ofNullable(bean);
         }
     }
 
@@ -241,6 +223,24 @@ abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
                         getName(), constructors.size());
             }
             return constructors;
+        }
+
+        @Override
+        /**
+         * Inject is optional for public, no-argument constructors when no other constructors are present.
+         * This enables injectors to invoke default constructors.
+         *
+         * @param context IoC context function
+         * @return Instance of Bean
+         */
+        public Optional<T> create(final Function<BeanReference, BeanWrapper> context) {
+            // XXX check and field value set should be separated
+            if (constructor().isPresent()) {
+                //noinspection unchecked
+                return Optional.of((T) constructor().get().newInstance(context));
+            } else {
+                return Optional.of(metaData().newInstance());
+            }
         }
 
     }

@@ -15,11 +15,9 @@
 
 package org.maxur.jj.core.context;
 
-import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import static java.util.Collections.emptyMap;
 
 /**
  * @author Maxim Yunusov
@@ -27,39 +25,29 @@ import static java.util.Collections.emptyMap;
  */
 public interface BeanWrapper<T> {
 
-    static final BeanWrapper NULL_WRAPPER = new BeanWrapper<Object>() {
-
-        @Override
-        public BeanWrapper<Object> checkType(final BeanReference id) {
-            return this;
-        }
-
-        @Override
-        public String toString() {
-            return "Bean \"Null Object\"";
-        }
-
-        @Override
-        public boolean isPresent() {
-            return false;
-        }
-
-        @Override
-        public Map<? extends BeanReference, ? extends BeanWrapper> dependencies(
-                final Function<BeanReference, BeanWrapper> context,
-                final Map<BeanReference, BeanWrapper> accumulator
-        ) {
-            return emptyMap();
-        }
-
-        @Override
-        public Object bean(final Function<BeanReference, BeanWrapper> context) {
-            return null;
-        }
-    };
-
     public static BeanWrapper nullWrapper() {
-        return NULL_WRAPPER;
+        return new BeanWrapper<Object>() {
+            @Override
+            public BeanWrapper<Object> checkType(final BeanReference id) {
+                return this;
+            }
+            @Override
+            public String toString() {
+                return "Bean \"Null Object\"";
+            }
+            @Override
+            public boolean isPresent() {
+                return false;
+            }
+            @Override
+            public Optional<Object> create(Function<BeanReference, BeanWrapper> context) {
+                return Optional.empty();
+            }
+            @Override
+            public Object bean(final Function<BeanReference, BeanWrapper> context) {
+                return null;
+            }
+        };
     }
 
     public static <T> BeanWrapper wrap(final Supplier<T> supplier, final Class<T> clazz) {
@@ -93,8 +81,5 @@ public interface BeanWrapper<T> {
 
     boolean isPresent();
 
-    Map<? extends BeanReference,? extends BeanWrapper> dependencies(
-            Function<BeanReference, BeanWrapper> context,
-            Map<BeanReference, BeanWrapper> accumulator
-    );
+    Optional<T> create(Function<BeanReference, BeanWrapper> context);
 }
