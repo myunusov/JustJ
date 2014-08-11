@@ -23,8 +23,9 @@ import java.time.temporal.ChronoUnit;
 
 import static java.time.LocalDate.now;
 import static org.junit.Assert.assertEquals;
-import static org.maxur.jj.core.sugar.Property.readOnly;
-import static org.maxur.jj.core.sugar.Property.readWrite;
+import static org.maxur.jj.core.sugar.Property.empty;
+import static org.maxur.jj.core.sugar.Property.getter;
+import static org.maxur.jj.core.sugar.Property.ro;
 
 public class PropertyTest {
 
@@ -49,7 +50,7 @@ public class PropertyTest {
 
     @Test
     public void testReadOnlyProperties() throws Exception {
-        dummy.birthdayDate.set(LocalDate.of(now().getYear() - 36, 12, 31));
+        dummy.birthdayDate.set(LocalDate.of(now().getYear() - 35, 1, 1));
         assertEquals(new Long(35), dummy.age.get());
     }
 
@@ -60,22 +61,23 @@ public class PropertyTest {
     }
 
 
-
 }
 
 class Dummy {
 
-    public final FinalProperty<String> name = readOnly("Иван");
+    public final RO<String> name = ro("Иван");
 
-    public final Property<LocalDate> birthdayDate = readWrite();
+    public final RW<LocalDate> birthdayDate = empty();
 
-    public final FinalProperty<Long> age = readOnly(() -> ChronoUnit.YEARS.between(birthdayDate.get(), now()));
+    public final RO<Long> age = getter(
+            () -> ChronoUnit.YEARS.between(birthdayDate.get(), now())
+    ).build();
 
     private Integer m_rating;
 
-    public final Property<Integer> rating = readWrite(
-            () -> m_rating,
-            r -> m_rating = r
-    );
+    public final RW<Integer> rating =
+            getter(() -> m_rating)
+            .setter(r -> m_rating = r)
+            .build();
 
 }

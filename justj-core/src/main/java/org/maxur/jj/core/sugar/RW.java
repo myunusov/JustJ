@@ -15,19 +15,15 @@
 
 package org.maxur.jj.core.sugar;
 
-import java.util.function.Supplier;
-
 /**
  * @author Maxim Yunusov
  * @version 1.0
  * @since <pre>8/11/2014</pre>
  */
-public class ReadOnlyProperty<T> extends ReadWriteProperty<T> implements RO<T> {
+public interface RW<T> extends RO<T> {
 
-    public ReadOnlyProperty(final Supplier<T> getter) {
-        super(getter, x -> {
-                throw new UnsupportedOperationException();
-            }
-        );
-    }
+    void set(T value);
+
+    T get();
+
 }

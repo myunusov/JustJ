@@ -23,7 +23,7 @@ import java.util.function.Supplier;
  * @version 1.0
  * @since <pre>8/11/2014</pre>
  */
-public class ReadWriteProperty<T> implements Property<T> {
+public class ReadWriteProperty<T> implements RW<T> {
 
     private final Consumer<T> setter;
 

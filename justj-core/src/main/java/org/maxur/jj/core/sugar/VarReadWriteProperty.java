@@ -22,15 +22,15 @@ import static java.util.Objects.requireNonNull;
  * @version 1.0
  * @since <pre>8/11/2014</pre>
  */
-public class SimpleReadWriteProperty<T> implements Property<T> {
+public class VarReadWriteProperty<T> implements RW<T> {
 
     private T value;
 
-    public SimpleReadWriteProperty(T value) {
+    public VarReadWriteProperty(T value) {
         this.value = requireNonNull(value);
     }
 
-    public SimpleReadWriteProperty() {
+    public VarReadWriteProperty() {
         this.value = null;
     }
 

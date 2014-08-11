@@ -15,28 +15,19 @@
 
 package org.maxur.jj.core.sugar;
 
-import static java.util.Objects.requireNonNull;
-
 /**
  * @author Maxim Yunusov
  * @version 1.0
  * @since <pre>8/11/2014</pre>
  */
-public class SimpleReadOnlyProperty<T> implements FinalProperty<T> {
+public class VarReadOnlyProperty<T> extends VarReadWriteProperty<T> implements RO<T> {
 
-    private final T value;
-
-    public SimpleReadOnlyProperty(final T value) {
-        this.value = requireNonNull(value);
+    public VarReadOnlyProperty(final T value) {
+        super(value);
     }
 
     @Override
-    public T get() {
-        return check(value);
+    public void set(T value) {
+        throw new UnsupportedOperationException();
     }
-
-    public boolean isPresent() {
-        return value != null;
-    }
-
 }

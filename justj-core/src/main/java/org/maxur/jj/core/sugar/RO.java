@@ -22,7 +22,7 @@ import java.util.NoSuchElementException;
  * @version 1.0
  * @since <pre>8/11/2014</pre>
  */
-public interface FinalProperty<T> {
+public interface RO<T> extends Property {
 
     T get();
 
