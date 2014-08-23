@@ -16,7 +16,7 @@
 package org.maxur.jj.sample.hello;
 
 import static java.lang.String.format;
-import static org.maxur.jj.core.context.Application.currentContext;
+import static org.maxur.jj.core.context.Application.currentScope;
 import static org.maxur.jj.core.context.Application.system;
 
 /**
@@ -34,8 +34,8 @@ public final class HelloWorldServiceLocator {
     public static void main(String[] args) {
         system().runWith(
                 () -> {
-                    currentContext().put(String.class, "World");
-                    System.out.println(format("Hello %s", currentContext().bean(String.class)));
+                    currentScope().addBean(String.class, "World");
+                    System.out.println(format("Hello %s", currentScope().bean(String.class)));
                 }
         );
 

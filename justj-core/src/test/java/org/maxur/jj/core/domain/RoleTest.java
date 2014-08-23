@@ -27,7 +27,7 @@ public class RoleTest {
 
     @Test
     public void testAnyRoleSuitableToAnyClass() throws Exception {
-        assertTrue(Role.ANY.suitableTo((new Object() {}).getClass()));
+        assertTrue(Role.any().suitableTo((new Object() {}).getClass()));
     }
 
     @Test

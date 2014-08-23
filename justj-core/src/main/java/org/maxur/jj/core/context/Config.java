@@ -27,14 +27,13 @@ import java.util.function.Supplier;
  */
 public abstract class Config extends Entity {
 
-    private Context context;
+    private Container scope;
 
-    public final Context applyTo(final Context context) {
-        this.context = context;
+    public final void applyTo(final Container scope) {
+        this.scope = scope;
         preConfig();
         config();
         postConfig();
-        return context;
     }
 
     protected abstract void config();
@@ -48,48 +47,48 @@ public abstract class Config extends Entity {
     }
 
     public <T> Binder<T> bind(final Role<T> role) {
-        return new RoleBinder<>(context, role);
+        return new RoleBinder<>(scope, role);
     }
 
     public <T> Binder<T> bind(Class<T> type) {
-        return new TypeBinder<>(context, type);
+        return new TypeBinder<>(scope, type);
     }
 
     public abstract static class Binder<T> {
 
-        protected final Context context;
+        protected final Container scope;
 
-        protected Binder(final Context context) {
-            this.context = context;
+        protected Binder(final Container scope) {
+            this.scope = scope;
         }
 
-        public abstract void to(Supplier<T> supplier);
+        public abstract void to(Supplier<? extends T> supplier);
 
-        public abstract void to(Object bean);
+        public abstract void to(T bean);
 
-        public abstract void to(Class type);
+        public abstract void to(Class<? extends T> type);
     }
 
     private static class RoleBinder<T> extends Binder<T> {
 
         private final Role<T> role;
 
-        public RoleBinder(final Context context, final Role<T> role) {
-            super(context);
+        public RoleBinder(final Container scope, final Role<T> role) {
+            super(scope);
             this.role = role;
         }
 
-        public void to(final Supplier<T> supplier) {
-            context.put(role, supplier);
+        public void to(final Supplier<? extends T> supplier) {
+            scope.addSupplier(role, supplier);
         }
 
-        public void to(final Object bean) {
-            context.put(role, bean);
+        public void to(final T bean) {
+            scope.addBean(role, bean);
         }
 
         @Override
-        public void to(final Class type) {
-            context.put(role, type);
+        public void to(final Class<? extends T> type) {
+            scope.addType(role, type);
         }
     }
 
@@ -97,22 +96,22 @@ public abstract class Config extends Entity {
 
         private final Class<T> type;
 
-        public TypeBinder(final Context context, final Class<T> type) {
-            super(context);
+        public TypeBinder(final Container scope, final Class<T> type) {
+            super(scope);
             this.type = type;
         }
 
-        public void to(final Supplier<T> supplier) {
-            context.put(type, supplier);
+        public void to(final Supplier<? extends T> supplier) {
+            scope.addSupplier(type, supplier);
         }
 
-        public void to(final Object bean) {
-            context.put(type, bean);
+        public void to(final T bean) {
+            scope.addBean(type, bean);
         }
 
         @Override
-        public void to(final Class type) {
-            context.put(this.type, type);
+        public void to(final Class<? extends T> type) {
+            scope.addType(this.type, type);
         }
     }
 }

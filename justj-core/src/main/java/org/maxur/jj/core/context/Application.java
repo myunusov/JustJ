@@ -34,30 +34,26 @@ public abstract class Application {
 
     public static final Role<Application> APPLICATION = role("Application", Application.class);
 
-    private static final ThreadLocal<Context> CONTEXT_HOLDER = new ThreadLocal<>();
+    private static final ThreadLocal<Scope> CONTEXT_HOLDER = new ThreadLocal<>();
 
-    public static Context currentContext() {
-        final Context result = CONTEXT_HOLDER.get();
+    public static Scope currentScope() {
+        final Scope result = CONTEXT_HOLDER.get();
         if (result != null) {
             return result;
         }
-        final Context context = new Context();
-        CONTEXT_HOLDER.set(context);
-        return context;
+        final Scope scope = new BaseScope();
+        CONTEXT_HOLDER.set(scope);
+        return scope;
     }
 
-    public static Context branchContext() {
-        final Context result = new Context(currentContext());
+    public static Scope branchScope() {
+        final Scope result = currentScope().branch() ;
         CONTEXT_HOLDER.set(result);
         return result;
     }
 
     public static void closeContext() {
-        if (currentContext().parent().isPresent()) {
-            CONTEXT_HOLDER.set(currentContext().parent().get());
-        } else {
-            CONTEXT_HOLDER.set(null);
-        }
+        CONTEXT_HOLDER.set(currentScope().parent());
     }
 
     public static Application configBy(final Supplier<? extends Config> supplier)  {
@@ -69,24 +65,31 @@ public abstract class Application {
     }
 
     public static Application configBy(final Config config)  {
-        final Context context = currentContext();
-        config.applyTo(context);
-        return getApplication(context);
+        final Scope scope = currentScope();
+        scope.accept(config);
+        return getApplication(scope);
     }
 
     public static Application system() {
-        return getApplication(currentContext());
+        return getApplication(currentScope());
     }
 
-    private static Application getApplication(final Context context) {
-        Application application = context.bean(APPLICATION);
-        if (application == null ) {
-            application = new Application() {
+    private static Application getApplication(final Scope scope) {
+        final Application application = scope.bean(APPLICATION);
+        if (application == null) {
+            final Application result = new Application() {
             };
-            context.put(APPLICATION, application);
+            currentScope().accept(
+                    new Config() {
+                        @Override
+                        protected void config() {
+                            bind(APPLICATION).to(result);
+                        }
+                    }
+            );
+            return result;
         }
-        return context.inject(application);
-
+        return application;
     }
 
     public final void runWith(final String[] args) {
@@ -121,7 +124,7 @@ public abstract class Application {
     }
 
     public void runWith(final Command executor) {
-        currentContext().inject(executor);
+        currentScope().inject(executor);
         executor.run();
     }
 }

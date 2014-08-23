@@ -21,16 +21,21 @@ package org.maxur.jj.core.domain;
  */
 public class Role<T> extends Entity {
 
-    private final Class<T> suitableType;
-
-    private final String name;
-
-    public static final Role<Object> ANY = new Role<Object>("Anything", Object.class) {
+    private static final Role ANYTHING = new Role("Anything", Object.class) {
         @Override
         public boolean suitableTo(Class type) {
             return true;
         }
     };
+
+    private final Class<T> suitableType;
+
+    private final String name;
+
+    public static <Z> Role<Z> any() {
+        //noinspection unchecked
+        return ANYTHING;
+    }
 
     public static <O> Role<O> role(final String name, final Class<O> suitableType) {
         return new Role<>(name, suitableType);

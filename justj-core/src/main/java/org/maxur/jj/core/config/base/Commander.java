@@ -15,12 +15,12 @@
 
 package org.maxur.jj.core.config.base;
 
-import org.maxur.jj.core.context.Context;
+import org.maxur.jj.core.context.Scope;
 import org.maxur.jj.core.domain.Command;
 import org.maxur.jj.core.domain.CommandMapper;
 import org.maxur.jj.core.domain.Executor;
 
-import static org.maxur.jj.core.context.Application.branchContext;
+import static org.maxur.jj.core.context.Application.branchScope;
 import static org.maxur.jj.core.context.Application.closeContext;
 
 /**
@@ -37,8 +37,8 @@ public abstract class Commander implements CommandMapper<String[]> {
             }
 
             public final void run() {
-                final Context context = branchContext();
-                context.inject(this);
+                final Scope scope = branchScope();
+                scope.inject(this);
                 doIt();
                 closeContext();
             }

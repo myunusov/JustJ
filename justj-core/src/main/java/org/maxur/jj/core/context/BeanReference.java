@@ -15,88 +15,78 @@
 
 package org.maxur.jj.core.context;
 
-import org.maxur.jj.core.domain.Role;
-import org.maxur.jj.core.reflection.Dependency;
-
-import static java.lang.String.format;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * @author Maxim Yunusov
- * @version 1.0 20.07.2014
+ * @version 1.0 10.08.2014
  */
-public abstract class BeanReference {
+public interface BeanReference<T> {
 
-    public static BeanReference identifier(final Role role) {
-        return new RoleReference(role);
+    public static <Z> BeanReference<Z> nullReference() {
+        return new BeanReference<Z>() {
+            @Override
+            public BeanReference<Z> checkType(final BeanIdentifier id) {
+                return this;
+            }
+            @Override
+            public String toString() {
+                return "Bean \"Null Object\"";
+            }
+            @Override
+            public boolean isPresent() {
+                return false;
+            }
+            @Override
+            public Optional<Z> create(InnerScope scope) {
+                return Optional.empty();
+            }
+
+            @Override
+            public Z inject(Z bean, InnerScope scope) {
+                return null;
+            }
+
+            @Override
+            public Z bean(final InnerScope scope) {
+                return null;
+            }
+        };
     }
 
-    public static BeanReference referenceBy(final Class type) {
-        return new TypeReference(type);
+    public static <Z> BeanReference<Z> reference(final Supplier<? extends Z> supplier, final Class<Z> clazz) {
+        if (supplier == null) {
+            throw new IllegalArgumentException("Been must not be null");
+        }
+        return new BaseBeanReference.SupplierBeanReference<Z>(supplier, clazz);
     }
 
-    public abstract Class getType();
-
-    static final class RoleReference extends BeanReference {
-
-        private final Role role;
-
-        public RoleReference(final Role role) {
-            this.role = role;
+    public static <T> BeanReference<T> reference(final T bean) {
+        if (bean == null) {
+            throw new IllegalArgumentException("Been must not be null");
         }
-
-        @Override
-        public Class getType() {
-            return role.getSuitableType();
-        }
-
-        @Override
-        public String toString() {
-            return format("Bean of '%s' role", role);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return this == o ||
-                    o instanceof RoleReference &&
-                            role.equals(((RoleReference) o).role);
-        }
-
-        @Override
-        public int hashCode() {
-            return role.hashCode();
-        }
+        return new BaseBeanReference.ObjectBeanReference<>(bean);
     }
 
-    static final class TypeReference extends BeanReference implements Dependency {
-
-        private final Class type;
-
-        public TypeReference(final Class type) {
-            this.type = type;
+    public static <T> BeanReference<T> reference(final Class<T> clazz) {
+        if (clazz == null) {
+            throw new IllegalArgumentException("Class of been must not be null");
         }
-
-        @Override
-        public Class getType() {
-            return type;
-        }
-
-        @Override
-        public String toString() {
-            return format("Bean of '%s' type", type.getName());
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return this == o ||
-                    o instanceof TypeReference &&
-                            type.equals(((TypeReference) o).type);
-        }
-
-        @Override
-        public int hashCode() {
-            return type.hashCode();
-        }
+        return new BaseBeanReference.ClassBeanReference<>(clazz);
     }
 
+    public static <T> T inject(final InnerScope scope, final T bean) {
+        return reference(bean).inject(bean, scope);
+    }
+
+    T bean(InnerScope scope);
+
+    BeanReference checkType(BeanIdentifier id);
+
+    boolean isPresent();
+
+    Optional<T> create(InnerScope scope);
+
+    T inject(T bean, InnerScope scope);
 }
-

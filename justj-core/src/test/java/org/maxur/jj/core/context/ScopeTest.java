@@ -53,125 +53,122 @@ import org.maxur.jj.core.domain.Role;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.function.Supplier;
-
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.maxur.jj.core.domain.Role.role;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ContextTest {
+public class ScopeTest {
 
     @Spy
-    private Context root;
+    private BaseScope root;
 
     @Spy
-    private Context child;
+    private BaseScope child;
 
     @Before
     public void setUp() throws Exception {
-        root = new Context();
-        child = new Context(root);
+        root = new BaseScope();
+        child = new BaseScope(root);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testBindRoleToNullBean() throws Exception {
-        root.put(Role.ANY, (Object) null);
+        root.addBean(Role.any(), (Object) null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testBindRoleToNullSupplier() throws Exception {
-        root.put(Role.ANY, (Supplier<Object>) null);
+        root.addSupplier(Role.any(), null);
     }
 
     @Test
     public void testBindRoleToBean() throws Exception {
         final Object bean = new Object();
-        root.put(Role.ANY, bean);
-        assertEquals(bean, root.bean(Role.ANY));
+        root.addBean(Role.any(), bean);
+        assertEquals(bean, root.bean(Role.any()));
     }
 
     @Test
     public void testBindTypeToType() throws Exception {
-        root.put(Object.class, Object.class);
+        root.addType(Object.class, Object.class);
         assertEquals(Object.class, root.bean(Object.class).getClass());
     }
 
     @Test
     public void testBindRoleToType() throws Exception {
-        root.put(Role.ANY, Object.class);
-        assertEquals(Object.class, root.bean(Role.ANY).getClass());
+        root.addType(Role.any(), Object.class);
+        assertEquals(Object.class, root.bean(Role.any()).getClass());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testBindTypeToWrongType() throws Exception {
-        root.put(String.class, Object.class);
+        final Class<String> aClass = (Class<String>) getObjectClass();
+        root.addType(String.class, aClass);
+    }
+
+    private Class getObjectClass() {
+        return Object.class;
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void testBindTypeToNull() throws Exception {
-        root.put(Role.ANY, (Class) null);
+        root.addType(Role.any(), null);
     }
 
     @Test
     public void testBindTypeToBean() throws Exception {
-        root.put(String.class, "");
+        root.addBean(String.class, "");
         assertEquals("", root.bean(String.class));
     }
 
     @Test
     public void testBindRoleToSupplier() throws Exception {
         final Object bean = new Object();
-        root.put(Role.ANY, () -> bean);
-        assertEquals(bean, root.bean(Role.ANY));
+        root.addSupplier(Role.any(), () -> bean);
+        assertEquals(bean, root.bean(Role.any()));
     }
 
     @Test
     public void testBindTypeToSupplier() throws Exception {
-        root.put(String.class, () -> "");
+        root.addSupplier(String.class, () -> "");
         assertEquals("", root.bean(String.class));
     }
 
     @Test
     public void testAccessToParentsBean() throws Exception {
         final Object bean = new Object();
-        root.put(Role.ANY, bean);
-        assertEquals(bean, child.bean(Role.ANY));
+        root.addBean(Role.any(), bean);
+        assertEquals(bean, child.bean(Role.any()));
     }
 
     @Test(expected = JustJSystemException.class)
     public void testPutDuplicateBeanByRole() throws Exception {
-        root.put(Role.ANY, new Object());
-        root.put(Role.ANY, new Object());
+        root.addBean(Role.any(), new Object());
+        root.addBean(Role.any(), new Object());
     }
 
     @Test(expected = JustJSystemException.class)
     public void testPutDuplicateBeanByType() throws Exception {
-        root.put(String.class, "");
-        root.put(String.class, "");
+        root.addBean(String.class, "");
+        root.addBean(String.class, "");
     }
 
     @Test
     public void testAccessToAbsentBean() throws Exception {
-        assertNull(root.bean(Role.ANY));
+        assertNull(root.bean(Role.any()));
     }
 
     @Test
     public void testAccessToInvalidSupplier() throws Exception {
-        root.put(Role.ANY, () -> null);
-        assertNull(root.bean(Role.ANY));
+        root.addSupplier(Role.any(), () -> null);
+        assertNull(root.bean(Role.any()));
     }
 
     @Test(expected = JustJSystemException.class)
     public void testPutDuplicateBeanByTypeWithParent() throws Exception {
-        root.put(String.class, "");
-        child.put(String.class, "");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testPutUnsuitableBean() throws Exception {
-        root.put(role("Integer", Integer.class), "");
+        root.addBean(String.class, "");
+        child.addBean(String.class, "");
     }
 
     @Test
@@ -186,7 +183,7 @@ public class ContextTest {
 
     @Test
     public void testGetParent() throws Exception {
-        assertEquals(root, child.parent().get());
+        assertEquals(root, child.parent());
     }
 
 
@@ -198,7 +195,7 @@ public class ContextTest {
         EqualsVerifier
                 .forClass(DummyContext.class)
                 .withRedefinedSuperclass()
-                .withPrefabValues(Context.class, new Context(), new Context())
+                .withPrefabValues(BaseScope.class, new BaseScope(), new BaseScope())
                 .verify();
     }
 
@@ -207,34 +204,34 @@ public class ContextTest {
 
     @Test
     public void testBindTypeToTypeWithInjectByConstructor() throws Exception {
-        root.put(Role.ANY, Dummy2.class);
+        root.addType(Role.any(), Dummy2.class);
         final Dummy bean2 = new Dummy();
-        root.put(Dummy.class, bean2);
-        final Dummy2 bean = root.bean(Role.ANY);
+        root.addBean(Dummy.class, bean2);
+        final Dummy2 bean = root.bean(Role.<Dummy2>any());
         assertEquals(Dummy2.class, bean.getClass());
         assertEquals(bean2, bean.dummy);
     }
 
     @Test(expected = JustJSystemException.class)
     public void testBindTypeToTypeWithInjectByConstructorWithSecondConstructor() throws Exception {
-        root.put(Dummy.class, new Dummy());
-        root.put(String.class, "");
-        root.put(Role.ANY, Dummy3.class);
+        root.addBean(Dummy.class, new Dummy());
+        root.addBean(String.class, "");
+        root.addType(Role.any(), Dummy3.class);
     }
 
     @Test(expected = JustJSystemException.class)
     public void testBindTypeToTypeWithInjectByConstructorWithUnavailableOne() throws Exception {
-        root.put(Role.ANY, Dummy4.class);
-        root.bean(Role.ANY);
+        root.addType(Role.any(), Dummy4.class);
+        root.bean(Role.any());
     }
 
     @Test
     public void testBindTypeToTypeWithInjectByConstructorWithTwoParams() throws Exception {
-        root.put(Role.ANY, Dummy5.class);
-        root.put(String.class, "");
+        root.addType(Role.any(), Dummy5.class);
+        root.addBean(String.class, "");
         final Dummy bean2 = new Dummy();
-        root.put(Dummy.class, bean2);
-        final Dummy5 bean = root.bean(Role.ANY);
+        root.addBean(Dummy.class, bean2);
+        final Dummy5 bean = root.bean(Role.<Dummy5>any());
         assertEquals(Dummy5.class, bean.getClass());
         assertEquals("", bean.value);
         assertEquals(bean2, bean.dummy);
@@ -242,31 +239,31 @@ public class ContextTest {
 
     @Test(expected = JustJSystemException.class)
     public void testBindTypeToTypeWithInjectByConstructorWithAbsentOneParam() throws Exception {
-        root.put(Role.ANY, Dummy5.class);
+        root.addType(Role.any(), Dummy5.class);
         final Dummy bean2 = new Dummy();
-        root.put(Dummy.class, bean2);
-        root.bean(Role.ANY);
+        root.addBean(Dummy.class, bean2);
+        root.bean(Role.any());
     }
 
     @Test(expected = JustJSystemException.class)
     public void testBindTypeToTypeWithInjectByConstructorWithAbsentAllParams() throws Exception {
-        root.put(Role.ANY, Dummy5.class);
-        root.bean(Role.ANY);
+        root.addType(Role.any(), Dummy5.class);
+        root.bean(Role.any());
     }
 
     @Test(expected = JustJSystemException.class)
     public void testBindTypeToTypeWithInjectByConstructorWithAbstractClass() throws Exception {
-        root.put(Role.ANY, Dummy6.class);
+        root.addType(Role.any(), Dummy6.class);
         final Dummy bean2 = new Dummy();
-        root.put(Dummy.class, bean2);
-        root.bean(Role.ANY);
+        root.addBean(Dummy.class, bean2);
+        root.bean(Role.any());
     }
 
     @Test
     @Ignore
     public void testBindTypeToTypeWithInjectByConstructorWithCircularDependencies() throws Exception {
-        root.put(Dummy7.class, Dummy7.class);
-        root.put(Dummy8.class, Dummy8.class);
+        root.addType(Dummy7.class, Dummy7.class);
+        root.addType(Dummy8.class, Dummy8.class);
         root.bean(Dummy7.class);
         root.bean(Dummy8.class);
     }
@@ -278,13 +275,13 @@ public class ContextTest {
 
     are annotated with @Inject.
     are not final.
-    may have any otherwise valid name
+    may have any() otherwise valid name
 */
 
     @Test
     public void testInjectByFieldBean() throws Exception {
         final Dummy bean2 = new Dummy();
-        root.put(Dummy.class, bean2);
+        root.addBean(Dummy.class, bean2);
         final Dummy10 bean = new Dummy10();
         root.inject(bean);
         assertEquals(bean2, bean.a);
@@ -292,10 +289,10 @@ public class ContextTest {
 
     @Test
     public void testBindTypeToTypeWithInjectByField() throws Exception {
-        root.put(Role.ANY, Dummy10.class);
+        root.addType(Role.any(), Dummy10.class);
         final Dummy bean2 = new Dummy();
-        root.put(Dummy.class, bean2);
-        final Dummy10 bean = root.bean(Role.ANY);
+        root.addBean(Dummy.class, bean2);
+        final Dummy10 bean = root.bean(Role.<Dummy10>any());
         assertEquals(Dummy10.class, bean.getClass());
         assertEquals(bean2, bean.a);
     }
@@ -308,8 +305,8 @@ public class ContextTest {
     @Test
     @Ignore
     public void testInjectByFieldWithCircularDependencies() {
-        root.put(Dummy11.class, Dummy11.class);
-        root.put(Dummy12.class, Dummy12.class);
+        root.addType(Dummy11.class, Dummy11.class);
+        root.addType(Dummy12.class, Dummy12.class);
         final Dummy11 dummy11 = root.bean(Dummy11.class);
         final Dummy12 dummy12 = root.bean(Dummy12.class);
         assertEquals(dummy11, dummy12.dummy);
@@ -317,9 +314,9 @@ public class ContextTest {
 
     @Test
     public void testInjectByFieldWithOptionalField() {
-        root.put(Dummy13.class, Dummy13.class);
+        root.addType(Dummy13.class, Dummy13.class);
         final Dummy dummy = new Dummy();
-        root.put(Dummy.class, dummy);
+        root.addBean(Dummy.class, dummy);
         final Dummy13 bean = root.bean(Dummy13.class);
         assertEquals(dummy, bean.a);
         assertNull(bean.b);
@@ -327,9 +324,9 @@ public class ContextTest {
 
     @Test
     public void testInjectByFieldWithDuplicateFields() {
-        root.put(Dummy14.class, Dummy14.class);
+        root.addType(Dummy14.class, Dummy14.class);
         final Dummy dummy = new Dummy();
-        root.put(Dummy.class, dummy);
+        root.addBean(Dummy.class, dummy);
         final Dummy14 bean = root.bean(Dummy14.class);
         assertEquals(dummy, bean.a);
         assertEquals(dummy, bean.b);
@@ -337,9 +334,9 @@ public class ContextTest {
 
     @Test
     public void testInjectByFieldWithPrivateModifier() {
-        root.put(Dummy15.class, Dummy15.class);
+        root.addType(Dummy15.class, Dummy15.class);
         final Dummy dummy = new Dummy();
-        root.put(Dummy.class, dummy);
+        root.addBean(Dummy.class, dummy);
         final Dummy15 dummy15 = root.bean(Dummy15.class);
         assertEquals(dummy, dummy15.getA());
     }
@@ -347,9 +344,9 @@ public class ContextTest {
     //are not final.
     @Test
     public void testInjectByMethodWithFinalModifier() {
-        root.put(Dummy34.class, Dummy34.class);
+        root.addType(Dummy34.class, Dummy34.class);
         final Dummy dummy = new Dummy();
-        root.put(Dummy.class, dummy);
+        root.addBean(Dummy.class, dummy);
         final Dummy34 bean = root.bean(Dummy34.class);
         assertNull(bean.a);
     }
@@ -357,7 +354,7 @@ public class ContextTest {
     @Test
     public void testInjectByFieldWithStaticModifier() {
         final Dummy dummy = new Dummy();
-        root.put(Dummy.class, dummy);
+        root.addBean(Dummy.class, dummy);
         root.inject(new Dummy31());
         assertEquals(dummy, Dummy31.a);
     }
@@ -365,8 +362,8 @@ public class ContextTest {
     @Test
     public void testInjectByFieldWithSuperTypeMethod() {
         final Dummy dummy = new Dummy();
-        root.put(Dummy.class, dummy);
-        root.put(Dummy33.class, Dummy33.class);
+        root.addBean(Dummy.class, dummy);
+        root.addType(Dummy33.class, Dummy33.class);
         final Dummy33 bean = root.bean(Dummy33.class);
         assertEquals(dummy, bean.a);
         assertEquals(dummy, bean.c);
@@ -382,31 +379,31 @@ public class ContextTest {
     are not abstract.
     do not declare type parameters of their own.
     may return a result
-    may have any otherwise valid name.
+    may have any() otherwise valid name.
     accept zero or more dependencies as arguments.
     */
 
     @Test
     public void testInjectByMethod() {
-        root.put(Dummy20.class, Dummy20.class);
+        root.addType(Dummy20.class, Dummy20.class);
         final Dummy20 bean = root.bean(Dummy20.class);
         assertNotNull(bean.a);
     }
 
     @Test
     public void testInjectByMethodWithParams() {
-        root.put(Dummy21.class, Dummy21.class);
+        root.addType(Dummy21.class, Dummy21.class);
         final Dummy dummy = new Dummy();
-        root.put(Dummy.class, dummy);
+        root.addBean(Dummy.class, dummy);
         final Dummy21 bean = root.bean(Dummy21.class);
         assertEquals(dummy, bean.a);
     }
 
     @Test
     public void testInjectByMethodWithTwoSameParams() {
-        root.put(Dummy22.class, Dummy22.class);
+        root.addType(Dummy22.class, Dummy22.class);
         final Dummy dummy = new Dummy();
-        root.put(Dummy.class, dummy);
+        root.addBean(Dummy.class, dummy);
         final Dummy22 bean = root.bean(Dummy22.class);
         assertEquals(dummy, bean.a);
         assertEquals(dummy, bean.b);
@@ -414,10 +411,10 @@ public class ContextTest {
 
     @Test
     public void testInjectByMethodWithTwoParams() {
-        root.put(Dummy23.class, Dummy23.class);
+        root.addType(Dummy23.class, Dummy23.class);
         final Dummy dummy = new Dummy();
-        root.put(Dummy.class, dummy);
-        root.put(Dummy2.class, Dummy2.class);
+        root.addBean(Dummy.class, dummy);
+        root.addType(Dummy2.class, Dummy2.class);
         final Dummy23 bean = root.bean(Dummy23.class);
         assertEquals(dummy, bean.a);
         assertNotNull(bean.b);
@@ -425,16 +422,16 @@ public class ContextTest {
 
     @Test(expected = JustJSystemException.class)
     public void testInjectByMethodWithAbsentParams() {
-        root.put(Dummy21.class, Dummy21.class);
+        root.addType(Dummy21.class, Dummy21.class);
         root.bean(Dummy21.class);
     }
 
     // A method with no @Inject annotation that overrides a method annotated with @Inject will not be injected.
     @Test()
     public void testInjectByMethodWithOverrideWithoutInject() {
-        root.put(Dummy25.class, Dummy25.class);
+        root.addType(Dummy25.class, Dummy25.class);
         final Dummy dummy = new Dummy();
-        root.put(Dummy.class, dummy);
+        root.addBean(Dummy.class, dummy);
         final Dummy25 bean = root.bean(Dummy25.class);
         assertNull(bean.a);
     }
@@ -443,9 +440,9 @@ public class ContextTest {
     // only be injected once per injection request per instance
     @Test()
     public void testInjectByMethodWithOverrideWithInject() {
-        root.put(Dummy25.class, Dummy25.class);
+        root.addType(Dummy25.class, Dummy25.class);
         final Dummy dummy = new Dummy();
-        root.put(Dummy.class, dummy);
+        root.addBean(Dummy.class, dummy);
         final Dummy25 bean = root.bean(Dummy25.class);
         assertEquals(1, bean.count);
         assertEquals(dummy, bean.b);
@@ -462,9 +459,9 @@ public class ContextTest {
     @Ignore
     public void testGetBySuperType() {
         final Dummy25 dummy25 = new Dummy25();
-        root.put(Dummy25.class, dummy25);
+        root.addBean(Dummy25.class, dummy25);
         final Dummy dummy = new Dummy();
-        root.put(Dummy.class, dummy);
+        root.addBean(Dummy.class, dummy);
         final Dummy24 bean = root.bean(Dummy24.class);
         assertEquals(bean, dummy25);
     }
@@ -474,23 +471,23 @@ public class ContextTest {
     public void testInjectByMethodWithCircularDependencies() {
         final Dummy27 dummy27 = new Dummy27();
         final Dummy26 dummy26 = new Dummy26();
-        root.put(Dummy27.class, dummy27);
-        root.put(Dummy26.class, dummy26);
+        root.addBean(Dummy27.class, dummy27);
+        root.addBean(Dummy26.class, dummy26);
         final Dummy26 bean = root.bean(Dummy26.class);
         assertEquals(dummy27, bean.a);
     }
 
     @Test(expected = JustJSystemException.class)
     public void testInjectByMethodWithThrowsException() {
-        root.put(Dummy28.class, Dummy28.class);
+        root.addType(Dummy28.class, Dummy28.class);
         root.bean(Dummy28.class);
     }
 
     @Test
     public void testInjectByMethodWithPrivateModifier() {
-        root.put(Dummy29.class, Dummy29.class);
+        root.addType(Dummy29.class, Dummy29.class);
         final Dummy dummy = new Dummy();
-        root.put(Dummy.class, dummy);
+        root.addBean(Dummy.class, dummy);
         final Dummy29 bean = root.bean(Dummy29.class);
         assertEquals(dummy, bean.a);
     }
@@ -498,7 +495,7 @@ public class ContextTest {
     @Test
     public void testInjectByMethodWithStaticModifier() {
         final Dummy dummy = new Dummy();
-        root.put(Dummy.class, dummy);
+        root.addBean(Dummy.class, dummy);
         root.inject(new Dummy30());
         assertEquals(dummy, Dummy30.a);
     }
@@ -506,8 +503,8 @@ public class ContextTest {
     @Test
     public void testInjectByMethodWithSuperTypeMethod() {
         final Dummy dummy = new Dummy();
-        root.put(Dummy.class, dummy);
-        root.put(Dummy33.class, Dummy33.class);
+        root.addBean(Dummy.class, dummy);
+        root.addType(Dummy33.class, Dummy33.class);
         final Dummy33 bean = root.bean(Dummy33.class);
         assertEquals(dummy, bean.b);
         assertEquals(dummy, bean.d);

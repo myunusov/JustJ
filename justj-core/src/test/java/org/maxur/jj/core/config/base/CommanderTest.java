@@ -17,7 +17,7 @@ package org.maxur.jj.core.config.base;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.maxur.jj.core.context.Context;
+import org.maxur.jj.core.context.Scope;
 import org.maxur.jj.core.domain.Command;
 import org.maxur.jj.test.ImmutableVerifier;
 import org.mockito.Mock;
@@ -27,7 +27,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 public class CommanderTest {
 
     @Mock
-    private Context context;
+    private Scope scope;
 
     @Test
     public void testImmutable() throws Exception {

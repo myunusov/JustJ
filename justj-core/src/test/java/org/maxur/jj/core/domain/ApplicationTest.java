@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.maxur.jj.core.context.Application;
 import org.maxur.jj.core.context.Config;
-import org.maxur.jj.core.context.Context;
+import org.maxur.jj.core.context.Scope;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
@@ -31,8 +31,8 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.maxur.jj.core.context.Application.APPLICATION;
-import static org.maxur.jj.core.context.Application.branchContext;
-import static org.maxur.jj.core.context.Application.currentContext;
+import static org.maxur.jj.core.context.Application.branchScope;
+import static org.maxur.jj.core.context.Application.currentScope;
 import static org.maxur.jj.core.domain.Command.command;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -117,9 +117,9 @@ public class ApplicationTest {
 
     @Test
     public void testBranchContext() throws Exception {
-        final Context root = currentContext();
-        final Context context = branchContext();
-        assertEquals(root, context.parent().get());
+        final Scope root = currentScope();
+        final Scope scope = branchScope();
+        assertEquals(root, scope.parent());
         Application.closeContext();
     }
 

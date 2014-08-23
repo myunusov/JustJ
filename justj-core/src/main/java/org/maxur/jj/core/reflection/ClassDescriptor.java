@@ -39,7 +39,7 @@ public final class ClassDescriptor<T> {
         this.beanClass = beanClass;
     }
 
-    public static <T> ClassDescriptor<T> meta(@NonNull final Class<T> beanClass) {
+    public static <Z> ClassDescriptor<Z> meta(@NonNull final Class<Z> beanClass) {
         if (beanClass == null) {
             throw new IllegalArgumentException(
                     "Parameter 'beanClass' of 'ClassMetaData.meta()' function must not be null"

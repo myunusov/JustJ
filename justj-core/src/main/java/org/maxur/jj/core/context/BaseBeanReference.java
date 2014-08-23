@@ -23,7 +23,6 @@ import org.maxur.jj.core.reflection.MethodDescriptor;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
@@ -35,17 +34,17 @@ import static org.maxur.jj.core.reflection.ClassDescriptor.meta;
  * @author Maxim Yunusov
  * @version 1.0 20.07.2014
  */
-abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
+abstract class BaseBeanReference<T> implements BeanReference<T> {
 
-    private final List<MemberBinder> injectableFields;
+    private final List<MemberReference> injectableFields;
 
-    private final List<MemberBinder> injectableMethods;
+    private final List<MemberReference> injectableMethods;
 
-    private final List<MemberBinder> injectableConstructor;
+    private final List<MemberReference> injectableConstructor;
 
-    private final ClassDescriptor<T> metaData;
+    private final ClassDescriptor<? extends T> metaData;
 
-    protected BaseBeanWrapper(final Class<T> clazz) {
+    protected BaseBeanReference(final Class<? extends T> clazz) {
         // XXX Flyweight with IoC
         metaData = meta(clazz);
         injectableConstructor = findInjectableConstructor();
@@ -54,7 +53,7 @@ abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
     }
 
     @Override
-    public BeanWrapper<T> checkType(final BeanReference id) {
+    public BeanReference<T> checkType(final BeanIdentifier id) {
         //noinspection unchecked
         if (!metaData.isAssignable(id.getType())) {
             throw new IllegalArgumentException(format(
@@ -77,58 +76,59 @@ abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
     }
 
     @Override
-    public T bean(final Function<BeanReference, BeanWrapper> context) {
+    public T bean(final InnerScope scope) {
 
         //  1. Get Dependencies
         //  2. Create all instances (with proxy if required)
         //  3. Inject all fields
         //  4. Inject all methods
 
-        final Optional<T> result = create(context);
+        final Optional<T> result = create(scope);
         if (result.isPresent()) {
             final T bean = result.get();
-            injectFields(bean, context)
-                    .injectMethods(bean, context);
+            injectFields(bean, scope)
+                    .injectMethods(bean, scope);
             return bean;
         } else {
             return null;
         }
     }
 
-    T inject(final T bean, final Function<BeanReference, BeanWrapper> context) {
-        injectFields(bean, context)
-                .injectMethods(bean, context);
+    @Override
+    public T inject(final T bean, final InnerScope scope) {
+        injectFields(bean, scope)
+                .injectMethods(bean, scope);
         return bean;
     }
 
-    protected List<MemberBinder> findInjectableConstructor() {
+    protected List<MemberReference> findInjectableConstructor() {
         return emptyList();
     }
 
-    protected final List<MemberBinder> findInjectableMethods() {
+    protected final List<MemberReference> findInjectableMethods() {
         ///CLOVER:OFF
         return metaData
                 .methods()
                 .stream()
                 .filter(MethodDescriptor::isInjectable)
-                .map(MemberBinder::binder)
+                .map(MemberReference::binder)
                 .collect(toList());
         ///CLOVER:ON
     }
 
-    protected final List<MemberBinder> findInjectableFields() {
+    protected final List<MemberReference> findInjectableFields() {
         ///CLOVER:OFF
         return metaData
                 .fields()
                 .stream()
                 .filter(FieldDescriptor::isInjectable)
-                .map(MemberBinder::binder)
+                .map(MemberReference::binder)
                 .collect(toList());
         ///CLOVER:ON
     }
 
 
-    protected Optional<MemberBinder> constructor() {
+    protected Optional<MemberReference> constructor() {
         if (injectableConstructor.isEmpty()) {
             return Optional.empty();
         } else {
@@ -136,24 +136,24 @@ abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
         }
     }
 
-    BaseBeanWrapper injectFields(final Object bean, final Function<BeanReference, BeanWrapper> context) {
+    BaseBeanReference injectFields(final Object bean, final InnerScope scope) {
         if (bean == null) {
             return this;
         }
         // XXX check and field value set should be separated
-        for (MemberBinder data : injectableFields) {
-            data.setValue(bean, context);
+        for (MemberReference data : injectableFields) {
+            data.setValue(bean, scope);
         }
         return this;
     }
 
-    BeanWrapper injectMethods(final Object bean, final Function<BeanReference, BeanWrapper> context) {
+    BeanReference injectMethods(final Object bean, final InnerScope scope) {
         if (bean == null) {
             return this;
         }
-        for (MemberBinder data : injectableMethods) {
+        for (MemberReference data : injectableMethods) {
             // XXX check and field value set should be separated
-            data.invoke(bean, context);
+            data.invoke(bean, scope);
         }
         return this;
     }
@@ -162,59 +162,59 @@ abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
         return metaData.getName();
     }
 
-    protected ClassDescriptor<T> metaData() {
+    protected ClassDescriptor<? extends T> metaData() {
         return metaData;
     }
 
-    static class SupplierBeanWrapper<T> extends BaseBeanWrapper<T> {
+    static class SupplierBeanReference<T> extends BaseBeanReference<T> {
 
-        private final Supplier<T> supplier;
+        private final Supplier<? extends T> supplier;
 
-        public SupplierBeanWrapper(final Supplier<T> supplier, final Class<T> clazz) {
+        public SupplierBeanReference(final Supplier<? extends T> supplier, final Class<T> clazz) {
             super(clazz);
             this.supplier = supplier;
         }
         @Override
-        public Optional<T> create(final Function<BeanReference, BeanWrapper> context) {
+        public Optional<T> create(final InnerScope scope) {
             return Optional.ofNullable(supplier.get());
         }
     }
 
-    static class ObjectBeanWrapper<T> extends BaseBeanWrapper<T> {
+    static class ObjectBeanReference<T> extends BaseBeanReference<T> {
 
         private final T bean;
 
-        public ObjectBeanWrapper(final T bean) {
+        public ObjectBeanReference(final T bean) {
             //noinspection unchecked
             super((Class<T>) bean.getClass());
             this.bean = bean;
         }
 
         @Override
-        public Optional<T> create(final Function<BeanReference, BeanWrapper> context) {
+        public Optional<T> create(final InnerScope scope) {
             return Optional.ofNullable(bean);
         }
     }
 
-    static class ClassBeanWrapper<T> extends BaseBeanWrapper<T> {
+    static class ClassBeanReference<T> extends BaseBeanReference<T> {
 
-        public ClassBeanWrapper(final Class<T> clazz) {
+        public ClassBeanReference(final Class<T> clazz) {
             super(clazz);
         }
 
-        protected List<MemberBinder> findInjectableConstructor() {
+        protected List<MemberReference> findInjectableConstructor() {
             ///CLOVER:OFF
-            final List<MemberBinder> result = metaData()
+            final List<MemberReference> result = metaData()
                     .constructors()
                     .stream()
                     .filter(ConstructorDescriptor::isInjectable)
-                    .map(MemberBinder::binder)
+                    .map(MemberReference::binder)
                     .collect(toList());
             ///CLOVER:ON
             return checkUnique(result);
         }
 
-        private List<MemberBinder> checkUnique(final List<MemberBinder> constructors) {
+        private List<MemberReference> checkUnique(final List<MemberReference> constructors) {
             if (constructors.size() > 1) {
                 throw new JustJSystemException("Class %s has %d Injectable constructors," +
                         " but according to JSR-330 @Inject can apply to at most one constructor per class.",
@@ -228,14 +228,14 @@ abstract class BaseBeanWrapper<T> implements BeanWrapper<T> {
          * Inject is optional for public, no-argument constructors when no other constructors are present.
          * This enables injectors to invoke default constructors.
          *
-         * @param context IoC context function
+         * @param scope IoC context function
          * @return Instance of Bean
          */
-        public Optional<T> create(final Function<BeanReference, BeanWrapper> context) {
+        public Optional<T> create(final InnerScope scope) {
             // XXX check and field value set should be separated
             if (constructor().isPresent()) {
                 //noinspection unchecked
-                return Optional.of((T) constructor().get().newInstance(context));
+                return Optional.of((T) constructor().get().newInstance(scope));
             } else {
                 return Optional.of(metaData().newInstance());
             }

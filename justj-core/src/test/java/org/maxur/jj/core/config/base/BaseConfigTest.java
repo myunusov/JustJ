@@ -20,8 +20,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.maxur.jj.core.context.Application;
+import org.maxur.jj.core.context.BaseScope;
 import org.maxur.jj.core.context.Config;
-import org.maxur.jj.core.context.Context;
 import org.maxur.jj.core.domain.JustJSystemException;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -48,7 +48,7 @@ public class BaseConfigTest {
     @Test(expected = JustJSystemException.class)
     public void testCreateEmptyConfig() throws Exception {
         assertNotNull(Application.configBy(config));
-        verify(config).applyTo(any(Context.class));
+        verify(config).applyTo(any(BaseScope.class));
 
     }
 

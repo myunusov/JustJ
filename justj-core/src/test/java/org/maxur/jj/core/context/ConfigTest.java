@@ -37,7 +37,7 @@ import static org.mockito.Mockito.verify;
 public class ConfigTest {
 
     @Mock
-    private Context context;
+    private BaseScope scope;
 
     @Spy
     private Config config = new Config() {
@@ -50,66 +50,66 @@ public class ConfigTest {
     public void testCallContextPutOnBindRoleToObject() throws Exception {
         final Object object = new Object();
         final Answer answer = invocation -> {
-            new Context();
-            config.bind(Role.ANY).to(object);
+            new BaseScope();
+            config.bind(Role.any()).to(object);
             return null;
         };
-        doAnswer(answer).when(config).applyTo(context);
-        config.applyTo(context);
-        verify(context).put(Role.ANY, object);
+        doAnswer(answer).when(config).applyTo(scope);
+        config.applyTo(scope);
+        verify(scope).addBean(Role.any(), object);
     }
 
     @Test
     public void testCallContextPutOnBindTypeToObject() throws Exception {
-        final Object object = "";
+        final String object = "";
         final Answer answer = invocation -> {
             config.bind(String.class).to(object);
             return null;
         };
-        doAnswer(answer).when(config).applyTo(context);
-        config.applyTo(context);
-        verify(context).put(String.class, object);
+        doAnswer(answer).when(config).applyTo(scope);
+        config.applyTo(scope);
+        verify(scope).addBean(String.class, object);
     }
 
     @Test
     public void testCallContextPutOnBindRoleToSupplier() throws Exception {
-        final Supplier supplier = Object::new;
+        final Supplier<Object> supplier = Object::new;
         final Answer answer = invocation -> {
-            config.bind(Role.ANY).to(supplier);
+            config.bind(Role.any()).to(supplier);
             return null;
         };
-        doAnswer(answer).when(config).applyTo(context);
-        config.applyTo(context);
+        doAnswer(answer).when(config).applyTo(scope);
+        config.applyTo(scope);
         ArgumentCaptor<Supplier> argument = ArgumentCaptor.forClass(Supplier.class);
-        verify(context).put(eq(Role.ANY), argument.capture());
+        verify(scope).addSupplier(eq(Role.any()), argument.capture());
         assertEquals(supplier.hashCode(), argument.getValue().hashCode());
     }
 
     @Test
     public void testCallContextPutOnBindTypeToSupplier() throws Exception {
-        final Supplier supplier = () -> "";
+        final Supplier<String> supplier = () -> "";
         final Answer answer = invocation -> {
             config.bind(String.class).to(supplier);
             return null;
         };
         ArgumentCaptor<Supplier> argument = ArgumentCaptor.forClass(Supplier.class);
-        doAnswer(answer).when(config).applyTo(context);
-        config.applyTo(context);
-        verify(context).put(eq(String.class), argument.capture());
+        doAnswer(answer).when(config).applyTo(scope);
+        config.applyTo(scope);
+        verify(scope).addSupplier(eq(String.class), argument.capture());
         assertEquals(supplier.hashCode(), argument.getValue().hashCode());
     }
 
     @Test
     public void testCallContextPutOnBindRoleToType() throws Exception {
         final Answer answer = invocation -> {
-            config.bind(Role.ANY).to(DummyObject.class);
+            config.bind(Role.any()).to(DummyObject.class);
             return null;
         };
-        doAnswer(answer).when(config).applyTo(context);
-        config.applyTo(context);
+        doAnswer(answer).when(config).applyTo(scope);
+        config.applyTo(scope);
         ArgumentCaptor<Class<DummyObject>> argument =
                 ArgumentCaptor.forClass((Class) DummyObject.class.getClass());
-        verify(context).put(eq(Role.ANY), argument.capture());
+        verify(scope).addType(eq(Role.<DummyObject>any()), argument.capture());
         assertEquals(argument.getValue(), DummyObject.class);
     }
 
@@ -119,11 +119,11 @@ public class ConfigTest {
            config.bind(Object.class).to(DummyObject.class);
            return null;
        };
-       doAnswer(answer).when(config).applyTo(context);
-       config.applyTo(context);
+       doAnswer(answer).when(config).applyTo(scope);
+       config.applyTo(scope);
        ArgumentCaptor<Class<DummyObject>> argument =
                ArgumentCaptor.forClass((Class) DummyObject.class.getClass());
-       verify(context).put(eq(Object.class), argument.capture());
+       verify(scope).addType(eq(Object.class), argument.capture());
        assertEquals(argument.getValue(), DummyObject.class);
     }
 
@@ -133,7 +133,7 @@ public class ConfigTest {
                 .forClass(Config.class)
                 .suppress(Warning.NULL_FIELDS)
                 .withRedefinedSuperclass()
-                .withPrefabValues(Context.class, new Context(), new Context())
+                .withPrefabValues(BaseScope.class, new BaseScope(), new BaseScope())
                 .verify();
     }
 

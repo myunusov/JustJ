@@ -19,12 +19,12 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 import nl.jqno.equalsverifier.Warning;
 import org.junit.Test;
 
-public class BeanReferenceTest {
+public class BeanIdentifierTest {
 
     @Test
     public void testEqualsContractForTypeIdentifier() {
         EqualsVerifier
-                .forClass(BeanReference.TypeReference.class)
+                .forClass(BeanIdentifier.TypeIdentifier.class)
                 .suppress(Warning.NULL_FIELDS)
                 .withRedefinedSuperclass()
                 .verify();
@@ -32,7 +32,7 @@ public class BeanReferenceTest {
     @Test
     public void testEqualsContract() {
         EqualsVerifier
-                .forClass(BeanReference.RoleReference.class)
+                .forClass(BeanIdentifier.RoleIdentifier.class)
                 .suppress(Warning.NULL_FIELDS)
                 .withRedefinedSuperclass()
                 .verify();
