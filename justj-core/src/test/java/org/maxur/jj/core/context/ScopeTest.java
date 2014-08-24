@@ -56,6 +56,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.maxur.jj.core.context.BeanIdentifier.identifier;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ScopeTest {
@@ -74,37 +75,36 @@ public class ScopeTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testBindRoleToNullBean() throws Exception {
-        root.addBean(Role.any(), (Object) null);
+        root.addBean(identifier(Role.any()), (Object) null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testBindRoleToNullSupplier() throws Exception {
-        root.addSupplier(Role.any(), null);
+        root.addSupplier(identifier(Role.any()), null);
     }
 
     @Test
     public void testBindRoleToBean() throws Exception {
         final Object bean = new Object();
-        root.addBean(Role.any(), bean);
+        root.addBean(identifier(Role.any()), bean);
         assertEquals(bean, root.bean(Role.any()));
     }
 
     @Test
     public void testBindTypeToType() throws Exception {
-        root.addType(Object.class, Object.class);
+        root.addType(identifier(Object.class), Object.class);
         assertEquals(Object.class, root.bean(Object.class).getClass());
     }
 
     @Test
     public void testBindRoleToType() throws Exception {
-        root.addType(Role.any(), Object.class);
+        root.addType(identifier(Role.any()), Object.class);
         assertEquals(Object.class, root.bean(Role.any()).getClass());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testBindTypeToWrongType() throws Exception {
-        final Class<String> aClass = (Class<String>) getObjectClass();
-        root.addType(String.class, aClass);
+        root.addType(identifier(String.class), (Class<String>) getObjectClass());
     }
 
     private Class getObjectClass() {
@@ -113,45 +113,45 @@ public class ScopeTest {
 
     @Test (expected = IllegalArgumentException.class)
     public void testBindTypeToNull() throws Exception {
-        root.addType(Role.any(), null);
+        root.addType(identifier(Role.any()), null);
     }
 
     @Test
     public void testBindTypeToBean() throws Exception {
-        root.addBean(String.class, "");
+        root.addBean(identifier(String.class), "");
         assertEquals("", root.bean(String.class));
     }
 
     @Test
     public void testBindRoleToSupplier() throws Exception {
         final Object bean = new Object();
-        root.addSupplier(Role.any(), () -> bean);
+        root.addSupplier(identifier(Role.any()), () -> bean);
         assertEquals(bean, root.bean(Role.any()));
     }
 
     @Test
     public void testBindTypeToSupplier() throws Exception {
-        root.addSupplier(String.class, () -> "");
+        root.addSupplier(identifier(String.class), () -> "");
         assertEquals("", root.bean(String.class));
     }
 
     @Test
     public void testAccessToParentsBean() throws Exception {
         final Object bean = new Object();
-        root.addBean(Role.any(), bean);
+        root.addBean(identifier(Role.any()), bean);
         assertEquals(bean, child.bean(Role.any()));
     }
 
     @Test(expected = JustJSystemException.class)
     public void testPutDuplicateBeanByRole() throws Exception {
-        root.addBean(Role.any(), new Object());
-        root.addBean(Role.any(), new Object());
+        root.addBean(identifier(Role.any()), new Object());
+        root.addBean(identifier(Role.any()), new Object());
     }
 
     @Test(expected = JustJSystemException.class)
     public void testPutDuplicateBeanByType() throws Exception {
-        root.addBean(String.class, "");
-        root.addBean(String.class, "");
+        root.addBean(identifier(String.class), "");
+        root.addBean(identifier(String.class), "");
     }
 
     @Test
@@ -161,14 +161,14 @@ public class ScopeTest {
 
     @Test
     public void testAccessToInvalidSupplier() throws Exception {
-        root.addSupplier(Role.any(), () -> null);
+        root.addSupplier(identifier(Role.any()), () -> null);
         assertNull(root.bean(Role.any()));
     }
 
     @Test(expected = JustJSystemException.class)
     public void testPutDuplicateBeanByTypeWithParent() throws Exception {
-        root.addBean(String.class, "");
-        child.addBean(String.class, "");
+        root.addBean(identifier(String.class), "");
+        child.addBean(identifier(String.class), "");
     }
 
     @Test
@@ -204,9 +204,9 @@ public class ScopeTest {
 
     @Test
     public void testBindTypeToTypeWithInjectByConstructor() throws Exception {
-        root.addType(Role.any(), Dummy2.class);
+        root.addType(identifier(Role.any()), Dummy2.class);
         final Dummy bean2 = new Dummy();
-        root.addBean(Dummy.class, bean2);
+        root.addBean(identifier(Dummy.class), bean2);
         final Dummy2 bean = root.bean(Role.<Dummy2>any());
         assertEquals(Dummy2.class, bean.getClass());
         assertEquals(bean2, bean.dummy);
@@ -214,23 +214,23 @@ public class ScopeTest {
 
     @Test(expected = JustJSystemException.class)
     public void testBindTypeToTypeWithInjectByConstructorWithSecondConstructor() throws Exception {
-        root.addBean(Dummy.class, new Dummy());
-        root.addBean(String.class, "");
-        root.addType(Role.any(), Dummy3.class);
+        root.addBean(identifier(Dummy.class), new Dummy());
+        root.addBean(identifier(String.class), "");
+        root.addType(identifier(Role.any()), Dummy3.class);
     }
 
     @Test(expected = JustJSystemException.class)
     public void testBindTypeToTypeWithInjectByConstructorWithUnavailableOne() throws Exception {
-        root.addType(Role.any(), Dummy4.class);
+        root.addType(identifier(Role.any()), Dummy4.class);
         root.bean(Role.any());
     }
 
     @Test
     public void testBindTypeToTypeWithInjectByConstructorWithTwoParams() throws Exception {
-        root.addType(Role.any(), Dummy5.class);
-        root.addBean(String.class, "");
+        root.addType(identifier(Role.any()), Dummy5.class);
+        root.addBean(identifier(String.class), "");
         final Dummy bean2 = new Dummy();
-        root.addBean(Dummy.class, bean2);
+        root.addBean(identifier(Dummy.class), bean2);
         final Dummy5 bean = root.bean(Role.<Dummy5>any());
         assertEquals(Dummy5.class, bean.getClass());
         assertEquals("", bean.value);
@@ -239,31 +239,31 @@ public class ScopeTest {
 
     @Test(expected = JustJSystemException.class)
     public void testBindTypeToTypeWithInjectByConstructorWithAbsentOneParam() throws Exception {
-        root.addType(Role.any(), Dummy5.class);
+        root.addType(identifier(Role.any()), Dummy5.class);
         final Dummy bean2 = new Dummy();
-        root.addBean(Dummy.class, bean2);
+        root.addBean(identifier(Dummy.class), bean2);
         root.bean(Role.any());
     }
 
     @Test(expected = JustJSystemException.class)
     public void testBindTypeToTypeWithInjectByConstructorWithAbsentAllParams() throws Exception {
-        root.addType(Role.any(), Dummy5.class);
+        root.addType(identifier(Role.any()), Dummy5.class);
         root.bean(Role.any());
     }
 
     @Test(expected = JustJSystemException.class)
     public void testBindTypeToTypeWithInjectByConstructorWithAbstractClass() throws Exception {
-        root.addType(Role.any(), Dummy6.class);
+        root.addType(identifier(Role.any()), Dummy6.class);
         final Dummy bean2 = new Dummy();
-        root.addBean(Dummy.class, bean2);
+        root.addBean(identifier(Dummy.class), bean2);
         root.bean(Role.any());
     }
 
     @Test
     @Ignore
     public void testBindTypeToTypeWithInjectByConstructorWithCircularDependencies() throws Exception {
-        root.addType(Dummy7.class, Dummy7.class);
-        root.addType(Dummy8.class, Dummy8.class);
+        root.addType(identifier(Dummy7.class), Dummy7.class);
+        root.addType(identifier(Dummy8.class), Dummy8.class);
         root.bean(Dummy7.class);
         root.bean(Dummy8.class);
     }
@@ -281,7 +281,7 @@ public class ScopeTest {
     @Test
     public void testInjectByFieldBean() throws Exception {
         final Dummy bean2 = new Dummy();
-        root.addBean(Dummy.class, bean2);
+        root.addBean(identifier(Dummy.class), bean2);
         final Dummy10 bean = new Dummy10();
         root.inject(bean);
         assertEquals(bean2, bean.a);
@@ -289,9 +289,9 @@ public class ScopeTest {
 
     @Test
     public void testBindTypeToTypeWithInjectByField() throws Exception {
-        root.addType(Role.any(), Dummy10.class);
+        root.addType(identifier(Role.any()), Dummy10.class);
         final Dummy bean2 = new Dummy();
-        root.addBean(Dummy.class, bean2);
+        root.addBean(identifier(Dummy.class), bean2);
         final Dummy10 bean = root.bean(Role.<Dummy10>any());
         assertEquals(Dummy10.class, bean.getClass());
         assertEquals(bean2, bean.a);
@@ -305,8 +305,8 @@ public class ScopeTest {
     @Test
     @Ignore
     public void testInjectByFieldWithCircularDependencies() {
-        root.addType(Dummy11.class, Dummy11.class);
-        root.addType(Dummy12.class, Dummy12.class);
+        root.addType(identifier(Dummy11.class), Dummy11.class);
+        root.addType(identifier(Dummy12.class), Dummy12.class);
         final Dummy11 dummy11 = root.bean(Dummy11.class);
         final Dummy12 dummy12 = root.bean(Dummy12.class);
         assertEquals(dummy11, dummy12.dummy);
@@ -314,9 +314,9 @@ public class ScopeTest {
 
     @Test
     public void testInjectByFieldWithOptionalField() {
-        root.addType(Dummy13.class, Dummy13.class);
+        root.addType(identifier(Dummy13.class), Dummy13.class);
         final Dummy dummy = new Dummy();
-        root.addBean(Dummy.class, dummy);
+        root.addBean(identifier(Dummy.class), dummy);
         final Dummy13 bean = root.bean(Dummy13.class);
         assertEquals(dummy, bean.a);
         assertNull(bean.b);
@@ -324,9 +324,9 @@ public class ScopeTest {
 
     @Test
     public void testInjectByFieldWithDuplicateFields() {
-        root.addType(Dummy14.class, Dummy14.class);
+        root.addType(identifier(Dummy14.class), Dummy14.class);
         final Dummy dummy = new Dummy();
-        root.addBean(Dummy.class, dummy);
+        root.addBean(identifier(Dummy.class), dummy);
         final Dummy14 bean = root.bean(Dummy14.class);
         assertEquals(dummy, bean.a);
         assertEquals(dummy, bean.b);
@@ -334,9 +334,9 @@ public class ScopeTest {
 
     @Test
     public void testInjectByFieldWithPrivateModifier() {
-        root.addType(Dummy15.class, Dummy15.class);
+        root.addType(identifier(Dummy15.class), Dummy15.class);
         final Dummy dummy = new Dummy();
-        root.addBean(Dummy.class, dummy);
+        root.addBean(identifier(Dummy.class), dummy);
         final Dummy15 dummy15 = root.bean(Dummy15.class);
         assertEquals(dummy, dummy15.getA());
     }
@@ -344,9 +344,9 @@ public class ScopeTest {
     //are not final.
     @Test
     public void testInjectByMethodWithFinalModifier() {
-        root.addType(Dummy34.class, Dummy34.class);
+        root.addType(identifier(Dummy34.class), Dummy34.class);
         final Dummy dummy = new Dummy();
-        root.addBean(Dummy.class, dummy);
+        root.addBean(identifier(Dummy.class), dummy);
         final Dummy34 bean = root.bean(Dummy34.class);
         assertNull(bean.a);
     }
@@ -354,7 +354,7 @@ public class ScopeTest {
     @Test
     public void testInjectByFieldWithStaticModifier() {
         final Dummy dummy = new Dummy();
-        root.addBean(Dummy.class, dummy);
+        root.addBean(identifier(Dummy.class), dummy);
         root.inject(new Dummy31());
         assertEquals(dummy, Dummy31.a);
     }
@@ -362,8 +362,8 @@ public class ScopeTest {
     @Test
     public void testInjectByFieldWithSuperTypeMethod() {
         final Dummy dummy = new Dummy();
-        root.addBean(Dummy.class, dummy);
-        root.addType(Dummy33.class, Dummy33.class);
+        root.addBean(identifier(Dummy.class), dummy);
+        root.addType(identifier(Dummy33.class), Dummy33.class);
         final Dummy33 bean = root.bean(Dummy33.class);
         assertEquals(dummy, bean.a);
         assertEquals(dummy, bean.c);
@@ -385,25 +385,25 @@ public class ScopeTest {
 
     @Test
     public void testInjectByMethod() {
-        root.addType(Dummy20.class, Dummy20.class);
+        root.addType(identifier(Dummy20.class), Dummy20.class);
         final Dummy20 bean = root.bean(Dummy20.class);
         assertNotNull(bean.a);
     }
 
     @Test
     public void testInjectByMethodWithParams() {
-        root.addType(Dummy21.class, Dummy21.class);
+        root.addType(identifier(Dummy21.class), Dummy21.class);
         final Dummy dummy = new Dummy();
-        root.addBean(Dummy.class, dummy);
+        root.addBean(identifier(Dummy.class), dummy);
         final Dummy21 bean = root.bean(Dummy21.class);
         assertEquals(dummy, bean.a);
     }
 
     @Test
     public void testInjectByMethodWithTwoSameParams() {
-        root.addType(Dummy22.class, Dummy22.class);
+        root.addType(identifier(Dummy22.class), Dummy22.class);
         final Dummy dummy = new Dummy();
-        root.addBean(Dummy.class, dummy);
+        root.addBean(identifier(Dummy.class), dummy);
         final Dummy22 bean = root.bean(Dummy22.class);
         assertEquals(dummy, bean.a);
         assertEquals(dummy, bean.b);
@@ -411,10 +411,10 @@ public class ScopeTest {
 
     @Test
     public void testInjectByMethodWithTwoParams() {
-        root.addType(Dummy23.class, Dummy23.class);
+        root.addType(identifier(Dummy23.class), Dummy23.class);
         final Dummy dummy = new Dummy();
-        root.addBean(Dummy.class, dummy);
-        root.addType(Dummy2.class, Dummy2.class);
+        root.addBean(identifier(Dummy.class), dummy);
+        root.addType(identifier(Dummy2.class), Dummy2.class);
         final Dummy23 bean = root.bean(Dummy23.class);
         assertEquals(dummy, bean.a);
         assertNotNull(bean.b);
@@ -422,16 +422,16 @@ public class ScopeTest {
 
     @Test(expected = JustJSystemException.class)
     public void testInjectByMethodWithAbsentParams() {
-        root.addType(Dummy21.class, Dummy21.class);
+        root.addType(identifier(Dummy21.class), Dummy21.class);
         root.bean(Dummy21.class);
     }
 
     // A method with no @Inject annotation that overrides a method annotated with @Inject will not be injected.
     @Test()
     public void testInjectByMethodWithOverrideWithoutInject() {
-        root.addType(Dummy25.class, Dummy25.class);
+        root.addType(identifier(Dummy25.class), Dummy25.class);
         final Dummy dummy = new Dummy();
-        root.addBean(Dummy.class, dummy);
+        root.addBean(identifier(Dummy.class), dummy);
         final Dummy25 bean = root.bean(Dummy25.class);
         assertNull(bean.a);
     }
@@ -440,9 +440,9 @@ public class ScopeTest {
     // only be injected once per injection request per instance
     @Test()
     public void testInjectByMethodWithOverrideWithInject() {
-        root.addType(Dummy25.class, Dummy25.class);
+        root.addType(identifier(Dummy25.class), Dummy25.class);
         final Dummy dummy = new Dummy();
-        root.addBean(Dummy.class, dummy);
+        root.addBean(identifier(Dummy.class), dummy);
         final Dummy25 bean = root.bean(Dummy25.class);
         assertEquals(1, bean.count);
         assertEquals(dummy, bean.b);
@@ -459,9 +459,9 @@ public class ScopeTest {
     @Ignore
     public void testGetBySuperType() {
         final Dummy25 dummy25 = new Dummy25();
-        root.addBean(Dummy25.class, dummy25);
+        root.addBean(identifier(Dummy25.class), dummy25);
         final Dummy dummy = new Dummy();
-        root.addBean(Dummy.class, dummy);
+        root.addBean(identifier(Dummy.class), dummy);
         final Dummy24 bean = root.bean(Dummy24.class);
         assertEquals(bean, dummy25);
     }
@@ -471,23 +471,23 @@ public class ScopeTest {
     public void testInjectByMethodWithCircularDependencies() {
         final Dummy27 dummy27 = new Dummy27();
         final Dummy26 dummy26 = new Dummy26();
-        root.addBean(Dummy27.class, dummy27);
-        root.addBean(Dummy26.class, dummy26);
+        root.addBean(identifier(Dummy27.class), dummy27);
+        root.addBean(identifier(Dummy26.class), dummy26);
         final Dummy26 bean = root.bean(Dummy26.class);
         assertEquals(dummy27, bean.a);
     }
 
     @Test(expected = JustJSystemException.class)
     public void testInjectByMethodWithThrowsException() {
-        root.addType(Dummy28.class, Dummy28.class);
+        root.addType(identifier(Dummy28.class), Dummy28.class);
         root.bean(Dummy28.class);
     }
 
     @Test
     public void testInjectByMethodWithPrivateModifier() {
-        root.addType(Dummy29.class, Dummy29.class);
+        root.addType(identifier(Dummy29.class), Dummy29.class);
         final Dummy dummy = new Dummy();
-        root.addBean(Dummy.class, dummy);
+        root.addBean(identifier(Dummy.class), dummy);
         final Dummy29 bean = root.bean(Dummy29.class);
         assertEquals(dummy, bean.a);
     }
@@ -495,7 +495,7 @@ public class ScopeTest {
     @Test
     public void testInjectByMethodWithStaticModifier() {
         final Dummy dummy = new Dummy();
-        root.addBean(Dummy.class, dummy);
+        root.addBean(identifier(Dummy.class), dummy);
         root.inject(new Dummy30());
         assertEquals(dummy, Dummy30.a);
     }
@@ -503,8 +503,8 @@ public class ScopeTest {
     @Test
     public void testInjectByMethodWithSuperTypeMethod() {
         final Dummy dummy = new Dummy();
-        root.addBean(Dummy.class, dummy);
-        root.addType(Dummy33.class, Dummy33.class);
+        root.addBean(identifier(Dummy.class), dummy);
+        root.addType(identifier(Dummy33.class), Dummy33.class);
         final Dummy33 bean = root.bean(Dummy33.class);
         assertEquals(dummy, bean.b);
         assertEquals(dummy, bean.d);

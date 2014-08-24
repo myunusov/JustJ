@@ -15,8 +15,6 @@
 
 package org.maxur.jj.core.context;
 
-import org.maxur.jj.core.domain.Role;
-
 import java.util.function.Supplier;
 
 /**
@@ -25,16 +23,11 @@ import java.util.function.Supplier;
  */
 public interface Context {
 
-    <T> void addSupplier(Role<T> role, Supplier<? extends T> supplier);
+    <T> void addSupplier(BeanIdentifier<T> id, Supplier<? extends T> supplier);
 
-    <T> void addBean(Role<T> role, T bean);
+    <T> void addBean(BeanIdentifier<T> id, T bean);
 
-    <T> void addType(Role<T> role, Class<? extends T> clazz);
+    <T> void addType(BeanIdentifier<T> id, Class<? extends T> clazz);
 
-    <T> void addSupplier(Class<T> type, Supplier<? extends T> supplier);
-
-    <T> void addBean(Class<T> type, T bean);
-
-    <T> void addType(Class<T> type, Class<? extends T> clazz);
 }
 

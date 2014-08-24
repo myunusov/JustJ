@@ -20,6 +20,8 @@ import org.maxur.jj.core.domain.Role;
 
 import java.util.function.Supplier;
 
+import static org.maxur.jj.core.context.BeanIdentifier.identifier;
+
 /**
  * @author Maxim Yunusov
  * @version 1.0
@@ -47,71 +49,44 @@ public abstract class Config extends Entity {
     }
 
     public <T> Binder<T> bind(final Role<T> role) {
-        return new RoleBinder<>(context, role);
+        return new Binder<>(context, role);
     }
 
     public <T> Binder<T> bind(Class<T> type) {
-        return new TypeBinder<>(context, type);
+        return new Binder<>(context, type);
     }
 
-    public abstract static class Binder<T> {
+    public static class Binder<T> {
 
-        protected final Context context;
+        private final Context context;
 
-        protected Binder(final Context context) {
+        private final BeanIdentifier<T> identifier;
+
+        private Binder(final Context scope, final Role<T> role) {
+            this(scope, identifier(role));
+        }
+
+        private Binder(final Context scope, final Class<T> type) {
+            this(scope, identifier(type));
+        }
+
+
+        private Binder(final Context context, final BeanIdentifier<T> identifier) {
             this.context = context;
-        }
-
-        public abstract void to(Supplier<? extends T> supplier);
-
-        public abstract void to(T bean);
-
-        public abstract void to(Class<? extends T> type);
-    }
-
-    private static class RoleBinder<T> extends Binder<T> {
-
-        private final Role<T> role;
-
-        public RoleBinder(final Context scope, final Role<T> role) {
-            super(scope);
-            this.role = role;
+            this.identifier = identifier;
         }
 
         public void to(final Supplier<? extends T> supplier) {
-            context.addSupplier(role, supplier);
+            context.addSupplier(identifier, supplier);
         }
 
         public void to(final T bean) {
-            context.addBean(role, bean);
+            context.addBean(identifier, bean);
         }
 
-        @Override
         public void to(final Class<? extends T> type) {
-            context.addType(role, type);
+            context.addType(identifier, type);
         }
     }
 
-    private static class TypeBinder<T> extends Binder<T> {
-
-        private final Class<T> type;
-
-        public TypeBinder(final Context scope, final Class<T> type) {
-            super(scope);
-            this.type = type;
-        }
-
-        public void to(final Supplier<? extends T> supplier) {
-            context.addSupplier(type, supplier);
-        }
-
-        public void to(final T bean) {
-            context.addBean(type, bean);
-        }
-
-        @Override
-        public void to(final Class<? extends T> type) {
-            context.addType(this.type, type);
-        }
-    }
 }

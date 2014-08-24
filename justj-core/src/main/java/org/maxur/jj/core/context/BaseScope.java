@@ -36,7 +36,7 @@ import static org.maxur.jj.core.context.BeanReference.reference;
  * @version 1.0
  * @since <pre>7/18/2014</pre>
  */
-public class BaseScope extends Entity implements Scope, InnerScope {
+public class BaseScope extends Entity implements Scope, InnerScope, Context {
 
     private final Optional<BaseScope> parent;
 
@@ -103,38 +103,24 @@ public class BaseScope extends Entity implements Scope, InnerScope {
     }
 
     @Override
-    public <T> void addSupplier(final Role<T> role, final Supplier<? extends T> supplier) {
-        put(() -> BeanReference.reference(supplier, role.getSuitableType()), identifier(role));
-    }
-
-    @Override
-    public <T> void addBean(final Role<T> role, final T bean) {
-        put(() -> BeanReference.reference(bean), identifier(role));
-    }
-
-    @Override
-    public <T> void addType(final Role<T> role, final Class<? extends T> type) {
-        put(() -> reference(type), identifier(role));
-    }
-
-    @Override
-    public <T> void addSupplier(final Class<T> type, final Supplier<? extends T> supplier) {
-        put(() -> BeanReference.reference(supplier, type), identifier(type));
-    }
-
-    @Override
-    public <T> void addBean(final Class<T> type, final T bean) {
-        put(() -> BeanReference.reference(bean), identifier(type));
-    }
-
-    @Override
-    public <T> void addType(final Class<T> type, final Class<? extends T> clazz) {
-        put(() -> reference(clazz), identifier(type));
-    }
-
-    private void put(final Supplier<BeanReference> supplier, final BeanIdentifier id) {
+    public <T> void addSupplier(final BeanIdentifier<T> id, final Supplier<? extends T> supplier) {
         checkDuplicate(id);
-        final BeanReference ref = supplier.get().checkType(id);
+        put(id, reference(supplier, id.getType()).checkType(id));
+    }
+
+    @Override
+    public <T> void addBean(final BeanIdentifier<T> id, final T bean) {
+        checkDuplicate(id);
+        put(id, reference(bean).checkType(id));
+    }
+
+    @Override
+    public <T> void addType(final BeanIdentifier<T> id, final Class<? extends T> type) {
+        checkDuplicate(id);
+        put(id, reference(type).checkType(id));
+    }
+
+    private void put(final BeanIdentifier id, BeanReference ref) {
         beans.put(id, ref);
     }
 

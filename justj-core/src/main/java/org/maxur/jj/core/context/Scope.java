@@ -21,7 +21,7 @@ import org.maxur.jj.core.domain.Role;
  * @author Maxim Yunusov
  * @version 1.0 23.08.2014
  */
-public interface Scope extends Context {
+public interface Scope {
 
     Scope parent();
 

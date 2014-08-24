@@ -29,6 +29,7 @@ import org.mockito.stubbing.Answer;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
+import static org.maxur.jj.core.context.BeanIdentifier.identifier;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
@@ -56,7 +57,7 @@ public class ConfigTest {
         };
         doAnswer(answer).when(config).applyTo(scope);
         config.applyTo(scope);
-        verify(scope).addBean(Role.any(), object);
+        verify(scope).addBean(identifier(Role.any()), object);
     }
 
     @Test
@@ -68,7 +69,7 @@ public class ConfigTest {
         };
         doAnswer(answer).when(config).applyTo(scope);
         config.applyTo(scope);
-        verify(scope).addBean(String.class, object);
+        verify(scope).addBean(identifier(String.class), object);
     }
 
     @Test
@@ -81,7 +82,7 @@ public class ConfigTest {
         doAnswer(answer).when(config).applyTo(scope);
         config.applyTo(scope);
         ArgumentCaptor<Supplier> argument = ArgumentCaptor.forClass(Supplier.class);
-        verify(scope).addSupplier(eq(Role.any()), argument.capture());
+        verify(scope).addSupplier(eq(identifier(Role.any())), argument.capture());
         assertEquals(supplier.hashCode(), argument.getValue().hashCode());
     }
 
@@ -95,7 +96,7 @@ public class ConfigTest {
         ArgumentCaptor<Supplier> argument = ArgumentCaptor.forClass(Supplier.class);
         doAnswer(answer).when(config).applyTo(scope);
         config.applyTo(scope);
-        verify(scope).addSupplier(eq(String.class), argument.capture());
+        verify(scope).addSupplier(eq(identifier(String.class)), argument.capture());
         assertEquals(supplier.hashCode(), argument.getValue().hashCode());
     }
 
@@ -109,7 +110,7 @@ public class ConfigTest {
         config.applyTo(scope);
         ArgumentCaptor<Class<DummyObject>> argument =
                 ArgumentCaptor.forClass((Class) DummyObject.class.getClass());
-        verify(scope).addType(eq(Role.<DummyObject>any()), argument.capture());
+        verify(scope).addType(eq(identifier(Role.<DummyObject>any())), argument.capture());
         assertEquals(argument.getValue(), DummyObject.class);
     }
 
@@ -123,7 +124,7 @@ public class ConfigTest {
        config.applyTo(scope);
        ArgumentCaptor<Class<DummyObject>> argument =
                ArgumentCaptor.forClass((Class) DummyObject.class.getClass());
-       verify(scope).addType(eq(Object.class), argument.capture());
+       verify(scope).addType(eq(identifier(Object.class)), argument.capture());
        assertEquals(argument.getValue(), DummyObject.class);
     }
 
