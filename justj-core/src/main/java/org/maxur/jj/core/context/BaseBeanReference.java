@@ -42,9 +42,9 @@ abstract class BaseBeanReference<T> implements BeanReference<T> {
 
     private final List<MemberReference> injectableConstructor;
 
-    private final ClassDescriptor<? extends T> metaData;
+    private final ClassDescriptor<T> metaData;
 
-    protected BaseBeanReference(final Class<? extends T> clazz) {
+    protected BaseBeanReference(final Class<T> clazz) {
         // XXX Flyweight with IoC
         metaData = meta(clazz);
         injectableConstructor = findInjectableConstructor();
@@ -77,28 +77,25 @@ abstract class BaseBeanReference<T> implements BeanReference<T> {
 
     @Override
     public T bean(final InnerScope scope) {
-
         //  1. Get Dependencies
         //  2. Create all instances (with proxy if required)
         //  3. Inject all fields
         //  4. Inject all methods
-
-        final Optional<T> result = create(scope);
-        if (result.isPresent()) {
-            final T bean = result.get();
-            injectFields(bean, scope)
-                    .injectMethods(bean, scope);
-            return bean;
-        } else {
-            return null;
-        }
+        return doInject(create(scope), scope);
     }
 
     @Override
-    public T inject(final T bean, final InnerScope scope) {
-        injectFields(bean, scope)
-                .injectMethods(bean, scope);
-        return bean;
+    public T inject(final Optional<T> bean, final InnerScope scope) {
+        return doInject(bean, scope);
+    }
+
+    private T doInject(Optional<T> bean, InnerScope scope) {
+        if (!bean.isPresent()) {
+            return null;
+        }
+        injectFields(bean.get(), scope);
+        injectMethods(bean.get(), scope);
+        return bean.get();
     }
 
     protected List<MemberReference> findInjectableConstructor() {
@@ -132,7 +129,7 @@ abstract class BaseBeanReference<T> implements BeanReference<T> {
         if (injectableConstructor.isEmpty()) {
             return Optional.empty();
         } else {
-            return Optional.of(injectableConstructor.get(0)) ;
+            return Optional.of(injectableConstructor.get(0));
         }
     }
 
@@ -162,7 +159,7 @@ abstract class BaseBeanReference<T> implements BeanReference<T> {
         return metaData.getName();
     }
 
-    protected ClassDescriptor<? extends T> metaData() {
+    protected ClassDescriptor<T> metaData() {
         return metaData;
     }
 
@@ -174,6 +171,7 @@ abstract class BaseBeanReference<T> implements BeanReference<T> {
             super(clazz);
             this.supplier = supplier;
         }
+
         @Override
         public Optional<T> create(final InnerScope scope) {
             return Optional.ofNullable(supplier.get());

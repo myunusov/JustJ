@@ -42,7 +42,7 @@ public class BaseConfigTest {
 
     @After
     public void tearDown() throws Exception {
-        Application.closeContext();
+        Application.closeScope();
     }
 
     @Test(expected = JustJSystemException.class)

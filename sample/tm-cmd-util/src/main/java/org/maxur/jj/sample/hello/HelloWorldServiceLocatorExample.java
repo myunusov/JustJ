@@ -26,19 +26,19 @@ import static org.maxur.jj.core.context.Application.system;
  * @version 1.0
  * @since <pre>7/25/2014</pre>
  */
-public final class HelloWorldServiceLocator {
+public final class HelloWorldServiceLocatorExample {
 
-    private HelloWorldServiceLocator() {
+    private HelloWorldServiceLocatorExample() {
     }
 
     public static void main(String[] args) {
-        system().runWith(
-                () -> {
-                    currentScope().addBean(String.class, "World");
-                    System.out.println(format("Hello %s", currentScope().bean(String.class)));
-                }
-        );
-
-
+        system()
+                .configBy(
+                    c -> c.bind(String.class).to("World")
+                ).runWith(
+                    () -> System.out.println(format("Hello %s", currentScope().bean(String.class)))
+                );
     }
+
+
 }

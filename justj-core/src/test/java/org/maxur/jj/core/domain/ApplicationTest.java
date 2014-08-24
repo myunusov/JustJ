@@ -55,7 +55,7 @@ public class ApplicationTest {
 
     @After
     public void tearDown() throws Exception {
-        Application.closeContext();
+        Application.closeScope();
     }
 
     @Test
@@ -120,7 +120,7 @@ public class ApplicationTest {
         final Scope root = currentScope();
         final Scope scope = branchScope();
         assertEquals(root, scope.parent());
-        Application.closeContext();
+        Application.closeScope();
     }
 
     private Config make() {

@@ -15,7 +15,6 @@
 
 package org.maxur.jj.sample.hello;
 
-import org.maxur.jj.core.config.base.SimpleConfig;
 import org.maxur.jj.core.domain.Command;
 
 import javax.inject.Inject;
@@ -31,15 +30,14 @@ import static org.maxur.jj.core.context.Application.configBy;
  * @version 1.0
  * @since <pre>7/25/2014</pre>
  */
-public class HelloWorldInjector extends Command {
+public class HelloWorldInjectorExample extends Command {
 
     @Inject
     private String value;
 
     public static void main(String[] args) {
-        configBy(new SimpleConfig()
-                .config(c -> c.bind(String.class).to("World"))
-        ).runWith(new HelloWorldInjector());
+        configBy(c -> c.bind(String.class).to("World"))
+                .runWith(new HelloWorldInjectorExample());
     }
 
     @Override

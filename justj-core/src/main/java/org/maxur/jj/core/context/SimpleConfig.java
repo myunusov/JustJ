@@ -15,26 +15,26 @@
 
 package org.maxur.jj.core.context;
 
-import org.maxur.jj.core.domain.Role;
-
-import java.util.function.Supplier;
+import java.util.function.Consumer;
 
 /**
- * @author Maxim Yunusov
- * @version 1.0 23.08.2014
- */
-public interface Container {
+* @author Maxim Yunusov
+* @version 1.0 25.07.2014
+*/
+public class SimpleConfig extends Config {
 
-    <T> void addSupplier(Role<T> role, Supplier<? extends T> supplier);
+    private Consumer<Config> consumer;
 
-    <T> void addBean(Role<T> role, T bean);
+    private SimpleConfig(final Consumer<Config> consumer) {
+        this.consumer = consumer;
+    }
 
-    <T> void addType(Role<T> role, Class<? extends T> clazz);
+    public static Config config(final Consumer<Config> consumer) {
+        return new SimpleConfig(consumer);
+    }
 
-    <T> void addSupplier(Class<T> type, Supplier<? extends T> supplier);
-
-    <T> void addBean(Class<T> type, T bean);
-
-    <T> void addType(Class<T> type, Class<? extends T> clazz);
+    @Override
+    public void config() {
+        consumer.accept(this);
+    }
 }
-

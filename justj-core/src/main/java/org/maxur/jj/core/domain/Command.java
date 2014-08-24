@@ -15,8 +15,6 @@
 
 package org.maxur.jj.core.domain;
 
-import static org.maxur.jj.core.context.Application.closeContext;
-
 /**
  * @author Maxim Yunusov
  * @version 1.0

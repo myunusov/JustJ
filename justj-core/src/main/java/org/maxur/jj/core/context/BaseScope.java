@@ -26,19 +26,17 @@ import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static java.util.Optional.empty;
-import static org.maxur.jj.core.context.BeanIdentifier.identifierBy;
+import static org.maxur.jj.core.context.BeanIdentifier.identifier;
 import static org.maxur.jj.core.context.BeanReference.nullReference;
 import static org.maxur.jj.core.context.BeanReference.reference;
 
 /**
  *
- *
- *
  * @author Maxim Yunusov
  * @version 1.0
  * @since <pre>7/18/2014</pre>
  */
-public class BaseScope extends Entity implements Scope, InnerScope, Container {
+public class BaseScope extends Entity implements Scope, InnerScope {
 
     private final Optional<BaseScope> parent;
 
@@ -63,15 +61,15 @@ public class BaseScope extends Entity implements Scope, InnerScope, Container {
     }
 
     public <T> T inject(final T bean) {
-        return BeanReference.inject(this, bean);
+        return reference(bean).inject(Optional.ofNullable(bean), this);
     }
 
     public <T> T bean(final Role<T> role) {
-        return bean(identifierBy(role));
+        return bean(identifier(role));
     }
 
     public <T> T bean(final Class<T> type) {
-        return bean(BeanIdentifier.identifierBy(type));
+        return bean(identifier(type));
     }
 
     @Override
@@ -106,32 +104,32 @@ public class BaseScope extends Entity implements Scope, InnerScope, Container {
 
     @Override
     public <T> void addSupplier(final Role<T> role, final Supplier<? extends T> supplier) {
-        put(() -> BeanReference.reference(supplier, role.getSuitableType()), identifierBy(role));
+        put(() -> BeanReference.reference(supplier, role.getSuitableType()), identifier(role));
     }
 
     @Override
     public <T> void addBean(final Role<T> role, final T bean) {
-        put(() -> BeanReference.reference(bean), identifierBy(role));
+        put(() -> BeanReference.reference(bean), identifier(role));
     }
 
     @Override
     public <T> void addType(final Role<T> role, final Class<? extends T> type) {
-        put(() -> reference(type), identifierBy(role));
+        put(() -> reference(type), identifier(role));
     }
 
     @Override
     public <T> void addSupplier(final Class<T> type, final Supplier<? extends T> supplier) {
-        put(() -> BeanReference.reference(supplier, type), BeanIdentifier.identifierBy(type));
+        put(() -> BeanReference.reference(supplier, type), identifier(type));
     }
 
     @Override
     public <T> void addBean(final Class<T> type, final T bean) {
-        put(() -> BeanReference.reference(bean), BeanIdentifier.identifierBy(type));
+        put(() -> BeanReference.reference(bean), identifier(type));
     }
 
     @Override
     public <T> void addType(final Class<T> type, final Class<? extends T> clazz) {
-        put(() -> reference(clazz), BeanIdentifier.identifierBy(type));
+        put(() -> reference(clazz), identifier(type));
     }
 
     private void put(final Supplier<BeanReference> supplier, final BeanIdentifier id) {

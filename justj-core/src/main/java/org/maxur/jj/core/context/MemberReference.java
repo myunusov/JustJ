@@ -25,7 +25,7 @@ import java.util.List;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
-import static org.maxur.jj.core.context.BeanIdentifier.identifierBy;
+import static org.maxur.jj.core.context.BeanIdentifier.identifier;
 
 
 /**
@@ -39,7 +39,7 @@ public abstract class MemberReference {
     MemberReference(final Class<?>... types) {
         this.identifiers = stream(types)
                 .map(type -> {
-                    return identifierBy(type);
+                    return identifier(type);
                 })
                 .collect(toList());
     }

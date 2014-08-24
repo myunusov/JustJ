@@ -25,11 +25,11 @@ import static java.lang.String.format;
  */
 public abstract class BeanIdentifier<T> {
 
-    public static <T> BeanIdentifier<T> identifierBy(final Role<T> role) {
+    public static <T> BeanIdentifier<T> identifier(final Role<T> role) {
         return new RoleIdentifier<>(role);
     }
 
-    public static <T> BeanIdentifier<T> identifierBy(final Class<T> type) {
+    public static <T> BeanIdentifier<T> identifier(final Class<T> type) {
         return new TypeIdentifier<>(type);
     }
 

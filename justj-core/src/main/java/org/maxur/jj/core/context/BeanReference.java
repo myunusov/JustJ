@@ -39,12 +39,12 @@ public interface BeanReference<T> {
                 return false;
             }
             @Override
-            public Optional<Z> create(InnerScope scope) {
+            public Optional<Z> create(final InnerScope scope) {
                 return Optional.empty();
             }
 
             @Override
-            public Z inject(Z bean, InnerScope scope) {
+            public Z inject(final Optional<Z> bean, final InnerScope scope) {
                 return null;
             }
 
@@ -59,7 +59,7 @@ public interface BeanReference<T> {
         if (supplier == null) {
             throw new IllegalArgumentException("Been must not be null");
         }
-        return new BaseBeanReference.SupplierBeanReference<Z>(supplier, clazz);
+        return new BaseBeanReference.SupplierBeanReference<>(supplier, clazz);
     }
 
     public static <T> BeanReference<T> reference(final T bean) {
@@ -76,10 +76,6 @@ public interface BeanReference<T> {
         return new BaseBeanReference.ClassBeanReference<>(clazz);
     }
 
-    public static <T> T inject(final InnerScope scope, final T bean) {
-        return reference(bean).inject(bean, scope);
-    }
-
     T bean(InnerScope scope);
 
     BeanReference checkType(BeanIdentifier id);
@@ -88,5 +84,5 @@ public interface BeanReference<T> {
 
     Optional<T> create(InnerScope scope);
 
-    T inject(T bean, InnerScope scope);
+    T inject(Optional<T> bean, InnerScope scope);
 }

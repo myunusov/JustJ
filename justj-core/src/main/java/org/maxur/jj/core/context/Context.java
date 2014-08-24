@@ -13,27 +13,28 @@
  *     limitations under the License.
  */
 
-package org.maxur.jj.core.config.base;
+package org.maxur.jj.core.context;
 
-import org.maxur.jj.core.context.Config;
+import org.maxur.jj.core.domain.Role;
 
-import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
-* @author Maxim Yunusov
-* @version 1.0 25.07.2014
-*/
-public class SimpleConfig extends Config {
+ * @author Maxim Yunusov
+ * @version 1.0 23.08.2014
+ */
+public interface Context {
 
-    private Consumer<SimpleConfig> consumer;
+    <T> void addSupplier(Role<T> role, Supplier<? extends T> supplier);
 
-    public SimpleConfig config(final Consumer<SimpleConfig> consumer) {
-        this.consumer = consumer;
-        return this;
-    }
+    <T> void addBean(Role<T> role, T bean);
 
-    @Override
-    public void config() {
-        consumer.accept(this);
-    }
+    <T> void addType(Role<T> role, Class<? extends T> clazz);
+
+    <T> void addSupplier(Class<T> type, Supplier<? extends T> supplier);
+
+    <T> void addBean(Class<T> type, T bean);
+
+    <T> void addType(Class<T> type, Class<? extends T> clazz);
 }
+

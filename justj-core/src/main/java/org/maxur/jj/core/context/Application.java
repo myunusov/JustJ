@@ -20,6 +20,7 @@ import org.maxur.jj.core.domain.Executor;
 import org.maxur.jj.core.domain.JustJSystemException;
 import org.maxur.jj.core.domain.Role;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static org.maxur.jj.core.domain.Role.role;
@@ -52,7 +53,7 @@ public abstract class Application {
         return result;
     }
 
-    public static void closeContext() {
+    public static void closeScope() {
         CONTEXT_HOLDER.set(currentScope().parent());
     }
 
@@ -69,6 +70,13 @@ public abstract class Application {
         scope.accept(config);
         return getApplication(scope);
     }
+
+    public static Application configBy(final Consumer<Config> consumer) {
+        final Scope scope = currentScope();
+        scope.accept(SimpleConfig.config(consumer));
+        return getApplication(scope);
+    }
+
 
     public static Application system() {
         return getApplication(currentScope());
@@ -100,7 +108,7 @@ public abstract class Application {
     }
 
     public void shutdown() {
-        closeContext();
+        closeScope();
     }
 
     protected void execute(final String[] args) {
@@ -127,4 +135,5 @@ public abstract class Application {
         currentScope().inject(executor);
         executor.run();
     }
+
 }

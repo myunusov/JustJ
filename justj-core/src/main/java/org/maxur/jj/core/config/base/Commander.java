@@ -21,7 +21,7 @@ import org.maxur.jj.core.domain.CommandMapper;
 import org.maxur.jj.core.domain.Executor;
 
 import static org.maxur.jj.core.context.Application.branchScope;
-import static org.maxur.jj.core.context.Application.closeContext;
+import static org.maxur.jj.core.context.Application.closeScope;
 
 /**
  * @author Maxim Yunusov
@@ -40,7 +40,7 @@ public abstract class Commander implements CommandMapper<String[]> {
                 final Scope scope = branchScope();
                 scope.inject(this);
                 doIt();
-                closeContext();
+                closeScope();
             }
         };
     }

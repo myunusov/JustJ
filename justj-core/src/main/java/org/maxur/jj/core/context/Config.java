@@ -27,10 +27,10 @@ import java.util.function.Supplier;
  */
 public abstract class Config extends Entity {
 
-    private Container scope;
+    private Context context;
 
-    public final void applyTo(final Container scope) {
-        this.scope = scope;
+    public final void applyTo(final Context context) {
+        this.context = context;
         preConfig();
         config();
         postConfig();
@@ -47,19 +47,19 @@ public abstract class Config extends Entity {
     }
 
     public <T> Binder<T> bind(final Role<T> role) {
-        return new RoleBinder<>(scope, role);
+        return new RoleBinder<>(context, role);
     }
 
     public <T> Binder<T> bind(Class<T> type) {
-        return new TypeBinder<>(scope, type);
+        return new TypeBinder<>(context, type);
     }
 
     public abstract static class Binder<T> {
 
-        protected final Container scope;
+        protected final Context context;
 
-        protected Binder(final Container scope) {
-            this.scope = scope;
+        protected Binder(final Context context) {
+            this.context = context;
         }
 
         public abstract void to(Supplier<? extends T> supplier);
@@ -73,22 +73,22 @@ public abstract class Config extends Entity {
 
         private final Role<T> role;
 
-        public RoleBinder(final Container scope, final Role<T> role) {
+        public RoleBinder(final Context scope, final Role<T> role) {
             super(scope);
             this.role = role;
         }
 
         public void to(final Supplier<? extends T> supplier) {
-            scope.addSupplier(role, supplier);
+            context.addSupplier(role, supplier);
         }
 
         public void to(final T bean) {
-            scope.addBean(role, bean);
+            context.addBean(role, bean);
         }
 
         @Override
         public void to(final Class<? extends T> type) {
-            scope.addType(role, type);
+            context.addType(role, type);
         }
     }
 
@@ -96,22 +96,22 @@ public abstract class Config extends Entity {
 
         private final Class<T> type;
 
-        public TypeBinder(final Container scope, final Class<T> type) {
+        public TypeBinder(final Context scope, final Class<T> type) {
             super(scope);
             this.type = type;
         }
 
         public void to(final Supplier<? extends T> supplier) {
-            scope.addSupplier(type, supplier);
+            context.addSupplier(type, supplier);
         }
 
         public void to(final T bean) {
-            scope.addBean(type, bean);
+            context.addBean(type, bean);
         }
 
         @Override
         public void to(final Class<? extends T> type) {
-            scope.addType(this.type, type);
+            context.addType(this.type, type);
         }
     }
 }
