@@ -45,6 +45,10 @@ public class ImmutableVerifier<T> {
 
     private Class<T> testableClass;
 
+    private ImmutableVerifier(Class<T> type) {
+        testableClass = type;
+    }
+
     /**
      * Factory method. For general use.
      *
@@ -60,6 +64,7 @@ public class ImmutableVerifier<T> {
         return new ImmutableVerifier<>(type);
     }
 
+
     /**
      * Factory method. For general use.
      *
@@ -74,11 +79,6 @@ public class ImmutableVerifier<T> {
         }
         //noinspection unchecked
         return new ImmutableVerifier<>((Class<T>) instance.getClass());
-    }
-
-
-    private ImmutableVerifier(Class<T> type) {
-        testableClass = type;
     }
 
     /**

@@ -129,13 +129,32 @@
                 <sonar.pitest.mode>ReuseReport</sonar.pitest.mode>
                 <sonar.artifact.path>${basedir}/assembly/target/justj-bin.zip</sonar.artifact.path>
                 <sonar.clover.reportPath>${project.build.directory}/site/clover/clover.xml</sonar.clover.reportPath>
+
+
+
+                <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
+                <sonar.language>java</sonar.language>
+
+                <sonar.host.url>http://192.168.56.102:9000</sonar.host.url>
+                <sonar.jdbc.url>jdbc:postgresql://192.168.56.102:5432/sonar</sonar.jdbc.url>
+                <sonar.jdbc.driverClassName>org.postgresql.Driver</sonar.jdbc.driverClassName>
+                <sonar.jdbc.username>sonar</sonar.jdbc.username>
+                <sonar.jdbc.password>sonar</sonar.jdbc.password>
+
+                <sonar.forceAnalysisvtrue>true</sonar.forceAnalysisvtrue>
+
             </properties>
             <build>
                 <plugins>
-                    <plugin>
+<!--                    <plugin>
                         <groupId>org.codehaus.sonar</groupId>
+                        <artifactId>sonar-maven3-plugin</artifactId>
+                        <version>5.1</version>
+                    </plugin>-->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
                         <artifactId>sonar-maven-plugin</artifactId>
-                        <version>4.3.2</version>
+                        <version>2.6</version>
                     </plugin>
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
@@ -170,12 +189,16 @@
                     <plugin>
                         <groupId>com.atlassian.maven.plugins</groupId>
                         <artifactId>maven-clover2-plugin</artifactId>
-                        <version>4.0.0</version>
+                        <version>4.0.4</version>
                         <configuration>
                             <generateXml>true</generateXml>
                             <alwaysReport>true</alwaysReport>
                             <jdk>${project.source.compile}</jdk>
                             <licenseLocation>${project.root}/clover.license</licenseLocation>
+                            <cloverDatabase>${project.root}/clover/db</cloverDatabase>
+                            <cloverMergeDatabase>${project.root}/clover/mdb</cloverMergeDatabase>
+                            <generateHistorical>true</generateHistorical>
+                            <historyDir>${user.home}/history/${project.artifact}</historyDir>
                         </configuration>
                         <executions>
                             <execution>

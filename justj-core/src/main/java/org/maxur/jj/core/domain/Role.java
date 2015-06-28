@@ -32,6 +32,11 @@ public class Role<T> extends Entity {
 
     private final String name;
 
+    private Role(final String name, final Class<T> suitableType) {
+        this.suitableType = suitableType;
+        this.name = name;
+    }
+
     public static <Z> Role<Z> any() {
         //noinspection unchecked
         return ANYTHING;
@@ -39,11 +44,6 @@ public class Role<T> extends Entity {
 
     public static <O> Role<O> role(final String name, final Class<O> suitableType) {
         return new Role<>(name, suitableType);
-    }
-
-    private Role(final String name, final Class<T> suitableType) {
-        this.suitableType = suitableType;
-        this.name = name;
     }
 
     public boolean suitableTo(final Class type) {

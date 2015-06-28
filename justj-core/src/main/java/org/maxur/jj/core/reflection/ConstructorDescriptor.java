@@ -35,7 +35,7 @@ public class ConstructorDescriptor<T> extends MemberDescriptor<T> {
 
     public static <T> ConstructorDescriptor<T> meta(
             @NonNull final Constructor method,
-            final @NonNull ClassDescriptor<? extends T> classDescriptor
+            @NonNull final ClassDescriptor<? extends T> classDescriptor
     ) {
         if (classDescriptor == null) {
             throw new IllegalArgumentException(

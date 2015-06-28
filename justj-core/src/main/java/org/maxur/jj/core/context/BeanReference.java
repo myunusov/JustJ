@@ -25,34 +25,7 @@ import java.util.function.Supplier;
 public interface BeanReference<T> {
 
     public static <Z> BeanReference<Z> nullReference() {
-        return new BeanReference<Z>() {
-            @Override
-            public BeanReference<Z> checkType(final BeanIdentifier id) {
-                return this;
-            }
-            @Override
-            public String toString() {
-                return "Bean \"Null Object\"";
-            }
-            @Override
-            public boolean isPresent() {
-                return false;
-            }
-            @Override
-            public Optional<Z> create(final InnerScope scope) {
-                return Optional.empty();
-            }
-
-            @Override
-            public Z inject(final Optional<Z> bean, final InnerScope scope) {
-                return null;
-            }
-
-            @Override
-            public Z bean(final InnerScope scope) {
-                return null;
-            }
-        };
+        return new NullReference<>();
     }
 
     public static <Z> BeanReference<Z> reference(final Supplier<? extends Z> supplier, final Class<Z> clazz) {
@@ -85,4 +58,37 @@ public interface BeanReference<T> {
     Optional<T> create(InnerScope scope);
 
     T inject(Optional<T> bean, InnerScope scope);
+
+    class NullReference<Z> implements BeanReference<Z> {
+
+        @Override
+        public BeanReference<Z> checkType(final BeanIdentifier id) {
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            return "Bean \"Null Object\"";
+        }
+
+        @Override
+        public boolean isPresent() {
+            return false;
+        }
+
+        @Override
+        public Optional<Z> create(final InnerScope scope) {
+            return Optional.empty();
+        }
+
+        @Override
+        public Z inject(final Optional<Z> bean, final InnerScope scope) {
+            return null;
+        }
+
+        @Override
+        public Z bean(final InnerScope scope) {
+            return null;
+        }
+    }
 }

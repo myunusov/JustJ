@@ -24,6 +24,7 @@ public abstract class Command extends Entity {
 
     public static Command command(final Executor executor) {
         return new Command() {
+            @Override
             public final void run() {
                 executor.run();
             }

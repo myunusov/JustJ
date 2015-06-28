@@ -36,6 +36,7 @@ public abstract class Commander implements CommandMapper<String[]> {
                 executor.run();
             }
 
+            @Override
             public final void run() {
                 final Scope scope = branchScope();
                 scope.inject(this);

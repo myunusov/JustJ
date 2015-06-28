@@ -60,14 +60,17 @@ public class BaseScope extends Entity implements Scope, InnerScope, Context {
         return new BaseScope(this);
     }
 
+    @Override
     public <T> T inject(final T bean) {
         return reference(bean).inject(Optional.ofNullable(bean), this);
     }
 
+    @Override
     public <T> T bean(final Role<T> role) {
         return bean(identifier(role));
     }
 
+    @Override
     public <T> T bean(final Class<T> type) {
         return bean(identifier(type));
     }

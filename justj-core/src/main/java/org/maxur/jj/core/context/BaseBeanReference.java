@@ -200,6 +200,7 @@ abstract class BaseBeanReference<T> implements BeanReference<T> {
             super(clazz);
         }
 
+        @Override
         protected List<MemberReference> findInjectableConstructor() {
             ///CLOVER:OFF
             final List<MemberReference> result = metaData()

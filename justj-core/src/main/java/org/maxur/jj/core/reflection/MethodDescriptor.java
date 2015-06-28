@@ -41,7 +41,7 @@ public class MethodDescriptor<T> extends MemberDescriptor<T> {
 
     public static <T> MethodDescriptor<T> meta(
             @NonNull final Method method,
-            final @NonNull ClassDescriptor<? extends T> classDescriptor
+            @NonNull final ClassDescriptor<? extends T> classDescriptor
     ) {
         if (classDescriptor == null) {
             throw new IllegalArgumentException(

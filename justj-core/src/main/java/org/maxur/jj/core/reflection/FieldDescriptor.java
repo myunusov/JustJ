@@ -29,7 +29,7 @@ import static java.lang.String.format;
  */
 public class FieldDescriptor<T> extends MemberDescriptor<T> {
 
-    private FieldDescriptor(final Field field, final Class<T> declaringClass) {
+    private FieldDescriptor(final Field field) {
         super(field);
     }
 
@@ -56,7 +56,7 @@ public class FieldDescriptor<T> extends MemberDescriptor<T> {
                     field.getName())
             );
         }
-        return new FieldDescriptor<>(field, declaringClass);
+        return new FieldDescriptor<>(field);
     }
 
     public Field getField() {

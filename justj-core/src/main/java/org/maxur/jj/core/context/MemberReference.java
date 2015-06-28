@@ -99,6 +99,7 @@ public abstract class MemberReference {
             this.constructor = constructor;
         }
 
+        @Override
         public Object newInstance(final InnerScope scope) {
             return constructor.newInstance(parameters(scope));
         }
@@ -118,6 +119,7 @@ public abstract class MemberReference {
             return !field.isAnnotationPresent(Optional.class);
         }
 
+        @Override
         public void setValue(final Object bean, final InnerScope scope) {
             field.setValue(bean, parameters(scope)[0]);
         }
@@ -133,6 +135,7 @@ public abstract class MemberReference {
             this.method = method;
         }
 
+        @Override
         public void invoke(final Object bean, final InnerScope scope) {
             method.invoke(bean, parameters(scope));
         }

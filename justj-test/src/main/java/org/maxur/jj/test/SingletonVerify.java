@@ -30,6 +30,10 @@ public class SingletonVerify<T>{
 
     private final Supplier<T> supplier;
 
+    private SingletonVerify(final Supplier<T> supplier) {
+        this.supplier = supplier;
+    }
+
     /**
      * Factory method. For general use.
      *
@@ -43,10 +47,6 @@ public class SingletonVerify<T>{
             throw new IllegalArgumentException("Supplier must not be null");
         }
         return new SingletonVerify<>(supplier);
-    }
-
-    private SingletonVerify(final Supplier<T> supplier) {
-        this.supplier = supplier;
     }
 
     /**

@@ -75,7 +75,7 @@ public class ScopeTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testBindRoleToNullBean() throws Exception {
-        root.addBean(identifier(Role.any()), (Object) null);
+        root.addBean(identifier(Role.any()), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
