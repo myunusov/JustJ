@@ -20,6 +20,7 @@
         <tattletale.failOnInfo>false</tattletale.failOnInfo>
         <tattletale.failOnWarn>false</tattletale.failOnWarn>
         <tattletale.failOnError>false</tattletale.failOnError>
+        <maven.clover.skip>true</maven.clover.skip>
     </properties>
 
     <dependencies>

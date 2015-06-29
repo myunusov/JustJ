@@ -17,6 +17,7 @@
 
     <properties>
         <project.root>${basedir}/..</project.root>
+        <maven.clover.skip>true</maven.clover.skip>
     </properties>
 
     <build>
