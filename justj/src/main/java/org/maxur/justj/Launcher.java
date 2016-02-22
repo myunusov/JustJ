@@ -15,17 +15,11 @@
 
 package org.maxur.justj;
 
-import com.jcabi.aether.Aether;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.sonatype.aether.artifact.Artifact;
-import org.sonatype.aether.repository.RemoteRepository;
+import org.maxur.justj.service.JustJCommand;
 import org.sonatype.aether.resolution.DependencyResolutionException;
-import org.sonatype.aether.util.artifact.DefaultArtifact;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
+import static java.lang.System.exit;
+import static org.maxur.justj.core.cli.CliCommandHandler.handle;
 
 /**
  * @author myunusov
@@ -34,26 +28,12 @@ import java.util.Collection;
  */
 public final class Launcher {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(Launcher.class);
-
     private Launcher() {
+        // NOPE
     }
 
     public static void main(String[] args) throws DependencyResolutionException {
-        File local = new File("./tmp/local-repository");
-        Collection<RemoteRepository> remotes = Arrays.asList(
-                new RemoteRepository(
-                        "maven-central",
-                        "default",
-                        "http://repo1.maven.org/maven2/"
-                )
-        );
-        Collection<Artifact> deps = new Aether(remotes, local).resolve(
-                new DefaultArtifact("com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml", "", "jar", "2.7.1"),
-                "runtime"
-        );
-        deps.stream().map(Artifact::getFile).forEach(f -> LOGGER.info(f.getAbsolutePath()));
-        new PackagePhase(new JarConfig()).execute();
+        exit(handle(new JustJCommand(args)));
     }
 
 }

@@ -13,7 +13,10 @@
  *     limitations under the License.
  */
 
-package org.maxur.justj;
+package org.maxur.justj.domain;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.jar.JarEntry;
@@ -26,6 +29,8 @@ import java.util.jar.Manifest;
  * @since <pre>19.02.2016</pre>
  */
 public class PackagePhase implements Phase {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PackagePhase.class);
 
     public static final String JAR = ".jar";
 
@@ -46,8 +51,7 @@ public class PackagePhase implements Phase {
         try (JarOutputStream target = new JarOutputStream(new FileOutputStream(jarConfig.name() + JAR), manifest)) {
             add(baseFolder, target);
         } catch (IOException e) {
-            // TODO
-            e.printStackTrace();
+            LOGGER.error("Jar file cannot be created", e);
         }
     }
 

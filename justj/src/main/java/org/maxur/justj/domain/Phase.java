@@ -1,4 +1,4 @@
-package org.maxur.justj;
+package org.maxur.justj.domain;
 
 /**
  * @author myunusov
