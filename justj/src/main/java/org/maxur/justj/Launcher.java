@@ -15,7 +15,8 @@
 
 package org.maxur.justj;
 
-import org.maxur.justj.service.JustJCommand;
+import org.maxur.justj.core.cli.CliCommand;
+import org.maxur.justj.service.JustJMenu;
 import org.sonatype.aether.resolution.DependencyResolutionException;
 
 import static java.lang.System.exit;
@@ -33,7 +34,8 @@ public final class Launcher {
     }
 
     public static void main(String[] args) throws DependencyResolutionException {
-        exit(handle(new JustJCommand(args)));
+        CliCommand command = JustJMenu.commandBy(args);
+        exit(handle(command));
     }
 
 }

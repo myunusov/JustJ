@@ -1,0 +1,5 @@
+@startuml
+package Service
+package Domain
+Service --> Domain
+@enduml

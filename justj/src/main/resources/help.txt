@@ -1,0 +1,8 @@
+usage: justj [options] [<phase(s)>]
+
+Options:
+ -h,--help                              Display help information
+ -q,--quiet                             Quiet output - only show errors
+ -v,--version                           Display version information
+ -x,--debug                             Produce execution debug output
+

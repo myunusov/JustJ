@@ -65,7 +65,7 @@ class ArgumentBuilder<O> {
         if (argumentsClass == null) {
             return;
         }
-        for (Field field : this.argumentsClass.getDeclaredFields()) {
+        for (Field field : argumentsClass.getDeclaredFields()) {
             if (field.isAnnotationPresent(Option.class)) {
                 final Option option = field.getAnnotation(Option.class);
                 flags.put(option.value(), field);

@@ -36,7 +36,7 @@ public class PosixArgumentsMapper<O> implements ArgumentsMapper<O> {
     }
 
     @Override
-    public O readValue(String[] args) throws OptionsProcessingException {
+    public O  readValue(String[] args) throws OptionsProcessingException {
         final ArgumentBuilder<O> argumentBuilder = new ArgumentBuilder<>();
         return argumentBuilder
                 .withClass(argumentsClass)

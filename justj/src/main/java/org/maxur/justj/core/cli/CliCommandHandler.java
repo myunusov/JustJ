@@ -6,7 +6,7 @@ public class CliCommandHandler {
         return new CliCommandHandler().process(command);
     }
 
-    private int process(CliCommand command) {
+    private int process(final CliCommand command) {
         if (command.init().error().isPresent()) {
             return command.errorCode();
         } else {

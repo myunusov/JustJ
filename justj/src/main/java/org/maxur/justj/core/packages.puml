@@ -1,0 +1,24 @@
+@startuml
+
+HelpVisitor ..> Help
+CLIVisitor ..> CLISchema
+
+abstract class Command
+abstract class Option
+
+Menu o-- Command
+Command *-- Option
+Command *-- Operands
+Option <|-- Flag
+Option <|-- Trigger
+Option <|-- ArgumentOption
+
+Flag : Boolean value
+ArgumentOption : Object argument
+
+Trigger <|-- EnumTrigger
+Trigger <|-- SubtypesTrigger
+
+EnumTrigger : Enum value
+SubtypesTrigger : Supertype value
+@enduml

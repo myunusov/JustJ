@@ -6,7 +6,25 @@
         </encoder>
     </appender>
 
-    <root level="info">
+    <root level="error">
         <appender-ref ref="STDOUT" />
     </root>
+
+    <appender name="CONSOLE"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <logger name="CONSOLE" level="info" additivity="false">
+        <appender-ref ref="CONSOLE" />
+    </logger>
+
+    <logger name="org.maxur" level="info" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
 </configuration>

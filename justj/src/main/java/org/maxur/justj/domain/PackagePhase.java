@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
 
 /**
  * @author myunusov
@@ -40,31 +39,35 @@ public class PackagePhase implements Phase {
 
     private final File baseFolder;
 
+    private final File libFolder;
+
     public PackagePhase(JarConfig jarConfig) {
         this.jarConfig = jarConfig;
         this.baseFolder = new File(jarConfig.folder());
+        this.libFolder = new File(jarConfig.libs());
     }
 
     @Override
     public void execute() {
-        Manifest manifest = jarConfig.manifest();
-        try (JarOutputStream target = new JarOutputStream(new FileOutputStream(jarConfig.name() + JAR), manifest)) {
-            add(baseFolder, target);
+      // TODO  Manifest manifest = jarConfig.manifest();
+        try (JarOutputStream target = new JarOutputStream(new FileOutputStream(jarConfig.name() + JAR))) {
+            add(baseFolder, target, baseFolder);
+            add(libFolder, target, new File("./"));
         } catch (IOException e) {
             LOGGER.error("Jar file cannot be created", e);
         }
     }
 
-    private void add(File source, JarOutputStream target) throws IOException {
-        insert(source, target);
+    private void add(File source, JarOutputStream target, File base) throws IOException {
+        insert(source, target, base);
         if (source.isDirectory()) {
             for (File nestedFile : source.listFiles())
-                add(nestedFile, target);
+                add(nestedFile, target, base);
         }
     }
 
-    private void insert(File source, JarOutputStream target) throws IOException {
-        String name = makeNameFor(source);
+    private void insert(File source, JarOutputStream target, File base) throws IOException {
+        String name = makeNameFor(source, base);
         if (!name.isEmpty() || source.isFile()) {
             JarEntry entry = new JarEntry(name);
             entry.setTime(source.lastModified());
@@ -89,8 +92,8 @@ public class PackagePhase implements Phase {
         }
     }
 
-    private String makeNameFor(File source) {
-        String relative = baseFolder.toURI().relativize(source.toURI()).getPath();
+    private String makeNameFor(File source, File base) {
+        String relative = base.toURI().relativize(source.toURI()).getPath();
         String name = relative.replace("\\", "/");
         if (source.isDirectory() && !name.isEmpty() && !name.endsWith("/")) {
             name += "/";

@@ -31,6 +31,8 @@ public class JarConfig {
 
     private String folder = "./target/classes";
 
+    private String libs = "./lib";
+
     private String mainClass = "org.maxur.justj.Launcher";
 
     public String version() {
@@ -43,6 +45,10 @@ public class JarConfig {
 
     public String folder() {
         return folder;
+    }
+
+    public String libs() {
+        return libs;
     }
 
     public String mainClass() {
