@@ -1,7 +1,7 @@
 package org.maxur.justj.service;
 
 import org.maxur.justj.core.Logger;
-import org.maxur.justj.core.Menu;
+import org.maxur.justj.core.cli.CliMenu;
 import org.maxur.justj.core.cli.CliCommand;
 import org.maxur.justj.core.cli.Option;
 import org.maxur.justj.core.cli.OptionsProcessingException;
@@ -15,7 +15,7 @@ import static org.maxur.justj.core.cli.Slf4jAndLogbackLoggerAdapter.loggerFor;
  * @since <pre>22.02.2016</pre>
  */
 @SuppressWarnings("unused")
-public class JustJMenu extends Menu<CliCommand> {
+public class JustJMenu extends CliMenu<CliCommand> {
 
     private static final Logger LOGGER = loggerFor(JustJCommand.class);
 

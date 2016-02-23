@@ -13,7 +13,7 @@
  *     limitations under the License.
  */
 
-package org.maxur.justj.sample;
+package org.maxur.justj.core.cli;
 
 /**
  * @author myunusov
