@@ -66,19 +66,6 @@ class CliMenuSpec extends Specification {
         assert sut.makeCommand(args) == null;
     }
 
-    def "Should returns error if command line contains unknown commands name"() {
-        given: "new Command"
-        def command = new HelpCommand();
-        and: "command line without any commands flag"
-        String[] args = ["--all"]
-        when: "Client registers the command in the menu as default"
-        sut.register(command)
-        and: "try get command from menu"
-        sut.makeCommand(args)
-        then: "Menu throws Command not Found Exception"
-        thrown CommandNotFoundException;
-    }
-
     def "Should returns error if command line contains two and more commands names"() {
         given: "new Commands"
         def command1 = new HelpCommand();
@@ -93,21 +80,53 @@ class CliMenuSpec extends Specification {
         thrown InvalidCommandLineException;
     }
 
-    @Command("version")
-    class VersionCommand extends CliCommand {
-
-        @Override
-        VersionCommand copy() {
-            return new VersionCommand();
-        }
+    def "Should returns command on valid flag only "() {
+        given: "new Commands"
+        def command1 = new HelpCommand();
+        def command2 = new VersionCommand();
+        and: "command line without any commands flag"
+        String[] args = ["--help", "++version"]
+        when: "Client registers the command in the menu as default"
+        sut.register(command1, command2)
+        and: "try get command from menu"
+        sut.makeCommand(args)
+        then: "Menu returns command by command line flag"
+        assert sut.makeCommand(args) == command1;
     }
 
-    class HelpCommand extends CliCommand {
+    def "Should returns command if command line contains command and commands option "() {
+        given: "new Commands"
+        def command1 = new HelpCommand();
+        and: "command line without any commands flag"
+        String[] args = ["--help", "--all"]
+        when: "Client registers the command in the menu as default"
+        sut.register(command1)
+        and: "try get command from menu"
+        sut.makeCommand(args)
+        then: "Menu returns command by command line flag"
+        assert sut.makeCommand(args) == command1;
+    }
 
-        @Override
-        HelpCommand copy() {
-            return new HelpCommand();
-        }
+    def "Should returns error if command line contains unknown commands option"() {
+        given: "new Command"
+        def command = new HelpCommand();
+        and: "command line without any commands flag"
+        String[] args = ["--help --invalid"]
+        when: "Client registers the command in the menu as default"
+        sut.register(command)
+        and: "try get command from menu"
+        sut.makeCommand(args)
+        then: "Menu throws Command not Found Exception"
+        thrown InvalidCommandArgumentException;
+    }
+
+
+
+    @Command("version")
+    static class VersionCommand extends CliCommand {
+    }
+
+    static class HelpCommand extends CliCommand {
     }
 
 }

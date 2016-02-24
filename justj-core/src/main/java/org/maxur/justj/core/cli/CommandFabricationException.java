@@ -10,4 +10,8 @@ public abstract class CommandFabricationException extends Exception {
     public CommandFabricationException(final String message) {
         super(message);
     }
+
+    public CommandFabricationException(final String message, final Exception cause) {
+        super(message, cause);
+    }
 }
