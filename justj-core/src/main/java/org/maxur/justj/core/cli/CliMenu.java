@@ -1,11 +1,7 @@
 package org.maxur.justj.core.cli;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.lang.String.format;
 
@@ -16,20 +12,32 @@ import static java.lang.String.format;
  */
 public class CliMenu {
 
-    private static final String FULL_NAME_PREFIX = "--";
+    private static final String NAME_PREFIX = "--";
 
-    // private static final String SHORT_NAME_PREFIX = "-";
+    private static final String KEY_PREFIX = "-";
 
-    private final Map<String, CliCommand> commands = new HashMap<>();
+    private final Map<String, CliCommand> commandsByName = new HashMap<>();
+
+    private final Map<Character, CliCommand> commandsByKey = new HashMap<>();
+
+    private CliCommand defaultCommand = null;
 
     public void register(final CliCommand... list) {
         for (CliCommand command : list) {
-            commands.put(command.name(), command);
+            if (isDefault(command)) {
+                defaultCommand = command;
+            }
+            commandsByName.put(command.name(), command);
+            commandsByKey.put(command.key(), command);
         }
     }
 
-    public CliCommand makeCommand(final String name) throws CommandFabricationException {
-        final CliCommand prototype = commands.get(name);
+    private boolean isDefault(final CliCommand command) {
+        return command.getClass().isAnnotationPresent(Default.class);
+    }
+
+    public <T extends CliCommand> T makeCommand(final String name) throws CommandFabricationException {
+        final CliCommand prototype = commandsByName.get(name);
         if (null == prototype) {
             throw new CommandNotFoundException(name);
         }
@@ -37,26 +45,39 @@ public class CliMenu {
 
     }
 
-    public CliCommand makeCommand(final String[] args) throws CommandFabricationException {
+    public <T extends CliCommand> T makeCommand(final String[] args) throws CommandFabricationException {
         List<CliCommand> result = new ArrayList<>();
         for (String arg : args) {
-            if (isOption(arg)) {
-                final CliCommand command = processFlag(arg);
+            if (isOptionName(arg)) {
+                final CliCommand command = getCommandByName(arg);
+                if (command != null) {
+                    result.add(command);
+                }
+            } else if (isOptionKey(arg)) {
+                final CliCommand command = getCommandByKey(arg);
                 if (command != null) {
                     result.add(command);
                 }
             }
         }
+        final T command = processResult(args, result);
+        return command == null ? null : bind(command).to(args);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends CliCommand> T processResult(String[] args, List<CliCommand> result) throws InvalidCommandLineException {
         switch (result.size()) {
-            case 0: return null;
-            case 1: return bind(result.get(0)).to(args);
+            case 0:
+                return (T) defaultCommand;
+            case 1:
+                return (T)result.get(0);
             default:
                 throw moreThanOneCommandException(args, result);
         }
     }
 
-    private CommandBinder bind(final CliCommand command) {
-        return new CommandBinder(command);
+    private <T extends CliCommand> CommandBinder<T> bind(final T command) {
+        return new CommandBinder<>(command);
     }
 
     private InvalidCommandLineException moreThanOneCommandException(String[] args, List<CliCommand> result) {
@@ -70,56 +91,114 @@ public class CliMenu {
         );
     }
 
-    private boolean isOption(final String arg) {
-        return arg.startsWith(FULL_NAME_PREFIX);
+    private boolean isOptionName(final String arg) {
+        return arg.startsWith(NAME_PREFIX);
     }
 
-    private CliCommand processFlag(final String arg) throws CommandFabricationException {
-        final String name = arg.substring(FULL_NAME_PREFIX.length());
-        final CliCommand command = commands.get(name);
+    private boolean isOptionKey(final String arg) {
+        return arg.startsWith(KEY_PREFIX) && arg.charAt(1) != '-';
+    }
+
+    private CliCommand getCommandByName(final String arg) throws CommandFabricationException {
+        final String name = extractOptionName(arg);
+        final CliCommand command = commandsByName.get(name);
         return command == null ? null : command.copy();
     }
 
-    private class CommandBinder {
+    private String extractOptionName(final String arg) {
+        return arg.substring(NAME_PREFIX.length());
+    }
 
-        private final CliCommand command;
+    private CliCommand getCommandByKey(final String arg) throws CommandFabricationException {
+        final Character key = extractOptionKey(arg);
+        final CliCommand command = commandsByKey.get(key);
+        return command == null ? null : command.copy();
+    }
 
-        private final Map<String, Field> flags = new HashMap<>();
+    private Character extractOptionKey(final String arg) {
+        return arg.charAt(KEY_PREFIX.length());
+    }
 
-        public CommandBinder(final CliCommand command) {
+    private class CommandBinder<T extends CliCommand> {
+
+        private final T command;
+
+        private final Map<String, Field> flagsByName = new HashMap<>();
+
+        private final Map<Character, Field> flagsByKey = new HashMap<>();
+
+        CommandBinder(final T command) {
             this.command = command;
             findFields(command.getClass());
         }
 
         private void findFields(final Class commandClass) {
-            if (commandClass == null) {
+            if (!CliCommand.class.isAssignableFrom(commandClass)) {
                 return;
             }
             for (Field field : commandClass.getDeclaredFields()) {
-                if (field.isAnnotationPresent(Flag.class)) {
-                    final Flag option = field.getAnnotation(Flag.class);
-                    flags.put(option.value(), field);
-                }
-                if (field.isAnnotationPresent(Operands.class)) {
-                    //operands.add(field);
-                }
-
+                makeFlag(field);
             }
             findFields(commandClass.getSuperclass());
         }
 
-        public CliCommand to(final String[] args) throws InvalidCommandArgumentException {
+        private void makeFlag(Field field) {
+            final String name = extractFlagName(field);
+            if (name != null) {
+                flagsByName.put(name, field);
+            }
+            final Character key = extractFlagKey(field);
+            if (key != null) {
+                flagsByKey.put(key, field);
+            } else if (name != null) {
+                flagsByKey.put(name.charAt(0), field);
+            }
+        }
+
+        private Character extractFlagKey(final Field field) {
+            if (field.isAnnotationPresent(Key.class)) {
+                final Key key = field.getAnnotation(Key.class);
+                return key.value().charAt(0);
+            }
+            return null;
+        }
+
+        private String extractFlagName(final Field field) {
+            if (field.isAnnotationPresent(Flag.class)) {
+                final Flag flag = field.getAnnotation(Flag.class);
+                return flag.value().isEmpty() ? field.getName() : flag.value();
+            } else {
+                if (isBoolean(field)) {
+                    return field.getName();
+                }
+            }
+            return null;
+        }
+
+        private boolean isBoolean(final Field field) {
+            return field.getType() == boolean.class || field.getType() == Boolean.class;
+        }
+
+        public T to(final String[] args) throws InvalidCommandArgumentException {
             for (String arg : args) {
-                if (isOption(arg)) {
-                    this.processFlag(arg.substring(FULL_NAME_PREFIX.length()));
+                if (isOptionName(arg)) {
+                    final String name = extractOptionName(arg);
+                    if (!name.equals(command.name())) {
+                        this.setFlag(name, this.getFieldBy(name));
+                    }
+                }  else if (isOptionKey(arg)) {
+                    final Character key = extractOptionKey(arg);
+                    if (!key.equals(command.key())) {
+                        this.setFlag("" + key, this.getFieldBy(key));
+                    }
                 }
             }
             return command;
         }
 
-        private void processFlag(final String name) throws InvalidCommandArgumentException {
+        private void setFlag(final String name, final Field field) throws InvalidCommandArgumentException {
             try {
-                setOption(getFieldBy(name), true);
+                setOption(field, true);
             } catch (IllegalAccessException e) {
                 throw new InvalidCommandArgumentException(
                     command.name(),
@@ -131,20 +210,31 @@ public class CliMenu {
         }
 
         private Field getFieldBy(final String name) throws InvalidCommandArgumentException {
-            for (Field field : flags.values()) {
-                if (field.getName().equalsIgnoreCase(name)) {
-                    field.setAccessible(true);
-                    return field;
-                }
+            final Field result = flagsByName.get(name);
+            if (result == null) {
+                throw new InvalidCommandArgumentException(
+                        command.name(),
+                        name,
+                        format("Flag '%s' is not found", name)
+                );
             }
-            throw new InvalidCommandArgumentException(
-                command.name(),
-                name,
-                format("Flag '%s' is not found", name)
-            );
+            return result;
+        }
+
+        private Field getFieldBy(final Character key) throws InvalidCommandArgumentException {
+            final Field result = flagsByKey.get(key);
+            if (result == null) {
+                throw new InvalidCommandArgumentException(
+                        command.name(),
+                        "" + key,
+                        format("Flag '%s' is not found", key)
+                );
+            }
+            return result;
         }
 
         private void setOption(final Field field, final Object value) throws IllegalAccessException {
+            field.setAccessible(true);
             field.set(command, value);
         }
     }

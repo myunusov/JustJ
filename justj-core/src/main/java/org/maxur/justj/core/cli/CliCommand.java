@@ -16,8 +16,11 @@ public abstract class CliCommand {
 
     private final String name;
 
+    private Character key;
+
     protected CliCommand() {
         name = makeName();
+        key = makeKey();
     }
 
     public <T extends CliCommand> T copy() throws CommandInstancingException {
@@ -29,10 +32,29 @@ public abstract class CliCommand {
         }
     }
 
+    private Character makeKey() {
+        return annotatedWithKey() ?
+                keyFromAnnotation() :
+                keyFromName();
+    }
+
     private String makeName() {
         return annotatedAsCommand() ?
             nameFromAnnotation() :
             nameFromClassName();
+    }
+
+    private boolean annotatedWithKey() {
+        return this.getClass().isAnnotationPresent(Key.class);
+    }
+
+    private Character keyFromAnnotation() {
+        final Key annotation = this.getClass().getAnnotation(Key.class);
+        return annotation.value().charAt(0);
+    }
+
+    private Character keyFromName() {
+        return name == null ? null : name.charAt(0);
     }
 
     private boolean annotatedAsCommand() {
@@ -50,7 +72,7 @@ public abstract class CliCommand {
 
     private String nameFromAnnotation() {
         final Command annotation = this.getClass().getAnnotation(Command.class);
-        return annotation.value();
+        return annotation.value().isEmpty() ? nameFromClassName() : annotation.value();
     }
 
     @Override
@@ -63,8 +85,11 @@ public abstract class CliCommand {
         return Objects.hashCode(this.getClass());
     }
 
+    public Character key() {
+        return key;
+    }
+
     public String name() {
         return name;
     }
-
 }

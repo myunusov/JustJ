@@ -62,7 +62,7 @@ class CliMenuSpec extends Specification {
         String[] args = []
         when: "Client registers the command in the menu"
         sut.register(command)
-        then: "Menu returns command by command line flag"
+        then: "Menu returns null"
         assert sut.makeCommand(args) == null;
     }
 
@@ -70,7 +70,7 @@ class CliMenuSpec extends Specification {
         given: "new Commands"
         def command1 = new HelpCommand();
         def command2 = new VersionCommand();
-        and: "command line without any commands flag"
+        and: "command line with two commands flag"
         String[] args = ["--help", "--version"]
         when: "Client registers the command in the menu as default"
         sut.register(command1, command2)
@@ -84,34 +84,51 @@ class CliMenuSpec extends Specification {
         given: "new Commands"
         def command1 = new HelpCommand();
         def command2 = new VersionCommand();
-        and: "command line without any commands flag"
+        and: "command line with commands flag and a operand"
         String[] args = ["--help", "++version"]
         when: "Client registers the command in the menu as default"
         sut.register(command1, command2)
         and: "try get command from menu"
-        sut.makeCommand(args)
+        def result = sut.makeCommand(args)
         then: "Menu returns command by command line flag"
         assert sut.makeCommand(args) == command1;
     }
 
     def "Should returns command if command line contains command and commands option "() {
         given: "new Commands"
-        def command1 = new HelpCommand();
-        and: "command line without any commands flag"
+        def command = new HelpCommand();
+        and: "command line with any commands flag and option flag"
         String[] args = ["--help", "--all"]
         when: "Client registers the command in the menu as default"
-        sut.register(command1)
+        sut.register(command)
         and: "try get command from menu"
-        sut.makeCommand(args)
+        HelpCommand result = sut.makeCommand(args)
         then: "Menu returns command by command line flag"
-        assert sut.makeCommand(args) == command1;
+        assert result == command;
+        and: "Flag is set by annotations value"
+        assert result.all
+    }
+
+    def "Should returns command if command line contains command and commands option by method name"() {
+        given: "new Commands"
+        def command = new VersionCommand();
+        and: "command line with any commands flag and option flag"
+        String[] args = ["--version", "--all"]
+        when: "Client registers the command in the menu as default"
+        sut.register(command)
+        and: "try get command from menu"
+        VersionCommand result = sut.makeCommand(args)
+        then: "Menu returns command by command line flag"
+        assert result == command;
+        and: "Flag is set by field name"
+        assert result.all
     }
 
     def "Should returns error if command line contains unknown commands option"() {
         given: "new Command"
         def command = new HelpCommand();
-        and: "command line without any commands flag"
-        String[] args = ["--help --invalid"]
+        and: "command line without any commands flag and invalid option flag"
+        String[] args = ["--help", "--invalid"]
         when: "Client registers the command in the menu as default"
         sut.register(command)
         and: "try get command from menu"
@@ -120,13 +137,104 @@ class CliMenuSpec extends Specification {
         thrown InvalidCommandArgumentException;
     }
 
-
-
-    @Command("version")
-    static class VersionCommand extends CliCommand {
+    def "Should returns default commands if default command is registered and command line is empty"() {
+        given: "new Command"
+        def command = new ProcessCommand();
+        and: "command line without any commands flag"
+        String[] args = []
+        when: "Client registers the command in the menu"
+        sut.register(command)
+        then: "Menu returns default command by command line flag"
+        assert sut.makeCommand(args) == command;
     }
 
-    static class HelpCommand extends CliCommand {
+    def "Should returns command if command line contains command and commands option without flag annotation"() {
+        given: "new Commands"
+        def command = new ProcessCommand();
+        and: "command line with any commands flag and option flag"
+        String[] args = ["--process", "--all"]
+        when: "Client registers the command in the menu as default"
+        sut.register(command)
+        and: "try get command from menu"
+        ProcessCommand result = sut.makeCommand(args)
+        then: "Menu returns command by command line flag"
+        assert result == command;
+        and: "Flag is set by field name"
+        assert result.all
+    }
+
+    def "Should returns command if command line contains short command flag without shortkey annotation"() {
+        given: "new Command"
+        def command = new VersionCommand();
+        and: "command line with commands flag"
+        String[] args = ["-v"]
+        when: "Client registers the command in the menu"
+        sut.register(command)
+        then: "Menu returns command by command line flag"
+        assert sut.makeCommand(args) == command;
+    }
+
+    def "Should returns command if command line contains short command flag"() {
+        given: "new Command"
+        def command = new HelpCommand();
+        and: "command line with commands flag"
+        String[] args = ["-?"]
+        when: "Client registers the command in the menu"
+        sut.register(command)
+        then: "Menu returns command by command line flag"
+        assert sut.makeCommand(args) == command;
+    }
+
+    def "Should returns command if command line contains command and commands option by shortkey"() {
+        given: "new Commands"
+        def command = new VersionCommand();
+        and: "command line with any commands flag and option flag"
+        String[] args = ["-v", "-a"]
+        when: "Client registers the command in the menu as default"
+        sut.register(command)
+        and: "try get command from menu"
+        VersionCommand result = sut.makeCommand(args)
+        then: "Menu returns command by command line flag"
+        assert result == command;
+        and: "Flag is set by field name"
+        assert result.all
+    }
+
+    def "Should returns command if command line contains command and commands option by shortkey from superclass"() {
+        given: "new Commands"
+        def command = new VersionCommand();
+        and: "command line with any commands flag and option flag"
+        String[] args = ["-q", "-v", "-a"]
+        when: "Client registers the command in the menu as default"
+        sut.register(command)
+        and: "try get command from menu"
+        VersionCommand result = sut.makeCommand(args)
+        then: "Menu returns command by command line flag"
+        assert result == command;
+        and: "Flag is set by field name"
+        assert result.quit
+    }
+
+    static abstract class TestCommand extends CliCommand {
+        boolean quit;
+    }
+
+    @Command("version")
+    static class VersionCommand extends TestCommand {
+        @Flag
+        boolean all;
+    }
+
+    @Command
+    @Default
+    static class ProcessCommand extends TestCommand {
+        boolean all;
+    }
+
+    @Key("?")
+    static class HelpCommand extends TestCommand {
+        @Flag("all")
+        boolean all;
     }
 
 }

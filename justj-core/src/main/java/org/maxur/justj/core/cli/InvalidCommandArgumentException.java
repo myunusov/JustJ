@@ -9,9 +9,17 @@ import static java.lang.String.format;
  */
 public class InvalidCommandArgumentException extends CommandFabricationException {
 
-    private static final String MESSAGE = "Command '%s' not supported command line %s: %s";
+    private static final String MESSAGE = "Command '%s' not supported command line '%s': %s";
 
     public InvalidCommandArgumentException(final String commandName, final String arguments, final String message) {
         super(format(MESSAGE, commandName, arguments, message));
+    }
+
+    public InvalidCommandArgumentException(
+            final String commandName,
+            final String arguments,
+            final String message,
+            final IllegalAccessException cause) {
+        super(format(MESSAGE, commandName, arguments, message), cause);
     }
 }
