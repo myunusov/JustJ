@@ -7,7 +7,7 @@ class CliCommandSpec extends Specification {
 
     def "Should returns name for class with @Command annotation"() {
         given: "new Command with @Command annotation"
-        def command = new VersionCommand();
+        def command = new CliCommandInfo(VersionCommand);
         when: "Client requests command name"
         def name = command.name()
         then: "Command returns name"
@@ -16,7 +16,7 @@ class CliCommandSpec extends Specification {
 
     def "Should returns name for class without @Command annotation but with Command postfix in name"() {
         given: "new Command without @Command annotation but with Command postfix in name"
-        def command = new HelpCommand();
+        def command = new CliCommandInfo(HelpCommand);
         when: "Client requests command name"
         def name = command.name()
         then: "Command returns name"
@@ -26,7 +26,7 @@ class CliCommandSpec extends Specification {
 
     def "Should returns null for class without @Command annotation and without Command postfix in name"() {
         given: "new Command without @Command annotation and without Command postfix in name"
-        def command = new Invalid();
+        def command = new CliCommandInfo(Invalid);
         when: "Client requests command name"
         def name = command.name()
         then: "Command returns null"
@@ -35,7 +35,7 @@ class CliCommandSpec extends Specification {
 
     def "Should returns shortKey for class with @ShortKey annotation"() {
         given: "new Command with @ShortKey annotation"
-        def command = new HelpCommand();
+        def command = new CliCommandInfo(HelpCommand);
         when: "Client requests key"
         def shortKey = command.key()
         then: "Command returns key"
@@ -44,7 +44,7 @@ class CliCommandSpec extends Specification {
 
     def "Should returns shortKey for class without @ShortKey annotation but with Command name"() {
         given: "new Command without @Command annotation but with Command postfix in name"
-        def command = new VersionCommand();
+        def command = new CliCommandInfo(VersionCommand);
         when: "Client requests key"
         def shortKey = command.key()
         then: "Command returns key"
@@ -53,7 +53,7 @@ class CliCommandSpec extends Specification {
 
     def "Should returns null for class without @ShortKey annotation and without Command name"() {
         given: "new Command without @Command annotation but with Command postfix in name"
-        def command = new Invalid();
+        def command = new CliCommandInfo(Invalid);
         when: "Client requests key"
         def shortKey = command.key()
         then: "Command returns key"

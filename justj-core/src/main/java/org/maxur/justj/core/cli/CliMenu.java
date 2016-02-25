@@ -1,6 +1,5 @@
 package org.maxur.justj.core.cli;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 import static java.lang.String.format;
@@ -12,231 +11,108 @@ import static java.lang.String.format;
  */
 public class CliMenu {
 
-    private static final String NAME_PREFIX = "--";
+    private final Map<String, CliCommandInfo> commandsByName = new HashMap<>();
 
-    private static final String KEY_PREFIX = "-";
+    private final Map<Character, CliCommandInfo> commandsByKey = new HashMap<>();
 
-    private final Map<String, CliCommand> commandsByName = new HashMap<>();
+    private CliCommandInfo defaultCommand = null;
 
-    private final Map<Character, CliCommand> commandsByKey = new HashMap<>();
+    private final CLiMenuStrategy strategy;
 
-    private CliCommand defaultCommand = null;
-
-    public void register(final CliCommand... list) {
-        for (CliCommand command : list) {
-            if (isDefault(command)) {
-                defaultCommand = command;
-            }
-            commandsByName.put(command.name(), command);
-            commandsByKey.put(command.key(), command);
-        }
+    public CliMenu(final CLiMenuStrategy strategy) {
+        this.strategy = strategy;
     }
 
-    private boolean isDefault(final CliCommand command) {
-        return command.getClass().isAnnotationPresent(Default.class);
+    public void register(final Class<CliCommand>... list) {
+        for (Class<CliCommand> c : list) {
+            final CliCommandInfo info = new CliCommandInfo(c);
+            if (info.isDefault()) {
+                defaultCommand = info;
+            }
+            commandsByName.put(info.name(), info);
+            commandsByKey.put(info.key(), info);
+        }
     }
 
     public <T extends CliCommand> T makeCommand(final String name) throws CommandFabricationException {
-        final CliCommand prototype = commandsByName.get(name);
-        if (null == prototype) {
+        final CliCommandInfo info = commandsByName.get(name);
+        if (info == null) {
             throw new CommandNotFoundException(name);
         }
-        return prototype.copy();
-
-    }
-
-    public <T extends CliCommand> T makeCommand(final String[] args) throws CommandFabricationException {
-        List<CliCommand> result = new ArrayList<>();
-        for (String arg : args) {
-            if (isOptionName(arg)) {
-                final CliCommand command = getCommandByName(arg);
-                if (command != null) {
-                    result.add(command);
-                }
-            } else if (isOptionKey(arg)) {
-                final CliCommand command = getCommandByKey(arg);
-                if (command != null) {
-                    result.add(command);
-                }
-            }
-        }
-        final T command = processResult(args, result);
-        return command == null ? null : bind(command).to(args);
+        return info.copy();
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends CliCommand> T processResult(String[] args, List<CliCommand> result) throws InvalidCommandLineException {
-        switch (result.size()) {
+    public <T extends CliCommand> T makeCommand(final String[] args) throws CommandFabricationException {
+        CliCommandInfo command;
+        final Collection<CliCommandInfo> commands = selectCommands(args);
+        switch (commands.size()) {
             case 0:
-                return (T) defaultCommand;
+                if (defaultCommand == null) {
+                    return null;
+                }
+                command = defaultCommand;
+                break;
             case 1:
-                return (T)result.get(0);
+                command = commands.iterator().next();
+                break;
             default:
-                throw moreThanOneCommandException(args, result);
+                throw moreThanOneCommandException(args, commands);
         }
+        return strategy.bind(command, args, command.copy());
     }
 
-    private <T extends CliCommand> CommandBinder<T> bind(final T command) {
-        return new CommandBinder<>(command);
+    private Set<CliCommandInfo> selectCommands(final String[] args) throws CommandFabricationException {
+        final Set<CliCommandInfo> result = new HashSet<>();
+        for (String arg : args) {
+            result.addAll(selectCommand(arg));
+        }
+        return result;
     }
 
-    private InvalidCommandLineException moreThanOneCommandException(String[] args, List<CliCommand> result) {
+    private Set<CliCommandInfo> selectCommand(final String arg) throws CommandFabricationException {
+        if (strategy.isOptionName(arg)) {
+            final CliCommandInfo command = getCommandByName(arg);
+            if (command != null) {
+                return Collections.singleton(command);
+            }
+        } else if (strategy.isOptionKey(arg)) {
+            return getCommandsByKey(arg);
+        }
+        return Collections.emptySet();
+    }
+
+
+    private CliCommandInfo getCommandByName(final String arg) throws CommandFabricationException {
+        final String name = strategy.extractOptionName(arg);
+        return commandsByName.get(name);
+    }
+
+    private Set<CliCommandInfo> getCommandsByKey(final String arg) throws CommandFabricationException {
+        final Set<CliCommandInfo> result = new HashSet<>();
+        final Collection<Character> keys = strategy.extractOptionKeys(arg);
+        for (Character key : keys) {
+            final CliCommandInfo command = commandsByKey.get(key);
+            if (command != null) {
+                result.add(command);
+            }
+        }
+        return result;
+    }
+
+
+    private InvalidCommandLineException moreThanOneCommandException(String[] args, Collection<CliCommandInfo> commands) {
+        String result = "";
+        for (Iterator<CliCommandInfo> iterator = commands.iterator(); iterator.hasNext(); ) {
+            CliCommandInfo command = iterator.next();
+            String separator = iterator.hasNext() ? ", " : " and ";
+            result += separator + "'" + command.name() + "'";
+        }
         return new InvalidCommandLineException(
             Arrays.toString(args),
-            format(
-                "You try to call commands '%s' and '%s' simultaneously",
-                result.get(0).name(),
-                result.get(1).name()
-            )
+            format("You try to call commands '%s' simultaneously",  result)
         );
     }
 
-    private boolean isOptionName(final String arg) {
-        return arg.startsWith(NAME_PREFIX);
-    }
-
-    private boolean isOptionKey(final String arg) {
-        return arg.startsWith(KEY_PREFIX) && arg.charAt(1) != '-';
-    }
-
-    private CliCommand getCommandByName(final String arg) throws CommandFabricationException {
-        final String name = extractOptionName(arg);
-        final CliCommand command = commandsByName.get(name);
-        return command == null ? null : command.copy();
-    }
-
-    private String extractOptionName(final String arg) {
-        return arg.substring(NAME_PREFIX.length());
-    }
-
-    private CliCommand getCommandByKey(final String arg) throws CommandFabricationException {
-        final Character key = extractOptionKey(arg);
-        final CliCommand command = commandsByKey.get(key);
-        return command == null ? null : command.copy();
-    }
-
-    private Character extractOptionKey(final String arg) {
-        return arg.charAt(KEY_PREFIX.length());
-    }
-
-    private class CommandBinder<T extends CliCommand> {
-
-        private final T command;
-
-        private final Map<String, Field> flagsByName = new HashMap<>();
-
-        private final Map<Character, Field> flagsByKey = new HashMap<>();
-
-        CommandBinder(final T command) {
-            this.command = command;
-            findFields(command.getClass());
-        }
-
-        private void findFields(final Class commandClass) {
-            if (!CliCommand.class.isAssignableFrom(commandClass)) {
-                return;
-            }
-            for (Field field : commandClass.getDeclaredFields()) {
-                makeFlag(field);
-            }
-            findFields(commandClass.getSuperclass());
-        }
-
-        private void makeFlag(Field field) {
-            final String name = extractFlagName(field);
-            if (name != null) {
-                flagsByName.put(name, field);
-            }
-            final Character key = extractFlagKey(field);
-            if (key != null) {
-                flagsByKey.put(key, field);
-            } else if (name != null) {
-                flagsByKey.put(name.charAt(0), field);
-            }
-        }
-
-        private Character extractFlagKey(final Field field) {
-            if (field.isAnnotationPresent(Key.class)) {
-                final Key key = field.getAnnotation(Key.class);
-                return key.value().charAt(0);
-            }
-            return null;
-        }
-
-        private String extractFlagName(final Field field) {
-            if (field.isAnnotationPresent(Flag.class)) {
-                final Flag flag = field.getAnnotation(Flag.class);
-                return flag.value().isEmpty() ? field.getName() : flag.value();
-            } else {
-                if (isBoolean(field)) {
-                    return field.getName();
-                }
-            }
-            return null;
-        }
-
-        private boolean isBoolean(final Field field) {
-            return field.getType() == boolean.class || field.getType() == Boolean.class;
-        }
-
-        public T to(final String[] args) throws InvalidCommandArgumentException {
-            for (String arg : args) {
-                if (isOptionName(arg)) {
-                    final String name = extractOptionName(arg);
-                    if (!name.equals(command.name())) {
-                        this.setFlag(name, this.getFieldBy(name));
-                    }
-                }  else if (isOptionKey(arg)) {
-                    final Character key = extractOptionKey(arg);
-                    if (!key.equals(command.key())) {
-                        this.setFlag("" + key, this.getFieldBy(key));
-                    }
-                }
-            }
-            return command;
-        }
-
-        private void setFlag(final String name, final Field field) throws InvalidCommandArgumentException {
-            try {
-                setOption(field, true);
-            } catch (IllegalAccessException e) {
-                throw new InvalidCommandArgumentException(
-                    command.name(),
-                    name,
-                    format("Illegal access to field %s", field.getName())
-                    , e
-                );
-            }
-        }
-
-        private Field getFieldBy(final String name) throws InvalidCommandArgumentException {
-            final Field result = flagsByName.get(name);
-            if (result == null) {
-                throw new InvalidCommandArgumentException(
-                        command.name(),
-                        name,
-                        format("Flag '%s' is not found", name)
-                );
-            }
-            return result;
-        }
-
-        private Field getFieldBy(final Character key) throws InvalidCommandArgumentException {
-            final Field result = flagsByKey.get(key);
-            if (result == null) {
-                throw new InvalidCommandArgumentException(
-                        command.name(),
-                        "" + key,
-                        format("Flag '%s' is not found", key)
-                );
-            }
-            return result;
-        }
-
-        private void setOption(final Field field, final Object value) throws IllegalAccessException {
-            field.setAccessible(true);
-            field.set(command, value);
-        }
-    }
 
 }
