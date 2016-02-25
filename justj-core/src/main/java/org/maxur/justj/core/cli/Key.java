@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * @since <pre>21.02.2016</pre>
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.FIELD})
 public @interface Key {
     String value();
 }

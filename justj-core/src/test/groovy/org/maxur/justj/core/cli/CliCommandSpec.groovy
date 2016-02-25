@@ -61,14 +61,14 @@ class CliCommandSpec extends Specification {
     }
 
     @Command("version")
-    static class VersionCommand extends CliCommand {
+    static class VersionCommand implements CliCommand {
     }
 
     @Key("h")
-    static class HelpCommand extends CliCommand {
+    static class HelpCommand implements CliCommand {
     }
 
-    static class Invalid extends CliCommand {
+    static class Invalid implements CliCommand {
     }
 
 

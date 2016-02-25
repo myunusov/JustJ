@@ -1,11 +1,9 @@
 package org.maxur.justj.core.cli;
 
 import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 
 public class CLiMenuPosixStrategy implements CLiMenuStrategy {
 
@@ -39,9 +37,9 @@ public class CLiMenuPosixStrategy implements CLiMenuStrategy {
 
     @Override
     public <T extends CliCommand> T bind(
-        final CliCommandInfo info,
-        final String[] args,
-        final T command
+            final CliCommandInfo info,
+            final String[] args,
+            final T command
     ) throws InvalidCommandArgumentException {
         return new CommandBinder<T>(info, command).to(args);
     }
@@ -56,6 +54,11 @@ public class CLiMenuPosixStrategy implements CLiMenuStrategy {
 
         private final Map<Character, Field> flagsByKey = new HashMap<>();
 
+        private final Map<String, Field> triggersByName = new HashMap<>();
+
+        private final Map<Character, Field> triggersByKey = new HashMap<>();
+
+
         CommandBinder(final CliCommandInfo info, final T command) {
             this.info = info;
             this.command = command;
@@ -68,11 +71,32 @@ public class CLiMenuPosixStrategy implements CLiMenuStrategy {
             }
             for (Field field : commandClass.getDeclaredFields()) {
                 makeFlag(field);
+                makeTriggers(field);
             }
             findFields(commandClass.getSuperclass());
         }
 
-        private void makeFlag(Field field) {
+        private void makeTriggers(final Field field) {
+            final Class<?> type = field.getType();
+            if (!type.isEnum()) {
+                return;
+            }
+            for (Field f : type.getDeclaredFields()) {
+                if (!f.isEnumConstant()) {
+                    continue;
+                }
+                final String name = extractEnumFlagName(f);
+                triggersByName.put(name, field);
+                final Character key = extractFlagKey(f);
+                if (key != null) {
+                    triggersByKey.put(key, field);
+                } else {
+                    triggersByKey.put(name.charAt(0), field);
+                }
+            }
+        }
+
+        private void makeFlag(final Field field) {
             final String name = extractFlagName(field);
             if (name != null) {
                 flagsByName.put(name, field);
@@ -112,62 +136,138 @@ public class CLiMenuPosixStrategy implements CLiMenuStrategy {
         private T to(final String[] args) throws InvalidCommandArgumentException {
             for (String arg : args) {
                 if (isOptionName(arg)) {
-                    final String name = extractOptionName(arg);
-                    if (!name.equals(info.name())) {
-                        setFlag(name, getFieldBy(name));
-                    }
+                    setOptionByName(extractOptionName(arg));
                 } else if (isOptionKey(arg)) {
                     final Collection<Character> keys = extractOptionKeys(arg);
                     for (Character key : keys) {
-                        if (!key.equals(info.key())) {
-                            setFlag("" + key, getFieldBy(key));
-                        }
+                        setOptionByKey(key);
                     }
                 }
             }
             return command;
         }
 
-        private void setFlag(final String name, final Field field) throws InvalidCommandArgumentException {
-            try {
-                setOption(field, true);
-            } catch (IllegalAccessException e) {
-                throw new InvalidCommandArgumentException(
-                    info.name(),
-                    name,
-                    String.format("Illegal access to field %s", field.getName())
-                    , e
-                );
+        private void setOptionByKey(final Character key) throws InvalidCommandArgumentException {
+            if (key.equals(info.key())) {
+                return;
             }
-        }
-
-        private Field getFieldBy(final String name) throws InvalidCommandArgumentException {
-            final Field result = flagsByName.get(name);
-            if (result == null) {
-                throw new InvalidCommandArgumentException(
-                    info.name(),
-                    name,
-                    String.format("Flag '%s' is not found", name)
-                );
+            final Field field = flagsByKey.get(key);
+            if (field != null) {
+                setOption("" + key, field, true);
+                return;
             }
-            return result;
-        }
-
-        private Field getFieldBy(final Character key) throws InvalidCommandArgumentException {
-            final Field result = flagsByKey.get(key);
-            if (result == null) {
-                throw new InvalidCommandArgumentException(
+            final Field trigger = triggersByKey.get(key);
+            if (trigger != null) {
+                setEnum("" + key, trigger, findValue(key, trigger));
+                return;
+            }
+            throw new InvalidCommandArgumentException(
                     info.name(),
                     "" + key,
                     String.format("Flag '%s' is not found", key)
-                );
-            }
-            return result;
+            );
         }
 
-        private void setOption(final Field field, final Object value) throws IllegalAccessException {
+        private void setOptionByName(final String name) throws InvalidCommandArgumentException {
+            if (name.equals(info.name())) {
+                return;
+            }
+            final Field field = flagsByName.get(name);
+            if (field != null) {
+                setOption(name, field, true);
+                return;
+            }
+            final Field trigger = triggersByName.get(name);
+            if (trigger != null) {
+                setEnum(name, trigger, findValue(name, trigger));
+                return;
+            }
+            throw new InvalidCommandArgumentException(
+                    info.name(),
+                    name,
+                    String.format("Flag '%s' is not found", name)
+            );
+        }
+
+        private String findValue(final String name, final Field trigger) throws InvalidCommandArgumentException {
+            final Class<?> type = trigger.getType();
+            for (Field f : type.getDeclaredFields()) {
+                if (!f.isEnumConstant()) {
+                    continue;
+                }
+                if (extractEnumFlagName(f).equals(name)) {
+                    return f.getName();
+                }
+            }
+            throw new InvalidCommandArgumentException(
+                    info.name(),
+                    name,
+                    String.format("Flag '%s' is not found", name)
+            );
+        }
+
+        private String findValue(final Character key, final Field trigger) throws InvalidCommandArgumentException {
+            final Class<?> type = trigger.getType();
+            for (Field f : type.getDeclaredFields()) {
+                if (!f.isEnumConstant()) {
+                    continue;
+                }
+                final Character k = extractFlagKey(f);
+                if (k != null && k == key) {
+                    return f.getName();
+                } else if (extractEnumFlagName(f).charAt(0) == key) {
+                    return f.getName();
+                }
+            }
+            throw new InvalidCommandArgumentException(
+                    info.name(),
+                    "" + key,
+                    String.format("Flag '%s' is not found", key)
+            );
+        }
+
+        private String extractEnumFlagName(Field f) {
+            final String name;
+            if (f.isAnnotationPresent(Flag.class)) {
+                final Flag flag = f.getAnnotation(Flag.class);
+                name = flag.value().isEmpty() ? f.getName() : flag.value();
+            } else {
+                name = f.getName();
+            }
+            return name.toLowerCase();
+        }
+
+        private void setEnum(
+                final String name,
+                final Field field,
+                final String value
+        ) throws InvalidCommandArgumentException {
+            try {
+                Method valueOf = field.getType().getMethod("valueOf", String.class);
+                Object v = valueOf.invoke(null, value);
+                setOption(name, field, v);
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+
+
+        private void setOption(
+                final String name,
+                final Field field,
+                final Object value
+        ) throws InvalidCommandArgumentException {
             field.setAccessible(true);
-            field.set(command, value);
+            try {
+                field.set(command, value);
+            } catch (IllegalAccessException e) {
+                throw new InvalidCommandArgumentException(
+                        info.name(),
+                        name,
+                        String.format("Illegal access to field %s", field.getName())
+                        , e
+                );
+            }
         }
     }
 }

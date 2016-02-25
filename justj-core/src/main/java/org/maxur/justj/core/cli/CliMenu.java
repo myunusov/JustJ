@@ -23,7 +23,8 @@ public class CliMenu {
         this.strategy = strategy;
     }
 
-    public void register(final Class<CliCommand>... list) {
+    @SafeVarargs
+    public final void register(final Class<CliCommand>... list) {
         for (Class<CliCommand> c : list) {
             final CliCommandInfo info = new CliCommandInfo(c);
             if (info.isDefault()) {
@@ -102,15 +103,16 @@ public class CliMenu {
 
 
     private InvalidCommandLineException moreThanOneCommandException(String[] args, Collection<CliCommandInfo> commands) {
-        String result = "";
-        for (Iterator<CliCommandInfo> iterator = commands.iterator(); iterator.hasNext(); ) {
+        final Iterator<CliCommandInfo> iterator = commands.iterator();
+        String result = "'" + iterator.next().name() + "'";
+        while (iterator.hasNext()) {
             CliCommandInfo command = iterator.next();
             String separator = iterator.hasNext() ? ", " : " and ";
             result += separator + "'" + command.name() + "'";
         }
         return new InvalidCommandLineException(
             Arrays.toString(args),
-            format("You try to call commands '%s' simultaneously",  result)
+            format("You try to call commands %s simultaneously",  result)
         );
     }
 

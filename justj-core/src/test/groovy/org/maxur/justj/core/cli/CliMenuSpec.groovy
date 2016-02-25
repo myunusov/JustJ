@@ -203,6 +203,77 @@ class CliMenuSpec extends Specification {
         thrown InvalidCommandLineException;
     }
 
+    def "Should returns command if command line contains command and commands option as trigger (compact form)"() {
+        given: "command line with any commands flag and option flag"
+        String[] args = ["-px"]
+        when: "Client registers the command in the menu as default"
+        sut.register(ProcessCommand)
+        and: "try get command from menu"
+        ProcessCommand result = sut.makeCommand(args)
+        then: "Menu returns command by command line flag"
+        assert result instanceof ProcessCommand;
+        and: "Flag is set by field name"
+        assert result.logLevel == LogLevel.DEBUG
+    }
+
+    def "Should returns command if command line contains command and commands option as trigger"() {
+        given: "command line with any commands flag and option flag"
+        String[] args = ["-p", "--debug"]
+        when: "Client registers the command in the menu as default"
+        sut.register(ProcessCommand)
+        and: "try get command from menu"
+        ProcessCommand result = sut.makeCommand(args)
+        then: "Menu returns command by command line flag"
+        assert result instanceof ProcessCommand;
+        and: "Flag is set by field name"
+        assert result.logLevel == LogLevel.DEBUG
+    }
+
+    def "Should returns command if command line contains command and commands option as trigger with flag"() {
+        given: "command line with any commands flag and option flag"
+        String[] args = ["-p", "--quiet"]
+        when: "Client registers the command in the menu as default"
+        sut.register(ProcessCommand)
+        and: "try get command from menu"
+        ProcessCommand result = sut.makeCommand(args)
+        then: "Menu returns command by command line flag"
+        assert result instanceof ProcessCommand;
+        and: "Flag is set by field name"
+        assert result.logLevel == LogLevel.OFF
+    }
+
+    public static enum LogLevel {
+        @Key("x")
+                DEBUG,
+        @Key("q")
+        @Flag("quiet")
+                OFF,
+        INFO
+    }
+
+    static abstract class TestCommand implements CliCommand {
+        boolean quit
+    }
+
+    @Command("version")
+    static class VersionCommand extends TestCommand {
+        @Flag
+        boolean all
+    }
+
+    @Command
+    @Default
+    static class ProcessCommand extends TestCommand {
+        boolean all
+        LogLevel logLevel
+    }
+
+    @Key("?")
+    static class HelpCommand extends TestCommand {
+        @Flag("all")
+        boolean all
+    }
+
     def "Should returns error if command line contains unknown commands option in compact form"() {
         given: "command line without any commands flag and invalid option flag"
         String[] args = ["-?i"]
@@ -212,28 +283,6 @@ class CliMenuSpec extends Specification {
         sut.makeCommand(args)
         then: "Menu throws Command not Found Exception"
         thrown InvalidCommandArgumentException;
-    }
-
-    static abstract class TestCommand extends CliCommand {
-        boolean quit;
-    }
-
-    @Command("version")
-    static class VersionCommand extends TestCommand {
-        @Flag
-        boolean all;
-    }
-
-    @Command
-    @Default
-    static class ProcessCommand extends TestCommand {
-        boolean all;
-    }
-
-    @Key("?")
-    static class HelpCommand extends TestCommand {
-        @Flag("all")
-        boolean all;
     }
 
 }

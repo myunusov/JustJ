@@ -5,8 +5,6 @@ package org.maxur.justj.core.cli;
  * @version 1.0
  * @since <pre>23.02.2016</pre>
  */
-public abstract class CliCommand {
-
-
+public interface CliCommand {
 
 }
