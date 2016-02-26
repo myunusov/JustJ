@@ -70,10 +70,9 @@ public class CliCommandInfo {
     private String nameFromClassName() {
         final String className = commandClass.getSimpleName();
         int index = className.indexOf(COMMAND_CLASS_POSTFIX);
-        if (index == -1) {
-            return null;
-        }
-        return className.substring(0, index).toLowerCase();
+        return index == -1 ?
+            className.toLowerCase() :
+            className.substring(0, index).toLowerCase();
     }
 
     private String nameFromAnnotation() {

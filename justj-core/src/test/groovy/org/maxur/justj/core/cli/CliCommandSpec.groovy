@@ -24,13 +24,13 @@ class CliCommandSpec extends Specification {
 
     }
 
-    def "Should returns null for class without @Command annotation and without Command postfix in name"() {
+    def "Should returns name as class name for class without @Command annotation and without Command postfix in name"() {
         given: "new Command without @Command annotation and without Command postfix in name"
-        def command = new CliCommandInfo(Invalid);
+        def command = new CliCommandInfo(Validate);
         when: "Client requests command name"
         def name = command.name()
         then: "Command returns null"
-        assert name == null;
+        assert name == "validate";
     }
 
     def "Should returns shortKey for class with @ShortKey annotation"() {
@@ -51,13 +51,13 @@ class CliCommandSpec extends Specification {
         assert shortKey == "v" as char;
     }
 
-    def "Should returns null for class without @ShortKey annotation and without Command name"() {
+    def "Should returns first letter from class name as key for class without @ShortKey annotation and without Command name"() {
         given: "new Command without @Command annotation but with Command postfix in name"
-        def command = new CliCommandInfo(Invalid);
+        def command = new CliCommandInfo(Validate);
         when: "Client requests key"
         def shortKey = command.key()
         then: "Command returns key"
-        assert shortKey == null;
+        assert shortKey == "v" as char;
     }
 
     @Command("version")
@@ -68,7 +68,7 @@ class CliCommandSpec extends Specification {
     static class HelpCommand implements CliCommand {
     }
 
-    static class Invalid implements CliCommand {
+    static class Validate implements CliCommand {
     }
 
 
