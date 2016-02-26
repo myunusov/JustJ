@@ -242,6 +242,15 @@ class CliMenuSpec extends Specification {
         assert result.logLevel == LogLevel.OFF
     }
 
+    def "Should returns command if command line contains short command flag with alias"() {
+        given: "command line with commands flag"
+        String[] args = ["-h"]
+        when: "Client registers the command in the menu"
+        sut.register(HelpCommand)
+        then: "Menu returns command by command line flag"
+        assert sut.makeCommand(args) instanceof HelpCommand;
+    }
+
     public static enum LogLevel {
         @Key("x")
                 DEBUG,
@@ -266,12 +275,6 @@ class CliMenuSpec extends Specification {
     static class ProcessCommand extends TestCommand {
         boolean all
         LogLevel logLevel
-    }
-
-    @Key("?")
-    static class HelpCommand extends TestCommand {
-        @Flag("all")
-        boolean all
     }
 
     def "Should returns error if command line contains unknown commands option in compact form"() {

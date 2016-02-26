@@ -148,7 +148,7 @@ public class CLiMenuPosixStrategy implements CLiMenuStrategy {
         }
 
         private void setOptionByKey(final Character key) throws InvalidCommandArgumentException {
-            if (key.equals(info.key())) {
+            if (info.keys().contains(key)) {
                 return;
             }
             final Field field = flagsByKey.get(key);

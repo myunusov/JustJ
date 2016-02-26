@@ -1,5 +1,9 @@
 package org.maxur.justj.core.cli;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * @author Maxim Yunusov
  * @version 1.0
@@ -16,7 +20,7 @@ public class CliCommandInfo {
 
     private final String name;
 
-    private final Character key;
+    private final Set<Character> keys;
 
     private final boolean isDefault;
 
@@ -24,7 +28,7 @@ public class CliCommandInfo {
     protected CliCommandInfo(Class<CliCommand> commandClass) {
         this.commandClass = commandClass;
         name = makeName();
-        key = makeKey();
+        keys = makeKeys();
         isDefault = commandClass.isAnnotationPresent(Default.class);
     }
 
@@ -38,16 +42,33 @@ public class CliCommandInfo {
     }
 
 
-    private Character makeKey() {
-        return annotatedWithKey() ?
-            keyFromAnnotation() :
-            keyFromName();
+    private Set<Character> makeKeys() {
+        if (annotatedWithKey()) {
+            return Collections.singleton(keyFromAnnotation());
+        } else if (annotatedWithKeys()) {
+            return keysFromAnnotation();
+        } else {
+            return Collections.singleton(keyFromName());
+        }
     }
 
     private String makeName() {
         return annotatedAsCommand() ?
             nameFromAnnotation() :
             nameFromClassName();
+    }
+
+    private boolean annotatedWithKeys() {
+        return commandClass.isAnnotationPresent(KeyContainer.class);
+    }
+
+    private Set<Character> keysFromAnnotation() {
+        final Set<Character> result = new HashSet<>();
+        final KeyContainer annotation = commandClass.getAnnotation(KeyContainer.class);
+        for (Key key : annotation.value()) {
+            result.add(key.value().charAt(0));
+        }
+        return result;
     }
 
     private boolean annotatedWithKey() {
@@ -80,8 +101,8 @@ public class CliCommandInfo {
         return annotation.value().isEmpty() ? nameFromClassName() : annotation.value();
     }
 
-    public Character key() {
-        return key;
+    public Set<Character> keys() {
+        return keys;
     }
 
     public String name() {

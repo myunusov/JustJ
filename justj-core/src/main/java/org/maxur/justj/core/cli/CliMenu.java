@@ -31,7 +31,7 @@ public class CliMenu {
                 defaultCommand = info;
             }
             commandsByName.put(info.name(), info);
-            commandsByKey.put(info.key(), info);
+            info.keys().forEach(key -> commandsByKey.put(key, info));
         }
     }
 
