@@ -1,12 +1,8 @@
 package org.maxur.justj.core.cli;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import static java.lang.String.format;
@@ -21,7 +17,7 @@ public class CliCommandInfo {
     private static final String COMMAND_CLASS_POSTFIX = "Command";
 
     private static final String CAUSE = " \n" +
-        "Check that class has accessible default constructor and that inner class is static";
+            "Check that class has accessible default constructor and that inner class is static";
 
     private final Class<CliCommand> commandClass;
 
@@ -31,18 +27,7 @@ public class CliCommandInfo {
 
     private final boolean isDefault;
 
-    private final Map<String, Field> flagsByName = new HashMap<>();
-
-    private final Map<Character, Field> flagsByKey = new HashMap<>();
-
-    private final Map<String, Field> triggersByName = new HashMap<>();
-
-    private final Map<Character, Field> triggersByKey = new HashMap<>();
-
-    private final Map<String, String> valueByName = new HashMap<>();
-
-    private final Map<Character, String> valueByKey = new HashMap<>();
-
+    private final Set<OptionInfo> options = new HashSet<>();
 
     protected CliCommandInfo(Class<CliCommand> commandClass) {
         this.commandClass = commandClass;
@@ -50,6 +35,12 @@ public class CliCommandInfo {
         keys = makeKeys();
         isDefault = commandClass.isAnnotationPresent(Default.class);
         findFields(commandClass);
+    }
+
+    private String makeName() {
+        return annotatedAsCommand() ?
+                nameFromAnnotation() :
+                nameFromClassName();
     }
 
     private Set<Character> makeKeys() {
@@ -60,12 +51,6 @@ public class CliCommandInfo {
         } else {
             return Collections.singleton(keyFromName());
         }
-    }
-
-    private String makeName() {
-        return annotatedAsCommand() ?
-            nameFromAnnotation() :
-            nameFromClassName();
     }
 
     private boolean annotatedWithKeys() {
@@ -102,8 +87,8 @@ public class CliCommandInfo {
         final String className = commandClass.getSimpleName();
         int index = className.indexOf(COMMAND_CLASS_POSTFIX);
         return index == -1 ?
-            className.toLowerCase() :
-            className.substring(0, index).toLowerCase();
+                className.toLowerCase() :
+                className.substring(0, index).toLowerCase();
     }
 
     private String nameFromAnnotation() {
@@ -116,127 +101,9 @@ public class CliCommandInfo {
             return;
         }
         for (Field field : commandClass.getDeclaredFields()) {
-           // final OptionInfo id = new OptionInfo(field);
-            findFlag(field);
-            findTriggers(field);
+            options.add(new OptionInfo(field));
         }
         findFields(commandClass.getSuperclass());
-    }
-
-    private void findFlag(final Field field) {
-        final String name = extractFlagName(field);
-        final Character key = findKey(field, name);
-
-        if (name != null) {
-            flagsByName.put(name, field);
-        }
-        if (key != null) {
-            flagsByKey.put(key, field);
-        }
-    }
-
-    private void findTriggers(final Field field) {
-        final Class<?> type = field.getType();
-        if (!type.isEnum()) {
-            return;
-        }
-        for (Field f : type.getDeclaredFields()) {
-            if (!f.isEnumConstant()) {
-                continue;
-            }
-            final String name = extractTriggerName(f);
-            final Character key = findKey(f, name);
-
-            triggersByName.put(name, field);
-            valueByName.put(name, f.getName());
-            triggersByKey.put(key, field);
-            valueByKey.put(key, f.getName());
-        }
-    }
-
-    private Character findKey(final Field field, final String name) {
-        final Character key = extractFlagKey(field);
-        if (key == null) {
-            return name == null ? null : name.charAt(0);
-        } else {
-            return key;
-        }
-    }
-
-    private Character extractFlagKey(final Field field) {
-        if (field.isAnnotationPresent(Key.class)) {
-            final Key key = field.getAnnotation(Key.class);
-            return key.value().charAt(0);
-        }
-        return null;
-    }
-
-    private String extractFlagName(final Field field) {
-        if (field.isAnnotationPresent(Flag.class)) {
-            final Flag flag = field.getAnnotation(Flag.class);
-            return flag.value().isEmpty() ? field.getName() : flag.value();
-        } else {
-            if (isBoolean(field)) {
-                return field.getName();
-            }
-        }
-        return null;
-    }
-
-    private String extractTriggerName(final Field field) {
-        final String name;
-        if (field.isAnnotationPresent(Flag.class)) {
-            final Flag flag = field.getAnnotation(Flag.class);
-            name = flag.value().isEmpty() ? field.getName() : flag.value();
-        } else {
-            name = field.getName();
-        }
-        return name.toLowerCase();
-    }
-
-    private boolean isBoolean(final Field field) {
-        return field.getType() == boolean.class || field.getType() == Boolean.class;
-    }
-
-    public void setOptionByKey(final Character key, final CliCommand command) throws InvalidCommandArgumentException {
-        setOptionById(command, new OptionId(key));
-    }
-
-    public void setOptionByName(final String name, final CliCommand command) throws InvalidCommandArgumentException {
-        setOptionById(command, new OptionId(name));
-    }
-
-    private void setOptionById(CliCommand command, OptionId id) throws InvalidCommandArgumentException {
-        if (isCommandId(id)) {
-            return;
-        }
-        final Field field = flagById(id);
-        if (field != null) {
-            setOption(id, field, true, command);
-            return;
-        }
-        final Field trigger = triggerById(id);
-        if (trigger != null) {
-            setEnum(id, trigger, findValue(id), command);
-            return;
-        }
-        throw new InvalidCommandArgumentException(
-            commandName,
-            id.asString(),
-            format("Flag '%s' is not found", id.asString())
-        );
-    }
-
-    private boolean isCommandId(final OptionId id) {
-        return keys.contains(id.key) || commandName.equals(id.name);
-    }
-
-    private Field flagById(final OptionId id) {
-        return id.isKey() ? flagsByKey.get(id.key) : flagsByName.get(id.name);
-    }
-
-    private Field triggerById(final OptionId id) {
-        return id.isKey() ? triggersByKey.get(id.key) : triggersByName.get(id.name);
     }
 
     <T extends CliCommand> T instance() throws CommandInstancingException {
@@ -248,50 +115,28 @@ public class CliCommandInfo {
         }
     }
 
-    private String findValue(final OptionId id) throws InvalidCommandArgumentException {
-        final String result = id.isKey() ? valueByKey.get(id.key) : valueByName.get(id.name);
-        if (result == null) {
-            throw new InvalidCommandArgumentException(
-                this.commandName,
-                id.asString(),
-                format("Flag '%s' is not found", id.asString())
-            );
-        }
-        return result;
-    }
-
-    private void setEnum(
-        final OptionId id,
-        final Field field,
-        final String value,
-        final CliCommand command
+    public void bind(
+            final Object command, final Argument argument
     ) throws InvalidCommandArgumentException {
-        try {
-            Method valueOf = field.getType().getMethod("valueOf", String.class);
-            Object v = valueOf.invoke(null, value);
-            setOption(id, field, v, command);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalStateException(e);
+        if (isCommandId(argument)) {
+            return;
+        }
+        boolean result = false;
+        for (OptionInfo option : options) {
+            result |= option.apply(argument, command);
+        }
+
+        if (!result) {
+            throw new InvalidCommandArgumentException(
+                    commandName,
+                    argument.asString(),
+                    format("Flag '%s' is not found", argument.asString())
+            );
         }
     }
 
-    private void setOption(
-        final OptionId id,
-        final Field field,
-        final Object value,
-        final CliCommand command
-    ) throws InvalidCommandArgumentException {
-        field.setAccessible(true);
-        try {
-            field.set(command, value);
-        } catch (IllegalAccessException e) {
-            throw new InvalidCommandArgumentException(
-                this.commandName,
-                id.asString(),
-                format("Illegal access to field %s", field.getName())
-                , e
-            );
-        }
+    private boolean isCommandId(final Argument argument) {
+        return keys.contains(argument.key()) || commandName.equals(argument.name());
     }
 
 
@@ -307,30 +152,7 @@ public class CliCommandInfo {
         return isDefault;
     }
 
-    private static class OptionId {
 
-        private final Character key;
-
-        private final String name;
-
-        private OptionId(final Character key) {
-            this.key = key;
-            this.name = null;
-        }
-
-        private OptionId(final String name) {
-            this.key = null;
-            this.name = name;
-        }
-
-        private boolean isKey() {
-            return key != null;
-        }
-
-        private String asString() {
-            return key != null ? "" + key : name;
-        }
-    }
 }
 
 

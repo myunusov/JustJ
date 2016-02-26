@@ -176,7 +176,7 @@ class CliMenuSpec extends Specification {
         then: "Menu returns command by command line flag"
         assert result instanceof VersionCommand;
         and: "Flag is set by field name"
-        assert result.quit
+        assert result.quiet
     }
 
     def "Should returns command if command line contains command and commands option in compact form"() {
@@ -251,26 +251,32 @@ class CliMenuSpec extends Specification {
         assert sut.makeCommand(args) instanceof HelpCommand;
     }
 
+    def "Should returns error if command line contains unknown commands option in compact form"() {
+        given: "command line without any commands flag and invalid option flag"
+        String[] args = ["-?i"]
+        when: "Client registers the command in the menu as default"
+        sut.register(HelpCommand)
+        and: "try get command from menu"
+        sut.makeCommand(args)
+        then: "Menu throws Command not Found Exception"
+        thrown InvalidCommandArgumentException;
+    }
+
     def "Should returns command if command line contains options name with options argument"() {
         given: "command line with commands flag"
         String[] args = ["--process", "--settings", "~/settings.xml"]
         when: "Client registers the command in the menu"
         sut.register(ProcessCommand)
+        and: "try get command from menu"
+        def command = sut.makeCommand(args)
         then: "Menu returns command by command line flag"
-        assert sut.makeCommand(args) instanceof ProcessCommand;
+        assert command instanceof ProcessCommand;
+        assert command.settings == "~/settings.xml"
     }
 
-    public static enum LogLevel {
-        @Key("x")
-                DEBUG,
-        @Key("q")
-        @Flag("quiet")
-                OFF,
-        INFO
-    }
 
     static abstract class TestCommand implements CliCommand {
-        boolean quit
+        boolean quiet
     }
 
     @Command("version")
@@ -284,18 +290,10 @@ class CliMenuSpec extends Specification {
     static class ProcessCommand extends TestCommand {
         boolean all
         LogLevel logLevel
+        @Option()
         String settings
     }
 
-    def "Should returns error if command line contains unknown commands option in compact form"() {
-        given: "command line without any commands flag and invalid option flag"
-        String[] args = ["-?i"]
-        when: "Client registers the command in the menu as default"
-        sut.register(HelpCommand)
-        and: "try get command from menu"
-        sut.makeCommand(args)
-        then: "Menu throws Command not Found Exception"
-        thrown InvalidCommandArgumentException;
-    }
+
 
 }

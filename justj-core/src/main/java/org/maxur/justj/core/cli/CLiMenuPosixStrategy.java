@@ -1,8 +1,6 @@
 package org.maxur.justj.core.cli;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class CLiMenuPosixStrategy implements CLiMenuStrategy {
 
@@ -40,16 +38,21 @@ public class CLiMenuPosixStrategy implements CLiMenuStrategy {
         final String[] args
     ) throws CommandFabricationException {
         T command = info.instance();
-        for (String arg : args) {
+
+        final Iterator<String> iterator = Arrays.asList(args).iterator();
+        while (iterator.hasNext()) {
+            String arg = iterator.next();
             if (isOptionName(arg)) {
-                info.setOptionByName(extractOptionName(arg), command);
+                final String name = extractOptionName(arg);
+                info.bind(command, new Argument(name, iterator));
             } else if (isOptionKey(arg)) {
                 final Collection<Character> keys = extractOptionKeys(arg);
                 for (Character key : keys) {
-                    info.setOptionByKey(key, command);
+                    info.bind(command, new Argument(key, iterator));
                 }
             }
         }
+
         return command;
     }
 
