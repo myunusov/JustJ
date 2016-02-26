@@ -17,5 +17,5 @@ public interface CLiMenuStrategy {
 
     Collection<Character> extractOptionKeys(String arg);
 
-    <T extends CliCommand> T bind(CliCommandInfo info, String[] args, T command) throws InvalidCommandArgumentException;
+    <T extends CliCommand> T bind(CliCommandInfo info, String[] args) throws CommandFabricationException;
 }

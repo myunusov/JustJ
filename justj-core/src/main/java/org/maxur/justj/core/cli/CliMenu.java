@@ -40,7 +40,7 @@ public class CliMenu {
         if (info == null) {
             throw new CommandNotFoundException(name);
         }
-        return info.copy();
+        return info.instance();
     }
 
     @SuppressWarnings("unchecked")
@@ -60,7 +60,7 @@ public class CliMenu {
             default:
                 throw moreThanOneCommandException(args, commands);
         }
-        return strategy.bind(command, args, command.copy());
+        return strategy.bind(command, args);
     }
 
     private Set<CliCommandInfo> selectCommands(final String[] args) throws CommandFabricationException {

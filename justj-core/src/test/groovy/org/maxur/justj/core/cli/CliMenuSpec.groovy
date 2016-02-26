@@ -251,6 +251,15 @@ class CliMenuSpec extends Specification {
         assert sut.makeCommand(args) instanceof HelpCommand;
     }
 
+    def "Should returns command if command line contains options name with options argument"() {
+        given: "command line with commands flag"
+        String[] args = ["--process", "--settings", "~/settings.xml"]
+        when: "Client registers the command in the menu"
+        sut.register(ProcessCommand)
+        then: "Menu returns command by command line flag"
+        assert sut.makeCommand(args) instanceof ProcessCommand;
+    }
+
     public static enum LogLevel {
         @Key("x")
                 DEBUG,
@@ -275,6 +284,7 @@ class CliMenuSpec extends Specification {
     static class ProcessCommand extends TestCommand {
         boolean all
         LogLevel logLevel
+        String settings
     }
 
     def "Should returns error if command line contains unknown commands option in compact form"() {
