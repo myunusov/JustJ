@@ -65,42 +65,24 @@ public class CliMenu {
 
     private Set<CliCommandInfo> selectCommands(final String[] args) throws CommandFabricationException {
         final Set<CliCommandInfo> result = new HashSet<>();
-        for (String arg : args) {
-            result.addAll(selectCommand(arg));
-        }
-        return result;
-    }
 
-    private Set<CliCommandInfo> selectCommand(final String arg) throws CommandFabricationException {
-        if (strategy.isOptionName(arg)) {
-            final CliCommandInfo command = getCommandByName(arg);
-            if (command != null) {
-                return Collections.singleton(command);
-            }
-        } else if (strategy.isOptionKey(arg)) {
-            return getCommandsByKey(arg);
-        }
-        return Collections.emptySet();
-    }
-
-
-    private CliCommandInfo getCommandByName(final String arg) throws CommandFabricationException {
-        final String name = strategy.extractOptionName(arg);
-        return commandsByName.get(name);
-    }
-
-    private Set<CliCommandInfo> getCommandsByKey(final String arg) throws CommandFabricationException {
-        final Set<CliCommandInfo> result = new HashSet<>();
-        final Collection<Character> keys = strategy.extractOptionKeys(arg);
-        for (Character key : keys) {
-            final CliCommandInfo command = commandsByKey.get(key);
-            if (command != null) {
-                result.add(command);
+        final ArgumentCursor cursor = ArgumentCursor.cursor(args);
+        while (cursor.hasNext()) {
+            final Argument argument = cursor.nextOption();
+            if (argument.isKey()) {
+                final CliCommandInfo command = commandsByKey.get(argument.key());
+                if (command != null) {
+                    result.add(command);
+                }
+            } else {
+                final CliCommandInfo command = commandsByName.get(argument.name());
+                if (command != null) {
+                    result.add(command);
+                }
             }
         }
         return result;
     }
-
 
     private InvalidCommandLineException moreThanOneCommandException(String[] args, Collection<CliCommandInfo> commands) {
         final Iterator<CliCommandInfo> iterator = commands.iterator();

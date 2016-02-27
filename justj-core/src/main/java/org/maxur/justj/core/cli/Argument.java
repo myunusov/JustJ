@@ -1,7 +1,5 @@
 package org.maxur.justj.core.cli;
 
-import java.util.Iterator;
-
 /**
  * @author myunusov
  * @version 1.0
@@ -13,16 +11,16 @@ class Argument {
 
     private final String name;
 
-    private final Iterator<String> iterator;
+    private final ArgumentCursor cursor;
 
-    Argument(final Character key, final Iterator<String> iterator) {
+    Argument(final Character key, final ArgumentCursor cursor) {
         this.key = key;
-        this.iterator = iterator;
+        this.cursor = cursor;
         this.name = null;
     }
 
-    Argument(final String name, final Iterator<String> iterator) {
-        this.iterator = iterator;
+    Argument(final String name, final ArgumentCursor cursor) {
+        this.cursor = cursor;
         this.key = null;
         this.name = name;
     }
@@ -43,7 +41,8 @@ class Argument {
         return name;
     }
 
-    String next() {
-        return iterator.hasNext() ? iterator.next() : null;
+    String optionArgument() {
+        return cursor.nextOptionArgument();
     }
+
 }

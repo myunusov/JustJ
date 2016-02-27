@@ -111,9 +111,9 @@ class OptionInfo {
         final boolean result = this.applicable(argument);
         if (result) {
             if (field.getType() == String.class) {
-                setOption(argument, argument.next(), command);
+                setOption(argument, argument.optionArgument(), command);
             } else {
-                makeValueAndSetIt(argument, argument.next(), command);
+                makeValueAndSetIt(argument, argument.optionArgument(), command);
             }
             return true;
         }

@@ -1,4 +1,4 @@
-package org.maxur.justj.core.commons;
+package org.maxur.justj.core.lang;
 
 /**
  * <p>A convenience class to represent name-value pairs.</p>

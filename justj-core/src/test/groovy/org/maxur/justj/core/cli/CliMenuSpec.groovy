@@ -274,6 +274,29 @@ class CliMenuSpec extends Specification {
         assert command.settings == "~/settings.xml"
     }
 
+    def "Should returns command if command line contains options key with options argument"() {
+        given: "command line with commands flag"
+        String[] args = ["--process", "-s", "~/settings.xml"]
+        when: "Client registers the command in the menu"
+        sut.register(ProcessCommand)
+        and: "try get command from menu"
+        def command = sut.makeCommand(args)
+        then: "Menu returns command by command line flag"
+        assert command instanceof ProcessCommand;
+        assert command.settings == "~/settings.xml"
+    }
+
+    def "Should returns command if command line contains options key with options argument without separator"() {
+        given: "command line with commands flag"
+        String[] args = ["--process", "-s~/settings.xml"]
+        when: "Client registers the command in the menu"
+        sut.register(ProcessCommand)
+        and: "try get command from menu"
+        def command = sut.makeCommand(args)
+        then: "Menu returns command by command line flag"
+        assert command instanceof ProcessCommand;
+        assert command.settings == "~/settings.xml"
+    }
 
     static abstract class TestCommand implements CliCommand {
         boolean quiet
