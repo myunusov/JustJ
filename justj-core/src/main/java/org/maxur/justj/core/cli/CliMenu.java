@@ -1,8 +1,15 @@
 package org.maxur.justj.core.cli;
 
+import org.maxur.justj.core.cli.strategy.CLiMenuStrategy;
+import org.maxur.justj.core.cli.exception.CommandFabricationException;
+import org.maxur.justj.core.cli.exception.InvalidCommandLineError;
+import org.maxur.justj.core.cli.info.CliCommandInfo;
+
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Arrays.stream;
 
 /**
  * @author myunusov
@@ -11,9 +18,7 @@ import static java.lang.String.format;
  */
 public class CliMenu {
 
-    private final Map<String, CliCommandInfo> commandsByName = new HashMap<>();
-
-    private final Map<Character, CliCommandInfo> commandsByKey = new HashMap<>();
+    private final Set<CliCommandInfo> commands = new HashSet<>();
 
     private CliCommandInfo defaultCommand = null;
 
@@ -24,30 +29,38 @@ public class CliMenu {
     }
 
     @SafeVarargs
-    public final void register(final Class<CliCommand>... list) {
-        for (Class<CliCommand> c : list) {
-            final CliCommandInfo info = new CliCommandInfo(c);
-            if (info.isDefault()) {
-                defaultCommand = info;
-            }
-            commandsByName.put(info.name(), info);
-            info.keys().forEach(key -> commandsByKey.put(key, info));
-        }
+    public final void register(final Class<Object>... classes) {
+        stream(classes)
+                .map(CliCommandInfo::commandInfo)
+                .forEach(commands::add);
+
+        defaultCommand = findDefaultCommand();
     }
 
-    public <T extends CliCommand> T makeCommand(final String name) throws CommandFabricationException {
-        final CliCommandInfo info = commandsByName.get(name);
-        if (info == null) {
-            throw new CommandNotFoundException(name);
+    private CliCommandInfo findDefaultCommand() {
+        final List<CliCommandInfo> defaultCommands = commands.stream()
+                .filter(CliCommandInfo::isDefault)
+                .collect(Collectors.toList());
+
+        if (defaultCommand != null) {
+            defaultCommands.add(defaultCommand);
         }
-        return info.instance();
+
+        switch (defaultCommands.size()) {
+            case 0:
+                return null;
+            case 1:
+                return defaultCommands.get(0);
+            default:
+                throw moreThanOneDefaultCommandsError(defaultCommands);
+        }
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends CliCommand> T makeCommand(final String[] args) throws CommandFabricationException {
+    public <T> T makeCommand(final String[] args) throws CommandFabricationException {
+        final Collection<CliCommandInfo> result = strategy.selectCommands(args, commands);
         CliCommandInfo command;
-        final Collection<CliCommandInfo> commands = selectCommands(args);
-        switch (commands.size()) {
+        switch (result.size()) {
             case 0:
                 if (defaultCommand == null) {
                     return null;
@@ -55,36 +68,28 @@ public class CliMenu {
                 command = defaultCommand;
                 break;
             case 1:
-                command = commands.iterator().next();
+                command = result.iterator().next();
                 break;
             default:
-                throw moreThanOneCommandException(args, commands);
+                throw moreThanOneCommandException(args, result);
         }
         return strategy.bind(command, args);
     }
 
-    private Set<CliCommandInfo> selectCommands(final String[] args) throws CommandFabricationException {
-        final Set<CliCommandInfo> result = new HashSet<>();
-
-        final ArgumentCursor cursor = ArgumentCursor.cursor(args);
-        while (cursor.hasNext()) {
-            final Argument argument = cursor.nextOption();
-            if (argument.isKey()) {
-                final CliCommandInfo command = commandsByKey.get(argument.key());
-                if (command != null) {
-                    result.add(command);
-                }
-            } else {
-                final CliCommandInfo command = commandsByName.get(argument.name());
-                if (command != null) {
-                    result.add(command);
-                }
-            }
-        }
-        return result;
+    private InvalidCommandLineError moreThanOneCommandException(String[] args, Collection<CliCommandInfo> commands) {
+        return new InvalidCommandLineError(
+                Arrays.toString(args),
+                format("You try to call commands %s simultaneously", getCommandsAsString(commands))
+        );
     }
 
-    private InvalidCommandLineException moreThanOneCommandException(String[] args, Collection<CliCommandInfo> commands) {
+    private IllegalStateException moreThanOneDefaultCommandsError(List<CliCommandInfo> defaultCommands) {
+        return new IllegalStateException(
+                format("You try to register few commands (%s) as default", getCommandsAsString(defaultCommands))
+        );
+    }
+
+    private String getCommandsAsString(Collection<CliCommandInfo> commands) {
         final Iterator<CliCommandInfo> iterator = commands.iterator();
         String result = "'" + iterator.next().name() + "'";
         while (iterator.hasNext()) {
@@ -92,10 +97,7 @@ public class CliMenu {
             String separator = iterator.hasNext() ? ", " : " and ";
             result += separator + "'" + command.name() + "'";
         }
-        return new InvalidCommandLineException(
-            Arrays.toString(args),
-            format("You try to call commands %s simultaneously",  result)
-        );
+        return result;
     }
 
 

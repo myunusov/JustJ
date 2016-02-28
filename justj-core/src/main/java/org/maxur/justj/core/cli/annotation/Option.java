@@ -1,4 +1,4 @@
-package org.maxur.justj.core.cli;
+package org.maxur.justj.core.cli.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -12,5 +12,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-@interface Operands {
+public @interface Option {
+
+    String value() default "";
 }

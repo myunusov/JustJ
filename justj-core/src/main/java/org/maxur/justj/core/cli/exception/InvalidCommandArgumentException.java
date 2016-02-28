@@ -1,4 +1,4 @@
-package org.maxur.justj.core.cli;
+package org.maxur.justj.core.cli.exception;
 
 import static java.lang.String.format;
 

@@ -1,5 +1,12 @@
 package org.maxur.justj.core.cli
 
+import org.maxur.justj.core.cli.annotation.Command
+import org.maxur.justj.core.cli.annotation.Default
+import org.maxur.justj.core.cli.annotation.Flag
+import org.maxur.justj.core.cli.annotation.Option
+import org.maxur.justj.core.cli.exception.InvalidCommandArgumentException
+import org.maxur.justj.core.cli.exception.InvalidCommandLineError
+import org.maxur.justj.core.cli.strategy.CLiMenuPosixStrategy
 import spock.lang.Specification
 /**
  * @author myunusov
@@ -12,28 +19,6 @@ class CliMenuSpec extends Specification {
 
     void setup() {
         sut = new CliMenu(new CLiMenuPosixStrategy())
-    }
-
-    def "Should registers new command and returns it by name in annotation"() {
-        when: "Client registers the command in the menu"
-        sut.register(VersionCommand)
-        then: "Menu returns command by it's name"
-        assert sut.makeCommand("version") instanceof VersionCommand;
-    }
-
-    def "Should registers new command and returns it by it's class name if annotation is not present"() {
-        when: "Client registers the command in the menu"
-        sut.register(HelpCommand)
-        then: "Menu returns command by it's name"
-        assert sut.makeCommand("help") instanceof HelpCommand;
-    }
-
-    def "Should returns error if command is not register"() {
-        when: "Client not registers the command in the menu"
-        and: "try get command from menu"
-        sut.makeCommand("help")
-        then: "Menu throws Command not Found Exception"
-        thrown CommandNotFoundException;
     }
 
     def "Should returns command if command line contains command flag"() {
@@ -62,7 +47,7 @@ class CliMenuSpec extends Specification {
         and: "try get command from menu"
         sut.makeCommand(args)
         then: "Menu throws Invalid Command Line"
-        thrown InvalidCommandLineException;
+        thrown InvalidCommandLineError;
     }
 
     def "Should returns command on valid flag only "() {
@@ -200,7 +185,7 @@ class CliMenuSpec extends Specification {
         and: "try get command from menu"
         sut.makeCommand(args)
         then: "Menu throws Invalid Command Line"
-        thrown InvalidCommandLineException;
+        thrown InvalidCommandLineError;
     }
 
     def "Should returns command if command line contains command and commands option as trigger (compact form)"() {
@@ -298,7 +283,8 @@ class CliMenuSpec extends Specification {
         assert command.settings == "~/settings.xml"
     }
 
-    static abstract class TestCommand implements CliCommand {
+    @Command
+    static abstract class TestCommand  {
         boolean quiet
     }
 

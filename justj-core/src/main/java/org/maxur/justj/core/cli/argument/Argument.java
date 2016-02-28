@@ -1,11 +1,11 @@
-package org.maxur.justj.core.cli;
+package org.maxur.justj.core.cli.argument;
 
 /**
  * @author myunusov
  * @version 1.0
  * @since <pre>26.02.2016</pre>
  */
-class Argument {
+public class Argument {
 
     private final Character key;
 
@@ -25,23 +25,23 @@ class Argument {
         this.name = name;
     }
 
-    String asString() {
+    public String asString() {
         return key != null ? "" + key : name;
     }
 
-    boolean isKey() {
+    public boolean isKey() {
         return key != null;
     }
 
-    Character key() {
+    public Character key() {
         return key;
     }
 
-    String name() {
+    public String name() {
         return name;
     }
 
-    String optionArgument() {
+    public String optionArgument() {
         return cursor.nextOptionArgument();
     }
 

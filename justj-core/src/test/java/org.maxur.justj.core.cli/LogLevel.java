@@ -1,5 +1,8 @@
 package org.maxur.justj.core.cli;
 
+import org.maxur.justj.core.cli.annotation.Flag;
+import org.maxur.justj.core.cli.annotation.Key;
+
 /**
  * @author myunusov
  * @version 1.0

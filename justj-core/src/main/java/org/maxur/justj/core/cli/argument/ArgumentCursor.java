@@ -1,4 +1,4 @@
-package org.maxur.justj.core.cli;
+package org.maxur.justj.core.cli.argument;
 
 import org.maxur.justj.core.lang.ArrayCursor;
 import org.maxur.justj.core.lang.CharacterCursor;

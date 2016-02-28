@@ -1,4 +1,4 @@
-package org.maxur.justj.core.cli;
+package org.maxur.justj.core.cli.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,12 +6,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @author myunusov
+ * @author Maxim Yunusov
  * @version 1.0
- * @since <pre>21.02.2016</pre>
+ * @since <pre>2/26/2016</pre>
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface Flag {
-    String value() default "";
+@Target({ElementType.TYPE, ElementType.FIELD})
+public @interface KeyContainer {
+    Key[] value();
 }
