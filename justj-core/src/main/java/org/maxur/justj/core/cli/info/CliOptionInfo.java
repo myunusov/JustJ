@@ -18,19 +18,24 @@ import static java.lang.String.format;
  * @version 1.0
  * @since <pre>26.02.2016</pre>
  */
-public class CliOptionInfo extends CliItemInfo {
-
-    private final Set<CliOptionInfo> children = new HashSet<>();
+public abstract class CliOptionInfo extends CliItemInfo {
 
     private CliOptionInfo(final Field field, final OptionType type) {
         super(field, type);
-        if (type == OptionType.TRIGGER) {
-            this.children.addAll(findChildren(field));
-        }
     }
 
-    CliOptionInfo(final Field field) {
-        this(field, detectType(field));
+    static CliOptionInfo option(final Field field) {
+        final OptionType type = detectType(field);
+        switch (type) {
+            case FLAG:
+                return new FlagInfo(field);
+            case TRIGGER:
+                return new TriggerInfo(field);
+            case OPTION:
+                return new OptionInfo(field);
+            default:
+                return new NoneInfo(field);
+        }
     }
 
     private static OptionType detectType(final Field field) {
@@ -50,16 +55,6 @@ public class CliOptionInfo extends CliItemInfo {
         return field.getType() == boolean.class || field.getType() == Boolean.class;
     }
 
-    private static Set<CliOptionInfo> findChildren(final Field field) {
-        final Set<CliOptionInfo> result = new HashSet<>();
-        for (Field f : field.getType().getDeclaredFields()) {
-            if (f.isEnumConstant()) {
-                result.add(new CliOptionInfo(f, OptionType.NONE));
-            }
-        }
-        return result;
-    }
-
     @Override
     protected String findName() {
         if (field().isAnnotationPresent(Flag.class)) {
@@ -73,66 +68,10 @@ public class CliOptionInfo extends CliItemInfo {
         return field().getName().toLowerCase();
     }
 
-    boolean apply(final Argument argument, final Object command) throws InvalidCommandArgumentException {
-        switch (type()) {
-            case FLAG:
-                return applyToFlag(argument, command);
-            case TRIGGER:
-                return applyToTrigger(argument, command);
-            case OPTION:
-                return applyToOption(argument, command);
-            default:
-                return false;
-        }
-    }
-
-    private boolean applyToOption(
-            final Argument argument,
-            final Object command
-    ) throws InvalidCommandArgumentException {
-        final boolean result = this.applicable(argument);
-        if (result) {
-            if (field().getType() == String.class) {
-                setOption(argument, argument.optionArgument(), command);
-            } else {
-                makeValueAndSetIt(argument, argument.optionArgument(), command);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private boolean applyToFlag(
-            final Argument argument,
-            final Object command
-    ) throws InvalidCommandArgumentException {
-        final boolean result = this.applicable(argument);
-        if (result) {
-            setOption(argument, true, command);
-            return true;
-        }
-        return false;
-    }
-
-    private boolean applyToTrigger(
-            final Argument argument,
-            final Object command
-    ) throws InvalidCommandArgumentException {
-        for (CliOptionInfo child : children) {
-            final boolean result = child.applicable(argument);
-            if (result) {
-                makeValueAndSetIt(argument, child.field().getName(), command);
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-    private void makeValueAndSetIt(
-            final Argument argument,
-            final String value,
-            final Object command
+    protected void makeValueAndSetIt(
+        final Argument argument,
+        final String value,
+        final Object command
     ) throws InvalidCommandArgumentException {
         try {
             final Method valueOf = this.field().getType().getMethod("valueOf", String.class);
@@ -143,23 +82,106 @@ public class CliOptionInfo extends CliItemInfo {
         }
     }
 
-
-    private void setOption(
-            final Argument argument,
-            final Object value,
-            final Object command
+    protected void setOption(
+        final Argument argument,
+        final Object value,
+        final Object command
     ) throws InvalidCommandArgumentException {
         this.field().setAccessible(true);
         try {
             this.field().set(command, value);
         } catch (IllegalAccessException e) {
             throw new InvalidCommandArgumentException(
-                    this.name(),
-                    argument.asString(),
-                    format("Illegal access to field %s", this.field().getName())
-                    , e
+                this.name(),
+                argument.asString(),
+                format("Illegal access to field %s", this.field().getName())
+                , e
             );
         }
     }
 
+    abstract boolean apply(Argument argument, Object command) throws InvalidCommandArgumentException;
+
+    private static class FlagInfo extends CliOptionInfo {
+        private FlagInfo(final Field field) {
+            super(field, OptionType.FLAG);
+        }
+
+        @Override
+        boolean apply(final Argument argument, final Object command) throws InvalidCommandArgumentException {
+            final boolean result = this.applicable(argument);
+            if (result) {
+                setOption(argument, true, command);
+                return true;
+            }
+            return false;
+        }
+
+    }
+
+    private static class TriggerInfo extends CliOptionInfo {
+
+        private final Set<CliOptionInfo> children = new HashSet<>();
+
+        private TriggerInfo(final Field field) {
+            super(field, OptionType.TRIGGER);
+            this.children.addAll(findChildren(field));
+        }
+
+        private static Set<CliOptionInfo> findChildren(final Field field) {
+            final Set<CliOptionInfo> result = new HashSet<>();
+            for (Field f : field.getType().getDeclaredFields()) {
+                if (f.isEnumConstant()) {
+                    result.add(new NoneInfo(f));
+                }
+            }
+            return result;
+        }
+
+        @Override
+        boolean apply(final Argument argument, final Object command) throws InvalidCommandArgumentException {
+            for (CliOptionInfo child : children) {
+                final boolean result = child.applicable(argument);
+                if (result) {
+                    makeValueAndSetIt(argument, child.field().getName(), command);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+    }
+
+    private static class OptionInfo extends CliOptionInfo {
+        private OptionInfo(final Field field) {
+            super(field, OptionType.OPTION);
+        }
+
+        @Override
+        boolean apply(final Argument argument, final Object command) throws InvalidCommandArgumentException {
+            final boolean result = this.applicable(argument);
+            if (result) {
+                if (field().getType() == String.class) {
+                    setOption(argument, argument.optionArgument(), command);
+                } else {
+                    makeValueAndSetIt(argument, argument.optionArgument(), command);
+                }
+                return true;
+            }
+            return false;
+        }
+
+    }
+
+    private static class NoneInfo extends CliOptionInfo {
+        private NoneInfo(final Field field) {
+            super(field, OptionType.NONE);
+        }
+
+        @Override
+        boolean apply(final Argument argument, final Object command) throws InvalidCommandArgumentException {
+            return false;
+        }
+
+    }
 }

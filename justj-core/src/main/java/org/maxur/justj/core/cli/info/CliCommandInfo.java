@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static java.lang.String.format;
+import static org.maxur.justj.core.cli.info.CliOptionInfo.option;
 
 /**
  * @author Maxim Yunusov
@@ -73,7 +74,7 @@ public class CliCommandInfo extends CliItemInfo {
             return;
         }
         for (Field field : commandClass.getDeclaredFields()) {
-            options.add(new CliOptionInfo(field));
+            options.add(option(field));
         }
         findFields(commandClass.getSuperclass());
     }
