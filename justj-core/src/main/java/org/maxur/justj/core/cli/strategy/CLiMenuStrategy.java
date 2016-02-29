@@ -14,5 +14,5 @@ public interface CLiMenuStrategy {
 
     Set<CliCommandInfo> selectCommands(String[] args, Set<CliCommandInfo> commands) throws CommandFabricationException;
 
-    <T> T bind(CliCommandInfo info, String[] args) throws CommandFabricationException;
+    <T> T bind(CliCommandInfo info, String[] args, Set<CliCommandInfo> commands) throws CommandFabricationException;
 }

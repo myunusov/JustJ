@@ -18,7 +18,7 @@ import static java.lang.String.format;
  * @version 1.0
  * @since <pre>26.02.2016</pre>
  */
-class CliOptionInfo extends CliItemInfo {
+public class CliOptionInfo extends CliItemInfo {
 
     private final Set<CliOptionInfo> children = new HashSet<>();
 

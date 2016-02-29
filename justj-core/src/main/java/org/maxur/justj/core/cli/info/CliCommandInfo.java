@@ -112,6 +112,9 @@ public class CliCommandInfo extends CliItemInfo {
     }
 
 
+    public Set<CliOptionInfo> options() {
+        return this.options;
+    }
 }
 
 

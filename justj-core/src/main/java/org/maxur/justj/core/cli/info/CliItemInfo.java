@@ -107,7 +107,7 @@ public abstract class CliItemInfo {
         return name;
     }
 
-    OptionType type() {
+    public OptionType type() {
         return type;
     }
 
@@ -119,11 +119,4 @@ public abstract class CliItemInfo {
         return commandClass;
     }
 
-    enum OptionType {
-        NONE,
-        FLAG,
-        TRIGGER,
-        OPTION,
-        COMMAND
-    }
 }

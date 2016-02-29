@@ -1,5 +1,7 @@
-package org.maxur.justj.core.cli.argument;
+package org.maxur.justj.core.cli.strategy;
 
+import org.maxur.justj.core.cli.argument.Argument;
+import org.maxur.justj.core.cli.info.OptionType;
 import org.maxur.justj.core.lang.ArrayCursor;
 import org.maxur.justj.core.lang.CharacterCursor;
 import org.maxur.justj.core.lang.Cursor;
@@ -21,14 +23,21 @@ public class ArgumentCursor {
 
     private final Cursor<String> argCursor;
 
+    private final OptionDetector detector;
+
     private CharacterCursor keyCursor = NULL_CURSOR;
 
-    private ArgumentCursor(final Cursor<String> cursor) {
+    private ArgumentCursor(final Cursor<String> cursor, OptionDetector detector) {
         this.argCursor = cursor;
+        this.detector = detector;
     }
 
-    public static ArgumentCursor cursor(final String[] items) {
-        return new ArgumentCursor(ArrayCursor.cursor(items));
+    public static ArgumentCursor cursor(final String[] items, final OptionDetector detector) {
+        return new ArgumentCursor(ArrayCursor.cursor(items), detector);
+    }
+
+    public boolean hasNext() {
+        return argCursor.hasNext() || (keyCursor.hasNext());
     }
 
     private boolean isOptionName(final String arg) {
@@ -47,10 +56,6 @@ public class ArgumentCursor {
         return arg.substring(KEY_PREFIX.length());
     }
 
-    public boolean hasNext() {
-        return argCursor.hasNext() || (keyCursor.hasNext());
-    }
-
     public Argument nextOption() {
         if (keyCursor.hasNext()) {
             return nextKey();
@@ -61,11 +66,19 @@ public class ArgumentCursor {
 
     private Argument nextArgument() {
         argCursor.next();
+        final Argument argument = makeArgument();
+        if (detector.findInfoBy(argument, OptionType.OPTION)) {
+            argument.setOptionArgument(nextOptionArgument());
+        }
+        return argument;
+    }
+
+    private Argument makeArgument() {
         final String arg = argCursor.current();
         if (isOptionName(arg)) {
             final String name = extractOptionName(arg);
             keyCursor = NULL_CURSOR;
-            return new Argument(name, this);
+            return new Argument(name);
         } else if (isOptionKey(arg)) {
             keyCursor = CharacterCursor.cursor(extractOptionKeys(arg));
             if (keyCursor.hasNext()) {
@@ -77,10 +90,10 @@ public class ArgumentCursor {
 
     private Argument nextKey() {
         keyCursor.next();
-        return new Argument(keyCursor.current(), this);
+        return new Argument(keyCursor.current());
     }
 
-    public String nextOptionArgument() {
+    private String nextOptionArgument() {
         if (keyCursor.hasNext()) {
             keyCursor.next();
             final String result = argCursor.current().substring(keyCursor.position() + 1);

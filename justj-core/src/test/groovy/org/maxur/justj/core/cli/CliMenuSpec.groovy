@@ -6,7 +6,6 @@ import org.maxur.justj.core.cli.annotation.Flag
 import org.maxur.justj.core.cli.annotation.Option
 import org.maxur.justj.core.cli.exception.InvalidCommandArgumentException
 import org.maxur.justj.core.cli.exception.InvalidCommandLineError
-import org.maxur.justj.core.cli.strategy.CLiMenuPosixStrategy
 import spock.lang.Specification
 /**
  * @author myunusov
@@ -18,7 +17,7 @@ class CliMenuSpec extends Specification {
     private CliMenu sut
 
     void setup() {
-        sut = new CliMenu(new CLiMenuPosixStrategy())
+        sut = new CliMenu()
     }
 
     def "Should returns command if command line contains command flag"() {

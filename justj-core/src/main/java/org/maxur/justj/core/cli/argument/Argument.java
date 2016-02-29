@@ -11,16 +11,14 @@ public class Argument {
 
     private final String name;
 
-    private final ArgumentCursor cursor;
+    private String optionArgument;
 
-    Argument(final Character key, final ArgumentCursor cursor) {
+    public Argument(final Character key) {
         this.key = key;
-        this.cursor = cursor;
         this.name = null;
     }
 
-    Argument(final String name, final ArgumentCursor cursor) {
-        this.cursor = cursor;
+    public Argument(final String name) {
         this.key = null;
         this.name = name;
     }
@@ -42,7 +40,10 @@ public class Argument {
     }
 
     public String optionArgument() {
-        return cursor.nextOptionArgument();
+        return optionArgument;
     }
 
+    public void setOptionArgument(final String optionArgument) {
+        this.optionArgument = optionArgument;
+    }
 }
