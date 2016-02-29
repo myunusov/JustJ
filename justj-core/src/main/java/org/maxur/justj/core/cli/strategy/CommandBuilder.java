@@ -47,7 +47,9 @@ public class CommandBuilder {
         }
         T command = info.instance();
         for (Argument argument : arguments) {
-            info.bind(command, argument);
+            if (argument.isOperator()) {
+                info.bind(command, argument);
+            }
         }
         return command;
     }

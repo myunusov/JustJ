@@ -13,6 +13,11 @@ public class Argument {
 
     private String optionArgument;
 
+    public Argument() {
+        this.key = null;
+        this.name = null;
+    }
+
     public Argument(final Character key) {
         this.key = key;
         this.name = null;
@@ -45,5 +50,9 @@ public class Argument {
 
     public void setOptionArgument(final String optionArgument) {
         this.optionArgument = optionArgument;
+    }
+
+    public boolean isOperator() {
+        return key != null || name != null;
     }
 }

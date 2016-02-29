@@ -64,7 +64,7 @@ public class CliMenu implements OptionDetector {
         final ArgumentCursor cursor = ArgumentCursor.cursor(args, this);
         final CommandBuilder builder = new CommandBuilder(this);
         while (cursor.hasNext()) {
-            final Argument argument = cursor.nextOption();
+            final Argument argument = cursor.next();
             builder.add(argument);
         }
         final Collection<CliCommandInfo> result = builder.commandsCandidates();
