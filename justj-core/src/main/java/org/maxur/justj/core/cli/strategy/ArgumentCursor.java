@@ -73,6 +73,8 @@ public class ArgumentCursor {
         final Argument argument = makeArgument();
         if (detector.findInfoBy(argument, OptionType.OPTION)) {
             argument.setOptionArgument(nextOptionArgument());
+        } else if (detector.findInfoBy(argument, OptionType.LIST)) {
+            argument.setOptionArgument(nextOptionArgument());
         }
         return argument;
     }

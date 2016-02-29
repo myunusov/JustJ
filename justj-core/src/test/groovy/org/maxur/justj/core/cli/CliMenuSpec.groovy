@@ -108,13 +108,13 @@ class CliMenuSpec extends Specification {
 
     def "Should returns command if command line contains command and commands option without flag annotation"() {
         given: "command line with any commands flag and option flag"
-        String[] args = ["--process", "--all"]
+        String[] args = ["--build", "--all"]
         when: "Client registers the command in the menu as default"
-        sut.register(ProcessCommand)
+        sut.register(BuildCommand)
         and: "try get command from menu"
-        ProcessCommand result = sut.makeCommand(args)
+        BuildCommand result = sut.makeCommand(args)
         then: "Menu returns command by command line flag"
-        assert result instanceof ProcessCommand;
+        assert result instanceof BuildCommand;
         and: "Flag is set by field name"
         assert result.all
     }
@@ -189,39 +189,39 @@ class CliMenuSpec extends Specification {
 
     def "Should returns command if command line contains command and commands option as trigger (compact form)"() {
         given: "command line with any commands flag and option flag"
-        String[] args = ["-px"]
+        String[] args = ["-bx"]
         when: "Client registers the command in the menu as default"
-        sut.register(ProcessCommand)
+        sut.register(BuildCommand)
         and: "try get command from menu"
-        ProcessCommand result = sut.makeCommand(args)
+        BuildCommand result = sut.makeCommand(args)
         then: "Menu returns command by command line flag"
-        assert result instanceof ProcessCommand;
+        assert result instanceof BuildCommand;
         and: "Flag is set by field name"
         assert result.logLevel == LogLevel.DEBUG
     }
 
     def "Should returns command if command line contains command and commands option as trigger"() {
         given: "command line with any commands flag and option flag"
-        String[] args = ["-p", "--debug"]
+        String[] args = ["-b", "--debug"]
         when: "Client registers the command in the menu as default"
-        sut.register(ProcessCommand)
+        sut.register(BuildCommand)
         and: "try get command from menu"
-        ProcessCommand result = sut.makeCommand(args)
+        BuildCommand result = sut.makeCommand(args)
         then: "Menu returns command by command line flag"
-        assert result instanceof ProcessCommand;
+        assert result instanceof BuildCommand;
         and: "Flag is set by field name"
         assert result.logLevel == LogLevel.DEBUG
     }
 
     def "Should returns command if command line contains command and commands option as trigger with flag"() {
         given: "command line with any commands flag and option flag"
-        String[] args = ["-p", "--quiet"]
+        String[] args = ["-b", "--quiet"]
         when: "Client registers the command in the menu as default"
-        sut.register(ProcessCommand)
+        sut.register(BuildCommand)
         and: "try get command from menu"
-        ProcessCommand result = sut.makeCommand(args)
+        BuildCommand result = sut.makeCommand(args)
         then: "Menu returns command by command line flag"
-        assert result instanceof ProcessCommand;
+        assert result instanceof BuildCommand;
         and: "Flag is set by field name"
         assert result.logLevel == LogLevel.OFF
     }
@@ -248,50 +248,62 @@ class CliMenuSpec extends Specification {
 
     def "Should returns command if command line contains options name with options argument"() {
         given: "command line with commands flag"
-        String[] args = ["--process", "--settings", "~/settings.xml"]
+        String[] args = ["--build", "--settings", "~/settings.xml"]
         when: "Client registers the command in the menu"
-        sut.register(ProcessCommand)
+        sut.register(BuildCommand)
         and: "try get command from menu"
         def command = sut.makeCommand(args)
         then: "Menu returns command by command line flag"
-        assert command instanceof ProcessCommand;
+        assert command instanceof BuildCommand;
         assert command.settings == "~/settings.xml"
     }
 
     def "Should returns command if command line contains options key with options argument"() {
         given: "command line with commands flag"
-        String[] args = ["--process", "-s", "~/settings.xml"]
+        String[] args = ["--build", "-s", "~/settings.xml"]
         when: "Client registers the command in the menu"
-        sut.register(ProcessCommand)
+        sut.register(BuildCommand)
         and: "try get command from menu"
         def command = sut.makeCommand(args)
         then: "Menu returns command by command line flag"
-        assert command instanceof ProcessCommand;
+        assert command instanceof BuildCommand;
         assert command.settings == "~/settings.xml"
     }
 
     def "Should returns command if command line contains options key with options argument without separator"() {
         given: "command line with commands flag"
-        String[] args = ["--process", "-s~/settings.xml"]
+        String[] args = ["--build", "-s~/settings.xml"]
         when: "Client registers the command in the menu"
-        sut.register(ProcessCommand)
+        sut.register(BuildCommand)
         and: "try get command from menu"
         def command = sut.makeCommand(args)
         then: "Menu returns command by command line flag"
-        assert command instanceof ProcessCommand;
+        assert command instanceof BuildCommand;
         assert command.settings == "~/settings.xml"
     }
 
     def "Should returns command if command line contains options key with options argument as string"() {
         given: "command line with commands flag"
-        String[] args = ["--process", "-m", "\"This", "text", "is", "option's", "argument\""]
+        String[] args = ["--build", "-m", "\"This", "text", "is", "option's", "argument\""]
         when: "Client registers the command in the menu"
-        sut.register(ProcessCommand)
+        sut.register(BuildCommand)
         and: "try get command from menu"
         def command = sut.makeCommand(args)
         then: "Menu returns command by command line flag"
-        assert command instanceof ProcessCommand;
+        assert command instanceof BuildCommand;
         assert command.message == "This text is option's argument"
+    }
+
+    def "Should returns command if command line contains options key with options argument as list"() {
+        given: "command line with commands flag"
+        String[] args = ["--build", "-p", "dev,", "qa", ",", "test", "ci,prod"]
+        when: "Client registers the command in the menu"
+        sut.register(BuildCommand)
+        and: "try get command from menu"
+        def command = sut.makeCommand(args)
+        then: "Menu returns command by command line flag"
+        assert command instanceof BuildCommand;
+        assert command.profiles == ["dev","qa","test","ci","prod"]
     }
 
     @Command
@@ -306,14 +318,28 @@ class CliMenuSpec extends Specification {
     }
 
     @Command
-    @Default
-    static class ProcessCommand extends TestCommand {
+
+    static class BuildCommand extends TestCommand {
         boolean all
         LogLevel logLevel
         @Option()
         String settings
         @Option()
         String message
+        @Option()
+        List<String> profiles
+    }
+
+    @Command
+    static class DeployCommand extends TestCommand {
+        @Option()
+        List<String> profiles
+    }
+
+
+    @Command
+    @Default
+    static class ProcessCommand extends TestCommand {
     }
 
 

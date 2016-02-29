@@ -10,5 +10,6 @@ public enum OptionType {
     FLAG,
     TRIGGER,
     OPTION,
+    LIST,
     COMMAND
 }
