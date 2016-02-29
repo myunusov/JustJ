@@ -19,6 +19,10 @@ public class ArgumentCursor {
 
     private static final String KEY_PREFIX = "-";
 
+    private static final String TEXT_START_SYMBOL = "\"";
+
+    private static final String TEXT_END_SYMBOL = "\"";
+
     private static final CharacterCursor NULL_CURSOR = CharacterCursor.cursor("");
 
     private final Cursor<String> argCursor;
@@ -85,7 +89,7 @@ public class ArgumentCursor {
                 return nextKey();
             }
         }
-        throw new IllegalStateException(format("argument %s is invalid", arg));
+        throw new IllegalStateException(format("argument '%s' is invalid", arg));
     }
 
     private Argument nextKey() {
@@ -102,10 +106,29 @@ public class ArgumentCursor {
         } else {
             if (argCursor.hasNext()) {
                 argCursor.next();
-                return argCursor.current();
+                final String current = argCursor.current();
+                if (current.startsWith(TEXT_START_SYMBOL)) {
+                    return nextText();
+                }
+                return current;
             } else {
                 return null;
             }
         }
+    }
+
+    private String nextText() {
+        String result = argCursor.current().substring(1);
+        while (!argCursor.current().endsWith(TEXT_END_SYMBOL)) {
+            if (argCursor.hasNext()) {
+                argCursor.next();
+                result += " ";
+                result += argCursor.current();
+            } else {
+                // TODO
+                throw new IllegalArgumentException("");
+            }
+        }
+        return result.substring(0, result.length() - 1);
     }
 }

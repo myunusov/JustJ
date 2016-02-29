@@ -282,6 +282,18 @@ class CliMenuSpec extends Specification {
         assert command.settings == "~/settings.xml"
     }
 
+    def "Should returns command if command line contains options key with options argument as string"() {
+        given: "command line with commands flag"
+        String[] args = ["--process", "-m", "\"This", "text", "is", "option's", "argument\""]
+        when: "Client registers the command in the menu"
+        sut.register(ProcessCommand)
+        and: "try get command from menu"
+        def command = sut.makeCommand(args)
+        then: "Menu returns command by command line flag"
+        assert command instanceof ProcessCommand;
+        assert command.message == "This text is option's argument"
+    }
+
     @Command
     static abstract class TestCommand  {
         boolean quiet
@@ -300,6 +312,8 @@ class CliMenuSpec extends Specification {
         LogLevel logLevel
         @Option()
         String settings
+        @Option()
+        String message
     }
 
 
